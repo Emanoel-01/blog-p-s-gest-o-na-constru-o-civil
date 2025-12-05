@@ -1,0 +1,3036 @@
+
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Shield, Plus, Edit, Trash2, Save, X, ExternalLink, Upload, Sparkles, Star, CheckCircle, Calendar, Download } from 'lucide-react';
+import { toast } from 'sonner';
+
+import DetailedReport from '../components/admin/DetailedReport';
+import ManagerialReport from '../components/admin/ManagerialReport';
+
+export default function AdminPage() {
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('ciclos');
+  
+  // Ciclos state
+  const [editingCiclo, setEditingCiclo] = useState(null);
+  const [showCicloForm, setShowCicloForm] = useState(false);
+  const [cicloForm, setCicloForm] = useState({
+    nome: '',
+    carga_horaria: '',
+    disciplinas: '',
+    ordem: 0
+  });
+
+  // Especializações state
+  const [editingEspec, setEditingEspec] = useState(null);
+  const [showEspecForm, setShowEspecForm] = useState(false);
+  const [especForm, setEspecForm] = useState({
+    nome: '',
+    carga_horaria_total: '',
+    ciclos: [],
+    professores: [],
+    parceiros: [],
+    tecnologias: [],
+    link_externo: '',
+    link_inscricao: '',
+    link_matricula: '',
+    resumo: '',
+    descricao_completa_ia: '',
+    periodo_inscricao: '',
+    data_inicio: '',
+    status_inscricao: 'Inscrições Abertas',
+    condicoes_pagamento: [],
+    formato_aulas: [],
+    dias_aulas: [],
+    horario_inicio: '',
+    horario_fim: '',
+    duracao_meses: '',
+    ordem: 0
+  });
+  const [generatingResumo, setGeneratingResumo] = useState(false);
+
+  // Parceiros state
+  const [editingParceiro, setEditingParceiro] = useState(null);
+  const [showParceiroForm, setShowParceiroForm] = useState(false);
+  const [parceiroForm, setParceiroForm] = useState({
+    nome: '',
+    tipos_parceria: [],
+    logo_url: '',
+    instagram: '',
+    linkedin: '',
+    site: '',
+    especializacoes: [], // Added especializacoes
+    ordem: 0
+  });
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [selectedTiposParceria, setSelectedTiposParceria] = useState({});
+
+  // Tecnologias state
+  const [editingTecnologia, setEditingTecnologia] = useState(null);
+  const [showTecnologiaForm, setShowTecnologiaForm] = useState(false);
+  const [tecnologiaForm, setTecnologiaForm] = useState({
+    nome: '',
+    especializacoes: [], // Added especializacoes
+    ordem: 0
+  });
+
+  // Professores state
+  const [editingProfessor, setEditingProfessor] = useState(null);
+  const [showProfessorForm, setShowProfessorForm] = useState(false);
+  const [professorForm, setProfessorForm] = useState({
+    nome: '',
+    titulo: '',
+    foto_url: '',
+    instagram: '',
+    linkedin: '',
+    lattes: '',
+    site: '',
+    especializacoes: [], // Added especializacoes
+    ordem: 0
+  });
+  const [uploadingFotoProfessor, setUploadingFotoProfessor] = useState(false);
+
+  // Nova State para Análise de Cursos
+  const [analiseForm, setAnaliseForm] = useState({
+    nome_proposto: '',
+    ciclos_selecionados: [],
+    especializacao_existente_id: null // Added for re-evaluation
+  });
+  const [analiseResult, setAnaliseResult] = useState(null);
+  const [loadingAnalise, setLoadingAnalise] = useState(false);
+
+  // Novo estado para gerenciar disciplinas editáveis e selecionadas
+  const [disciplinasEditaveis, setDisciplinasEditaveis] = useState({});
+  const [disciplinasSelecionadas, setDisciplinasSelecionadas] = useState({});
+  const [incluindoDisciplinas, setIncluindoDisciplinas] = useState({});
+
+  // Queries
+  const { data: ciclos = [], isLoading: loadingCiclos } = useQuery({
+    queryKey: ['ciclos'],
+    queryFn: () => base44.entities.Ciclo.list('ordem')
+  });
+
+  const { data: especializacoes = [], isLoading: loadingEspec } = useQuery({
+    queryKey: ['especializacoes'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
+  });
+
+  const { data: professores = [], isLoading: loadingProf } = useQuery({
+    queryKey: ['professores'],
+    queryFn: () => base44.entities.Professor.list('ordem')
+  });
+
+  const { data: parceiros = [], isLoading: loadingParceiros } = useQuery({
+    queryKey: ['parceiros'],
+    queryFn: () => base44.entities.Parceiro.list('ordem')
+  });
+
+  const { data: tecnologias = [], isLoading: loadingTecnologias } = useQuery({
+    queryKey: ['tecnologias'],
+    queryFn: () => base44.entities.Tecnologia.list('ordem')
+  });
+
+  const { data: posts = [], isLoading: loadingPosts } = useQuery({
+    queryKey: ['posts'],
+    queryFn: () => base44.entities.Post.list('-created_date')
+  });
+
+  // Auto-calcular carga horária quando ciclos mudam
+  useEffect(() => {
+    if (especForm.ciclos.length > 0 && ciclos.length > 0) {
+      const totalHoras = especForm.ciclos.reduce((sum, cicloId) => {
+        const ciclo = ciclos.find(c => c.id === cicloId);
+        return sum + (ciclo?.carga_horaria || 0);
+      }, 0);
+      setEspecForm(prev => ({ ...prev, carga_horaria_total: totalHoras.toString() }));
+    }
+  }, [especForm.ciclos, ciclos]);
+
+  // ========== MUTATIONS PARA CICLOS ==========
+  const createCicloMutation = useMutation({
+    mutationFn: (data) => base44.entities.Ciclo.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ciclos'] });
+      resetCicloForm();
+      toast.success('Ciclo criado com sucesso!');
+    }
+  });
+
+  const updateCicloMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Ciclo.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ciclos'] });
+      setEditingCiclo(null);
+      toast.success('Ciclo atualizado com sucesso!');
+    }
+  });
+
+  const deleteCicloMutation = useMutation({
+    mutationFn: (id) => base44.entities.Ciclo.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ciclos'] });
+      toast.success('Ciclo removido com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA ESPECIALIZAÇÕES ==========
+  const createEspecMutation = useMutation({
+    mutationFn: (data) => base44.entities.Especializacao.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['especializacoes'] });
+      resetEspecForm();
+      toast.success('Especialização criada com sucesso!');
+    }
+  });
+
+  const updateEspecMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Especializacao.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['especializacoes'] });
+      setEditingEspec(null);
+      toast.success('Especialização atualizada com sucesso!');
+    }
+  });
+
+  const deleteEspecMutation = useMutation({
+    mutationFn: (id) => base44.entities.Especializacao.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['especializacoes'] });
+      toast.success('Especialização removida com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA PARCEIROS ==========
+  const createParceiroMutation = useMutation({
+    mutationFn: (data) => base44.entities.Parceiro.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['parceiros'] });
+      resetParceiroForm();
+      toast.success('Parceiro criado com sucesso!');
+    }
+  });
+
+  const updateParceiroMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Parceiro.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['parceiros'] });
+      setEditingParceiro(null);
+      toast.success('Parceiro atualizado com sucesso!');
+    }
+  });
+
+  const deleteParceiroMutation = useMutation({
+    mutationFn: (id) => base44.entities.Parceiro.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['parceiros'] });
+      toast.success('Parceiro removido com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA TECNOLOGIAS ==========
+  const createTecnologiaMutation = useMutation({
+    mutationFn: (data) => base44.entities.Tecnologia.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tecnologias'] });
+      resetTecnologiaForm();
+      toast.success('Tecnologia criada com sucesso!');
+    }
+  });
+
+  const updateTecnologiaMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Tecnologia.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tecnologias'] });
+      setEditingTecnologia(null);
+      toast.success('Tecnologia atualizada com sucesso!');
+    }
+  });
+
+  const deleteTecnologiaMutation = useMutation({
+    mutationFn: (id) => base44.entities.Tecnologia.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tecnologias'] });
+      toast.success('Tecnologia removida com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA PROFESSORES ==========
+  const createProfessorMutation = useMutation({
+    mutationFn: (data) => base44.entities.Professor.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['professores'] });
+      resetProfessorForm();
+      toast.success('Professor criado com sucesso!');
+    }
+  });
+
+  const updateProfessorMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Professor.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['professores'] });
+      setEditingProfessor(null);
+      toast.success('Professor atualizado com sucesso!');
+    }
+  });
+
+  const deleteProfessorMutation = useMutation({
+    mutationFn: (id) => base44.entities.Professor.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['professores'] });
+      toast.success('Professor removido com sucesso!');
+    }
+  });
+
+  // ========== HANDLERS PARA CICLOS ==========
+  const resetCicloForm = () => {
+    setCicloForm({ nome: '', carga_horaria: '', disciplinas: '', ordem: 0 });
+    setShowCicloForm(false);
+    setEditingCiclo(null);
+  };
+
+  const handleSaveCiclo = () => {
+    const disciplinasArray = cicloForm.disciplinas
+      .split('\n')
+      .map(d => d.trim())
+      .filter(d => d);
+
+    const data = {
+      nome: cicloForm.nome,
+      carga_horaria: parseInt(cicloForm.carga_horaria),
+      disciplinas: disciplinasArray,
+      ordem: parseInt(cicloForm.ordem) || 0
+    };
+
+    if (editingCiclo) {
+      updateCicloMutation.mutate({ id: editingCiclo.id, data });
+    } else {
+      createCicloMutation.mutate(data);
+    }
+  };
+
+  const handleEditCiclo = (ciclo) => {
+    setCicloForm({
+      nome: ciclo.nome,
+      carga_horaria: ciclo.carga_horaria.toString(),
+      disciplinas: ciclo.disciplinas?.join('\n') || '',
+      ordem: ciclo.ordem || 0
+    });
+    setEditingCiclo(ciclo);
+    setShowCicloForm(true);
+  };
+
+  const handleDeleteCiclo = (id) => {
+    if (window.confirm('Tem certeza que deseja remover este ciclo?')) {
+      deleteCicloMutation.mutate(id);
+    }
+  };
+
+  // ========== HANDLERS PARA ESPECIALIZAÇÕES ==========
+  const resetEspecForm = () => {
+    setEspecForm({
+      nome: '',
+      carga_horaria_total: '',
+      ciclos: [],
+      professores: [],
+      parceiros: [],
+      tecnologias: [],
+      link_externo: '',
+      link_inscricao: '',
+      link_matricula: '',
+      resumo: '',
+      descricao_completa_ia: '',
+      periodo_inscricao: '',
+      data_inicio: '',
+      status_inscricao: 'Inscrições Abertas',
+      condicoes_pagamento: [],
+      formato_aulas: [],
+      dias_aulas: [],
+      horario_inicio: '',
+      horario_fim: '',
+      duracao_meses: '',
+      ordem: 0
+    });
+    setShowEspecForm(false);
+    setEditingEspec(null);
+  };
+
+  const handleSaveEspec = () => {
+    const data = {
+      nome: especForm.nome,
+      carga_horaria_total: parseInt(especForm.carga_horaria_total),
+      ciclos: especForm.ciclos,
+      professores: especForm.professores,
+      parceiros: especForm.parceiros,
+      tecnologias: especForm.tecnologias,
+      link_externo: especForm.link_externo,
+      link_inscricao: especForm.link_inscricao,
+      link_matricula: especForm.link_matricula,
+      resumo: especForm.resumo,
+      descricao_completa_ia: especForm.descricao_completa_ia,
+      periodo_inscricao: especForm.periodo_inscricao,
+      data_inicio: especForm.data_inicio,
+      status_inscricao: especForm.status_inscricao,
+      condicoes_pagamento: especForm.condicoes_pagamento,
+      formato_aulas: especForm.formato_aulas,
+      dias_aulas: especForm.dias_aulas,
+      horario_inicio: especForm.horario_inicio,
+      horario_fim: especForm.horario_fim,
+      duracao_meses: parseInt(especForm.duracao_meses) || 0,
+      ordem: parseInt(especForm.ordem) || 0
+    };
+
+    if (editingEspec) {
+      updateEspecMutation.mutate({ id: editingEspec.id, data });
+    } else {
+      createEspecMutation.mutate(data);
+    }
+  };
+
+  const handleEditEspec = (espec) => {
+    setEspecForm({
+      nome: espec.nome,
+      carga_horaria_total: espec.carga_horaria_total?.toString() || '',
+      ciclos: espec.ciclos || [],
+      professores: espec.professores || [],
+      parceiros: espec.parceiros || [],
+      tecnologias: espec.tecnologias || [],
+      link_externo: espec.link_externo || '',
+      link_inscricao: espec.link_inscricao || '',
+      link_matricula: espec.link_matricula || '',
+      resumo: espec.resumo || '',
+      descricao_completa_ia: espec.descricao_completa_ia || '',
+      periodo_inscricao: espec.periodo_inscricao || '',
+      data_inicio: espec.data_inicio || '',
+      status_inscricao: espec.status_inscricao || 'Inscrições Abertas',
+      condicoes_pagamento: espec.condicoes_pagamento || [],
+      formato_aulas: espec.formato_aulas || [],
+      dias_aulas: espec.dias_aulas || [],
+      horario_inicio: espec.horario_inicio || '',
+      horario_fim: espec.horario_fim || '',
+      duracao_meses: espec.duracao_meses?.toString() || '',
+      ordem: espec.ordem || 0
+    });
+    setEditingEspec(espec);
+    setShowEspecForm(true);
+  };
+
+  const handleDeleteEspec = (id) => {
+    if (window.confirm('Tem certeza que deseja remover esta especialização?')) {
+      deleteEspecMutation.mutate(id);
+    }
+  };
+
+  const handleCicloCheckboxChange = (cicloId) => {
+    setEspecForm(prev => ({
+      ...prev,
+      ciclos: prev.ciclos.includes(cicloId)
+        ? prev.ciclos.filter(id => id !== cicloId)
+        : [...prev.ciclos, cicloId]
+    }));
+  };
+
+  const handleProfessorCheckboxChange = (professorId) => {
+    setEspecForm(prev => ({
+      ...prev,
+      professores: prev.professores.includes(professorId)
+        ? prev.professores.filter(id => id !== professorId)
+        : [...prev.professores, professorId]
+    }));
+  };
+
+  const handleParceiroCheckboxChange = (parceiroId) => {
+    setEspecForm(prev => ({
+      ...prev,
+      parceiros: prev.parceiros.includes(parceiroId)
+        ? prev.parceiros.filter(id => id !== parceiroId)
+        : [...prev.parceiros, parceiroId]
+    }));
+  };
+
+  const handleTecnologiaCheckboxChange = (tecnologiaId) => {
+    setEspecForm(prev => ({
+      ...prev,
+      tecnologias: prev.tecnologias.includes(tecnologiaId)
+        ? prev.tecnologias.filter(id => id !== tecnologiaId)
+        : [...prev.tecnologias, tecnologiaId]
+    }));
+  };
+
+  const handleFormatoAulaCheckboxChange = (formato) => {
+    setEspecForm(prev => ({
+      ...prev,
+      formato_aulas: prev.formato_aulas.includes(formato)
+        ? prev.formato_aulas.filter(f => f !== formato)
+        : [...prev.formato_aulas, formato]
+    }));
+  };
+
+  const handleDiaAulaCheckboxChange = (dia) => {
+    setEspecForm(prev => ({
+      ...prev,
+      dias_aulas: prev.dias_aulas.includes(dia)
+        ? prev.dias_aulas.filter(d => d !== dia)
+        : [...prev.dias_aulas, dia]
+    }));
+  };
+
+  const handleAddCondicaoPagamento = () => {
+    if (especForm.condicoes_pagamento.length >= 4) {
+      toast.error('Máximo de 4 condições de pagamento permitidas!');
+      return;
+    }
+    setEspecForm(prev => ({
+      ...prev,
+      condicoes_pagamento: [...prev.condicoes_pagamento, { descricao: '', destaque: false }]
+    }));
+  };
+
+  const handleRemoveCondicaoPagamento = (index) => {
+    setEspecForm(prev => ({
+      ...prev,
+      condicoes_pagamento: prev.condicoes_pagamento.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleCondicaoPagamentoChange = (index, field, value) => {
+    setEspecForm(prev => ({
+      ...prev,
+      condicoes_pagamento: prev.condicoes_pagamento.map((cond, i) => 
+        i === index 
+          ? { ...cond, [field]: value } 
+          : (field === 'destaque' && value && cond.destaque) // If a new one is set as highlight, unhighlight others
+            ? { ...cond, destaque: false } 
+            : cond
+      )
+    }));
+  };
+
+  const handleGenerateResumo = async () => {
+    if (!especForm.descricao_completa_ia) {
+      toast.error('Por favor, preencha a descrição completa antes de gerar o resumo!');
+      return;
+    }
+
+    setGeneratingResumo(true);
+    try {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Você é um especialista em marketing educacional. Analise a seguinte descrição detalhada de uma pós-graduação em arquitetura e engenharia civil e crie um resumo PUBLICITÁRIO conciso e atrativo de no máximo 150 palavras que:
+
+1. Capte a atenção do leitor
+2. Destaque os principais diferenciais do curso
+3. Seja persuasivo e profissional
+4. Use linguagem direta e envolvente
+
+Descrição completa:
+${especForm.descricao_completa_ia}
+
+Retorne APENAS o resumo publicitário, sem introduções ou explicações adicionais.`
+      });
+
+      setEspecForm(prev => ({ ...prev, resumo: response }));
+      toast.success('Resumo gerado com sucesso! Revise e ajuste se necessário.');
+    } catch (error) {
+      toast.error('Erro ao gerar resumo: ' + error.message);
+    } finally {
+      setGeneratingResumo(false);
+    }
+  };
+
+  // ========== HANDLERS PARA PARCEIROS ==========
+  const tiposParceiraOptions = [
+    { value: 'Canteiros Didáticos', needsQuantidade: true, needsDiscount: false },
+    { value: 'Workshops', needsQuantidade: true, needsDiscount: false },
+    { value: 'Masterclasses', needsQuantidade: true, needsDiscount: false },
+    { value: 'Contratação de Alunos', needsQuantidade: true, needsDiscount: false },
+    { value: 'Incubadora Profissional', needsQuantidade: true, needsDiscount: false },
+    { value: 'Licença Educacional', needsQuantidade: false, needsDiscount: false },
+    { value: 'Convênios Corporativos', needsQuantidade: false, needsDiscount: true }
+  ];
+
+  const resetParceiroForm = () => {
+    setParceiroForm({
+      nome: '',
+      tipos_parceria: [],
+      logo_url: '',
+      instagram: '',
+      linkedin: '',
+      site: '',
+      especializacoes: [], // Reset especializacoes
+      ordem: 0
+    });
+    setSelectedTiposParceria({});
+    setShowParceiroForm(false);
+    setEditingParceiro(null);
+  };
+
+  const handleUploadLogo = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setParceiroForm(prev => ({ ...prev, logo_url: file_url }));
+      toast.success('Logo enviado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao enviar logo: ' + error.message);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleTipoParceriaToggle = (tipoValue) => {
+    setSelectedTiposParceria(prev => {
+      const newSelected = { ...prev };
+      if (newSelected[tipoValue]) {
+        delete newSelected[tipoValue];
+      } else {
+        newSelected[tipoValue] = { tipo: tipoValue, quantidade: 0, desconto: 0 };
+      }
+      return newSelected;
+    });
+  };
+
+  const handleTipoParceriaChange = (tipoValue, field, value) => {
+    setSelectedTiposParceria(prev => ({
+      ...prev,
+      [tipoValue]: {
+        ...prev[tipoValue],
+        [field]: parseFloat(value) || 0
+      }
+    }));
+  };
+
+  const handleParceiroEspecCheckboxChange = (especId) => { // New handler
+    setParceiroForm(prev => ({
+      ...prev,
+      especializacoes: prev.especializacoes.includes(especId)
+        ? prev.especializacoes.filter(id => id !== especId)
+        : [...prev.especializacoes, especId]
+    }));
+  };
+
+  const handleSaveParceiro = () => {
+    if (!parceiroForm.nome) {
+      toast.error('Nome do parceiro é obrigatório!');
+      return;
+    }
+
+    const tipos_parceria = Object.values(selectedTiposParceria).map(tp => {
+      const result = { tipo: tp.tipo };
+      if (tp.quantidade > 0) result.quantidade = tp.quantidade;
+      if (tp.desconto > 0) result.desconto = tp.desconto;
+      return result;
+    });
+
+    if (tipos_parceria.length === 0) {
+      toast.error('Selecione pelo menos um tipo de parceria!');
+      return;
+    }
+
+    const data = {
+      nome: parceiroForm.nome,
+      tipos_parceria,
+      logo_url: parceiroForm.logo_url,
+      instagram: parceiroForm.instagram,
+      linkedin: parceiroForm.linkedin,
+      site: parceiroForm.site,
+      especializacoes: parceiroForm.especializacoes, // Added especializacoes to data
+      ordem: parseInt(parceiroForm.ordem) || 0
+    };
+
+    if (editingParceiro) {
+      updateParceiroMutation.mutate({ id: editingParceiro.id, data });
+    } else {
+      createParceiroMutation.mutate(data);
+    }
+  };
+
+  const handleEditParceiro = (parceiro) => {
+    setParceiroForm({
+      nome: parceiro.nome,
+      tipos_parceria: parceiro.tipos_parceria || [],
+      logo_url: parceiro.logo_url || '',
+      instagram: parceiro.instagram || '',
+      linkedin: parceiro.linkedin || '',
+      site: parceiro.site || '',
+      especializacoes: parceiro.especializacoes || [], // Load especializacoes
+      ordem: parceiro.ordem || 0
+    });
+    
+    const selected = {};
+    (parceiro.tipos_parceria || []).forEach(tp => {
+      selected[tp.tipo] = {
+        tipo: tp.tipo,
+        quantidade: tp.quantidade || 0,
+        desconto: tp.desconto || 0
+      };
+    });
+    setSelectedTiposParceria(selected);
+    
+    setEditingParceiro(parceiro);
+    setShowParceiroForm(true);
+  };
+
+  const handleDeleteParceiro = (id) => {
+    if (window.confirm('Tem certeza que deseja remover este parceiro?')) {
+      deleteParceiroMutation.mutate(id);
+    }
+  };
+
+  // ========== HANDLERS PARA TECNOLOGIAS ==========
+  const resetTecnologiaForm = () => {
+    setTecnologiaForm({ nome: '', especializacoes: [], ordem: 0 }); // Reset especializacoes
+    setShowTecnologiaForm(false);
+    setEditingTecnologia(null);
+  };
+
+  const handleTecnologiaEspecCheckboxChange = (especId) => { // New handler
+    setTecnologiaForm(prev => ({
+      ...prev,
+      especializacoes: prev.especializacoes.includes(especId)
+        ? prev.especializacoes.filter(id => id !== especId)
+        : [...prev.especializacoes, especId]
+    }));
+  };
+
+  const handleSaveTecnologia = () => {
+    if (!tecnologiaForm.nome) {
+      toast.error('Nome da tecnologia é obrigatório!');
+      return;
+    }
+
+    const data = {
+      nome: tecnologiaForm.nome,
+      especializacoes: tecnologiaForm.especializacoes, // Added especializacoes to data
+      ordem: parseInt(tecnologiaForm.ordem) || 0
+    };
+
+    if (editingTecnologia) {
+      updateTecnologiaMutation.mutate({ id: editingTecnologia.id, data });
+    } else {
+      createTecnologiaMutation.mutate(data);
+    }
+  };
+
+  const handleEditTecnologia = (tecnologia) => {
+    setTecnologiaForm({
+      nome: tecnologia.nome,
+      especializacoes: tecnologia.especializacoes || [], // Load especializacoes
+      ordem: tecnologia.ordem || 0
+    });
+    setEditingTecnologia(tecnologia);
+    setShowTecnologiaForm(true);
+  };
+
+  const handleDeleteTecnologia = (id) => {
+    if (window.confirm('Tem certeza que deseja remover esta tecnologia?')) {
+      deleteTecnologiaMutation.mutate(id);
+    }
+  };
+
+  // ========== HANDLERS PARA PROFESSORES ==========
+  const resetProfessorForm = () => {
+    setProfessorForm({
+      nome: '',
+      titulo: '',
+      foto_url: '',
+      instagram: '',
+      linkedin: '',
+      lattes: '',
+      site: '',
+      especializacoes: [], // Reset especializacoes
+      ordem: 0
+    });
+    setShowProfessorForm(false);
+    setEditingProfessor(null);
+  };
+
+  const handleUploadFotoProfessor = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFotoProfessor(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setProfessorForm(prev => ({ ...prev, foto_url: file_url }));
+      toast.success('Foto enviada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao enviar foto: ' + error.message);
+    } finally {
+      setUploadingFotoProfessor(false);
+    }
+  };
+
+  const handleProfessorEspecCheckboxChange = (especId) => { // New handler
+    setProfessorForm(prev => ({
+      ...prev,
+      especializacoes: prev.especializacoes.includes(especId)
+        ? prev.especializacoes.filter(id => id !== especId)
+        : [...prev.especializacoes, especId]
+    }));
+  };
+
+  const handleSaveProfessor = () => {
+    if (!professorForm.nome || !professorForm.titulo) {
+      toast.error('Nome e título do professor são obrigatórios!');
+      return;
+    }
+
+    const data = {
+      nome: professorForm.nome,
+      titulo: professorForm.titulo,
+      foto_url: professorForm.foto_url,
+      instagram: professorForm.instagram,
+      linkedin: professorForm.linkedin,
+      lattes: professorForm.lattes,
+      site: professorForm.site,
+      especializacoes: professorForm.especializacoes, // Added especializacoes to data
+      ordem: parseInt(professorForm.ordem) || 0
+    };
+
+    if (editingProfessor) {
+      updateProfessorMutation.mutate({ id: editingProfessor.id, data });
+    } else {
+      createProfessorMutation.mutate(data);
+    }
+  };
+
+  const handleEditProfessor = (professor) => {
+    setProfessorForm({
+      nome: professor.nome,
+      titulo: professor.titulo,
+      foto_url: professor.foto_url || '',
+      instagram: professor.instagram || '',
+      linkedin: professor.linkedin || '',
+      lattes: professor.lattes || '',
+      site: professor.site || '',
+      especializacoes: professor.especializacoes || [], // Load especializacoes
+      ordem: professor.ordem || 0
+    });
+    setEditingProfessor(professor);
+    setShowProfessorForm(true);
+  };
+
+  const handleDeleteProfessor = (id) => {
+    if (window.confirm('Tem certeza que deseja remover este professor?')) {
+      deleteProfessorMutation.mutate(id);
+    }
+  };
+
+  // ========== HANDLERS PARA ANÁLISE DE CURSOS ==========
+  const handleEspecializacaoExistenteChange = (especId) => {
+    if (!especId || especId === 'nova') {
+      // Resetar para nova análise
+      setAnaliseForm({
+        nome_proposto: '',
+        ciclos_selecionados: [],
+        especializacao_existente_id: null
+      });
+      setAnaliseResult(null); // Clear previous analysis result
+      setDisciplinasEditaveis({});
+      setDisciplinasSelecionadas({});
+      setIncluindoDisciplinas({});
+      return;
+    }
+
+    const espec = especializacoes.find(e => e.id === especId);
+    if (espec) {
+      setAnaliseForm({
+        nome_proposto: espec.nome,
+        ciclos_selecionados: espec.ciclos || [],
+        especializacao_existente_id: especId
+      });
+      setAnaliseResult(null); // Clear previous analysis result
+      setDisciplinasEditaveis({});
+      setDisciplinasSelecionadas({});
+      setIncluindoDisciplinas({});
+    }
+  };
+
+  const handleAnaliseCicloCheckbox = (cicloId) => {
+    // Desabilitar se uma especialização existente estiver selecionada
+    if (analiseForm.especializacao_existente_id) return;
+
+    setAnaliseForm(prev => ({
+      ...prev,
+      ciclos_selecionados: prev.ciclos_selecionados.includes(cicloId)
+        ? prev.ciclos_selecionados.filter(id => id !== cicloId)
+        : [...prev.ciclos_selecionados, cicloId]
+    }));
+  };
+
+  const calcularCargaHorariaTotal = () => {
+    return analiseForm.ciclos_selecionados.reduce((total, cicloId) => {
+      const ciclo = ciclos.find(c => c.id === cicloId);
+      return total + (ciclo?.carga_horaria || 0);
+    }, 0);
+  };
+
+  const handleAvaliarViabilidade = async () => {
+    if (analiseForm.ciclos_selecionados.length === 0) {
+      toast.error('Selecione pelo menos um ciclo para análise!');
+      return;
+    }
+
+    setLoadingAnalise(true);
+    setAnaliseResult(null);
+    setDisciplinasEditaveis({});
+    setDisciplinasSelecionadas({});
+    setIncluindoDisciplinas({});
+
+    try {
+      // Buscar detalhes completos dos ciclos selecionados
+      const ciclosDetalhados = analiseForm.ciclos_selecionados.map(cicloId => {
+        const ciclo = ciclos.find(c => c.id === cicloId);
+        return {
+          id: cicloId,
+          nome: ciclo?.nome || '',
+          carga_horaria: ciclo?.carga_horaria || 0,
+          disciplinas: ciclo?.disciplinas || []
+        };
+      });
+
+      // Separar ciclos COM disciplinas e SEM disciplinas
+      const ciclosComDisciplinas = ciclosDetalhados.filter(c => c.disciplinas && c.disciplinas.length > 0);
+      const ciclosSemDisciplinas = ciclosDetalhados.filter(c => !c.disciplinas || c.disciplinas.length === 0);
+
+      // Construir texto dos ciclos COM disciplinas
+      const ciclosComDisciplinasTexto = ciclosComDisciplinas.map((c, idx) => {
+        return `\n${idx + 1}. **${c.nome}** (${c.carga_horaria}h)\n   Disciplinas: ${c.disciplinas.join(', ')}`;
+      }).join('\n');
+
+      // Construir texto dos ciclos SEM disciplinas
+      const ciclosSemDisciplinasTexto = ciclosSemDisciplinas.map((c, idx) => {
+        return `\n${idx + 1}. **${c.nome}** (${c.carga_horaria}h) - [SEM DISCIPLINAS CADASTRADAS]`;
+      }).join('\n');
+
+      const nomeProposto = analiseForm.nome_proposto || 'Nova Pós-Graduação';
+      const cargaHorariaTotal = calcularCargaHorariaTotal();
+      const isReanalise = analiseForm.especializacao_existente_id !== null;
+
+      const prompt = `Você é um especialista em currículos acadêmicos de pós-graduação em Arquitetura e Engenharia Civil, com vasta experiência em análise de mercado educacional no Brasil.
+
+**TAREFA:** Analisar a viabilidade de uma ${isReanalise ? 'pós-graduação EXISTENTE' : 'nova pós-graduação'} com base nos ciclos de conhecimento selecionados e realizar uma análise de mercado comparativa.
+
+**INFORMAÇÕES DA PÓS-GRADUAÇÃO ${isReanalise ? '(REAVALIAÇÃO)' : 'PROPOSTA'}:**
+- Nome/Foco: ${nomeProposto}
+- Carga Horária Total: ${cargaHorariaTotal} horas
+
+**CICLOS COM DISCIPLINAS JÁ DEFINIDAS:**${ciclosComDisciplinas.length > 0 ? ciclosComDisciplinasTexto : '\n(Nenhum ciclo possui disciplinas cadastradas)'}
+
+**CICLOS SEM DISCIPLINAS CADASTRADAS:**${ciclosSemDisciplinas.length > 0 ? ciclosSemDisciplinasTexto : '\n(Todos os ciclos possuem disciplinas cadastradas)'}
+
+---
+
+**INSTRUÇÕES IMPORTANTES:**
+- A análise de CONFLITOS e SINERGIA deve ser feita APENAS com base nos ciclos que possuem disciplinas cadastradas (listados em "CICLOS COM DISCIPLINAS JÁ DEFINIDAS")
+- A falta de disciplinas em um ciclo NÃO é um conflito - é apenas uma oportunidade para sugestões
+- Sugestões de disciplinas devem ser feitas APENAS para os ciclos listados em "CICLOS SEM DISCIPLINAS CADASTRADAS"
+
+---
+
+**ANÁLISE SOLICITADA:**
+
+1. **RESUMO EXECUTIVO:** Crie um resumo estratégico de 3-4 parágrafos que responda:
+   - Os ciclos selecionados possuem boa sinergia entre si?
+   - Este curso é viável do ponto de vista de mercado?
+   - Trata-se de uma tendência crescente ou há demanda consolidada por este tipo de formação?
+   - Qual o posicionamento competitivo deste curso em relação aos similares do mercado?
+
+2. **SINERGIA GERAL:** Analise como os ciclos se complementam.
+   ${ciclosComDisciplinas.length > 0 ? 'Baseie sua análise principalmente nos ciclos COM disciplinas cadastradas.' : ''}
+   ${ciclosSemDisciplinas.length > 0 ? `Para os ${ciclosSemDisciplinas.length} ciclo(s) sem disciplinas, faça uma análise mais superficial baseada apenas no título.` : ''}
+
+3. **CONFLITOS POTENCIAIS:** 
+   **ATENÇÃO: Analise conflitos APENAS entre os conteúdos das disciplinas dos ciclos que JÁ POSSUEM disciplinas cadastradas.**
+   **NÃO mencione a falta de disciplinas como um conflito. A ausência de disciplinas será tratada na seção 6.**
+   
+   Para cada conflito de conteúdo ou abordagem contraditória identificado ENTRE AS DISCIPLINAS EXISTENTES:
+   - Descreva claramente o conflito
+   - Sugira uma estratégia específica de como mitigar ou resolver esse conflito
+   ${!isReanalise ? '- Como se trata de um curso novo, seja especialmente detalhado nas estratégias de mitigação' : ''}
+   
+   ${ciclosComDisciplinas.length === 0 ? '**Como nenhum ciclo possui disciplinas cadastradas, não há conflitos a serem analisados. Deixe esta seção vazia.**' : ''}
+
+4. **DUPLICIDADES IDENTIFICADAS:** 
+   Liste disciplinas ou tópicos que aparecem repetidos desnecessariamente ENTRE OS CICLOS QUE JÁ POSSUEM DISCIPLINAS.
+   ${ciclosComDisciplinas.length === 0 ? 'Como nenhum ciclo possui disciplinas, não há duplicidades a serem identificadas.' : ''}
+
+5. **SUGESTÕES DE OTIMIZAÇÃO:** 
+   Forneça recomendações práticas para melhorar o currículo${!isReanalise ? ', estruturando cada sugestão como uma mudança concreta' : ''}.
+   ${ciclosComDisciplinas.length > 0 ? 'Base suas sugestões principalmente nos ciclos que já possuem disciplinas.' : ''}
+
+6. **SUGESTÕES DE DISCIPLINAS PARA CICLOS VAZIOS:** 
+   ${ciclosSemDisciplinas.length > 0 ? `
+   **🚨 ATENÇÃO CRÍTICA: Sugira disciplinas EXCLUSIVAMENTE para os ${ciclosSemDisciplinas.length} ciclo(s) listados abaixo em "CICLOS SEM DISCIPLINAS CADASTRADAS". NÃO sugira disciplinas para nenhum outro ciclo.**
+   
+   Ciclos que DEVEM receber sugestões:
+   ${ciclosSemDisciplinasTexto}
+   
+   Para CADA UM destes ciclos acima:
+   - Liste 5-7 disciplinas que seriam adequadas
+   - Para cada disciplina, explique brevemente (1-2 frases) a justificativa com base em:
+     * O título do ciclo
+     * A análise de mercado
+     * As tendências de pós-graduação na área
+     * A sinergia com os demais ciclos do curso
+   ` : '**Não há ciclos sem disciplinas nesta análise. Deixe este campo vazio ou retorne um array vazio.**'}
+
+7. **ANÁLISE DE MERCADO:** Pesquise na internet por cursos de pós-graduação similares ou concorrentes no mercado brasileiro. Para cada curso encontrado, forneça:
+   - Nome do Curso
+   - Instituição/Universidade que oferece
+   - URL da página oficial do curso (se disponível)
+   - Principais Disciplinas (lista resumida de 4-6 disciplinas-chave)
+   - Formato (Presencial, Remoto (ao vivo), Gravada, Híbrido ou Não Informado)
+   - Duração (em meses, ou "Não Informado")
+   - Valor do Curso (formato: "R$ X,XX/mês", "R$ X.XXX,XX total", "a partir de R$ X", ou "Consultar")
+
+Seja detalhado, prático e objetivo na análise.`;
+
+      const responseSchema = {
+        type: "object",
+        properties: {
+          resumo_executivo: {
+            type: "string",
+            description: "Resumo executivo estratégico sobre sinergia, viabilidade de mercado e tendências"
+          },
+          sinergia_geral: {
+            type: "string",
+            description: "Análise detalhada da sinergia entre os ciclos selecionados"
+          },
+          conflitos_potenciais: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                conflito: {
+                  type: "string",
+                  description: "Descrição clara do conflito identificado ENTRE DISCIPLINAS EXISTENTES"
+                },
+                mitigacao_sugerida: {
+                  type: "string",
+                  description: "Estratégia específica para mitigar ou resolver o conflito"
+                }
+              },
+              required: ["conflito", "mitigacao_sugerida"]
+            },
+            description: "Lista de potenciais conflitos ENTRE CONTEÚDOS EXISTENTES com estratégias de mitigação. NÃO incluir ausência de disciplinas como conflito."
+          },
+          duplicidades_identificadas: {
+            type: "array",
+            items: { type: "string" },
+            description: "Lista de disciplinas ou tópicos duplicados ENTRE OS CICLOS COM DISCIPLINAS"
+          },
+          sugestoes_otimizacao: {
+            type: "array",
+            items: { type: "string" },
+            description: "Lista clara e acionável de mudanças recomendadas"
+          },
+          sugestoes_disciplinas_ciclos_vazios: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                nome_ciclo: {
+                  type: "string",
+                  description: "Nome EXATO do ciclo sem disciplinas cadastradas, conforme listado na seção CICLOS SEM DISCIPLINAS CADASTRADAS"
+                },
+                disciplinas_sugeridas: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      disciplina: {
+                        type: "string",
+                        description: "Nome da disciplina sugerida"
+                      },
+                      justificativa: {
+                        type: "string",
+                        description: "Justificativa para inclusão desta disciplina (1-2 frases)"
+                      }
+                    },
+                    required: ["disciplina", "justificativa"]
+                  }
+                }
+              },
+              required: ["nome_ciclo", "disciplinas_sugeridas"]
+            },
+            description: "Sugestões de disciplinas APENAS para ciclos que NÃO possuem disciplinas cadastradas"
+          },
+          analise_mercado: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                nome_curso_mercado: { type: "string" },
+                instituicao: { type: "string" },
+                url_curso: {
+                  type: "string",
+                  description: "URL da página oficial do curso, se disponível"
+                },
+                disciplinas_principais: {
+                  type: "array",
+                  items: { type: "string" }
+                },
+                formato: {
+                  type: "string",
+                  enum: ["Presencial", "Remoto (ao vivo)", "Gravada", "Híbrido", "Não Informado"]
+                },
+                duracao: { type: "string" },
+                valor: { type: "string" }
+              }
+            },
+            description: "Análise de cursos similares no mercado com links externos"
+          }
+        }
+      };
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: prompt,
+        add_context_from_internet: true,
+        response_json_schema: responseSchema
+      });
+
+      setAnaliseResult(response);
+
+      // Inicializar estado de disciplinas editáveis com as sugestões da IA
+      if (response.sugestoes_disciplinas_ciclos_vazios && response.sugestoes_disciplinas_ciclos_vazios.length > 0) {
+        const editaveisInit = {};
+        const selecionadasInit = {};
+        
+        response.sugestoes_disciplinas_ciclos_vazios.forEach((cicloSugestao) => {
+          const nomeCiclo = cicloSugestao.nome_ciclo;
+          editaveisInit[nomeCiclo] = {};
+          selecionadasInit[nomeCiclo] = {};
+          
+          (cicloSugestao.disciplinas_sugeridas || []).forEach((disc, idx) => {
+            editaveisInit[nomeCiclo][idx] = disc.disciplina;
+            selecionadasInit[nomeCiclo][idx] = false;
+          });
+        });
+        
+        setDisciplinasEditaveis(editaveisInit);
+        setDisciplinasSelecionadas(selecionadasInit);
+      }
+
+      toast.success('Análise concluída com sucesso!');
+    } catch (error) {
+      toast.error('Erro na análise de viabilidade: ' + (error.message || 'Erro desconhecido'));
+      console.error('Erro na análise de viabilidade:', error);
+    } finally {
+      setLoadingAnalise(false);
+    }
+  };
+
+  const handleDisciplinaCheckboxChange = (nomeCiclo, disciplinaIdx) => {
+    setDisciplinasSelecionadas(prev => ({
+      ...prev,
+      [nomeCiclo]: {
+        ...prev[nomeCiclo],
+        [disciplinaIdx]: !prev[nomeCiclo][disciplinaIdx]
+      }
+    }));
+  };
+
+  const handleDisciplinaInputChange = (nomeCiclo, disciplinaIdx, novoNome) => {
+    setDisciplinasEditaveis(prev => ({
+      ...prev,
+      [nomeCiclo]: {
+        ...prev[nomeCiclo],
+        [disciplinaIdx]: novoNome
+      }
+    }));
+  };
+
+  const handleIncluirDisciplinasNoCiclo = async (nomeCiclo) => {
+    // Encontrar o ciclo pelo nome
+    const ciclo = ciclos.find(c => c.nome === nomeCiclo);
+    if (!ciclo) {
+      toast.error(`Ciclo "${nomeCiclo}" não encontrado!`);
+      return;
+    }
+
+    // Coletar disciplinas selecionadas
+    const disciplinasParaIncluir = [];
+    Object.keys(disciplinasSelecionadas[nomeCiclo] || {}).forEach(idx => {
+      if (disciplinasSelecionadas[nomeCiclo][idx]) {
+        const nomeDisciplina = disciplinasEditaveis[nomeCiclo][idx];
+        if (nomeDisciplina && nomeDisciplina.trim()) {
+          disciplinasParaIncluir.push(nomeDisciplina.trim());
+        }
+      }
+    });
+
+    if (disciplinasParaIncluir.length === 0) {
+      toast.error('Selecione pelo menos uma disciplina para incluir!');
+      return;
+    }
+
+    setIncluindoDisciplinas(prev => ({ ...prev, [nomeCiclo]: true }));
+
+    try {
+      // Atualizar o ciclo com as novas disciplinas
+      const disciplinasAtuais = Array.isArray(ciclo.disciplinas) ? ciclo.disciplinas : [];
+      const novasDisciplinas = [...new Set([...disciplinasAtuais, ...disciplinasParaIncluir])]; // Use Set to avoid duplicates
+
+      await updateCicloMutation.mutateAsync({
+        id: ciclo.id,
+        data: {
+          disciplinas: novasDisciplinas
+        }
+      });
+
+      // Invalidar queries para atualizar a lista
+      queryClient.invalidateQueries({ queryKey: ['ciclos'] });
+
+      toast.success(`${disciplinasParaIncluir.length} disciplina(s) incluída(s) com sucesso no ciclo "${nomeCiclo}"!`);
+
+      // Desmarcar as disciplinas que foram incluídas
+      setDisciplinasSelecionadas(prev => {
+        const novo = { ...prev };
+        if (novo[nomeCiclo]) {
+          Object.keys(novo[nomeCiclo]).forEach(idx => {
+            if (novo[nomeCiclo][idx]) {
+              novo[nomeCiclo][idx] = false;
+            }
+          });
+        }
+        return novo;
+      });
+
+    } catch (error) {
+      toast.error('Erro ao incluir disciplinas: ' + (error.message || 'Erro desconhecido'));
+      console.error('Erro ao incluir disciplinas:', error);
+    } finally {
+      setIncluindoDisciplinas(prev => ({ ...prev, [nomeCiclo]: false }));
+    }
+  };
+
+  const resetAnaliseForm = () => {
+    setAnaliseForm({ nome_proposto: '', ciclos_selecionados: [], especializacao_existente_id: null });
+    setAnaliseResult(null);
+    setDisciplinasEditaveis({});
+    setDisciplinasSelecionadas({});
+    setIncluindoDisciplinas({});
+  };
+
+  const handleCriarNovaEspecializacao = () => {
+    if (!analiseResult) return;
+
+    // Construir descrição completa a partir dos ciclos selecionados
+    const ciclosDetalhes = analiseForm.ciclos_selecionados.map(cicloId => {
+      const ciclo = ciclos.find(c => c.id === cicloId);
+      if (!ciclo) return '';
+      
+      let texto = `**${ciclo.nome}** (${ciclo.carga_horaria}h)\n`;
+      if (ciclo.disciplinas && ciclo.disciplinas.length > 0) {
+        texto += `Disciplinas: ${ciclo.disciplinas.join(', ')}\n\n`;
+      } else {
+        texto += '\n';
+      }
+      return texto;
+    }).join('');
+
+    const descricaoCompleta = `${analiseResult.resumo_executivo || ''}\n\n---\n\nCICLOS QUE COMPÕEM ESTA ESPECIALIZAÇÃO:\n\n${ciclosDetalhes}`;
+
+    // Pré-preencher formulário de especialização
+    setEspecForm({
+      nome: analiseForm.nome_proposto || '',
+      carga_horaria_total: calcularCargaHorariaTotal().toString(),
+      ciclos: [...analiseForm.ciclos_selecionados],
+      professores: [],
+      parceiros: [],
+      tecnologias: [],
+      link_externo: '',
+      link_inscricao: '',
+      link_matricula: '',
+      resumo: analiseResult.resumo_executivo || '',
+      descricao_completa_ia: descricaoCompleta,
+      periodo_inscricao: '',
+      data_inicio: '',
+      status_inscricao: 'Inscrições Abertas',
+      condicoes_pagamento: [],
+      formato_aulas: [],
+      dias_aulas: [],
+      horario_inicio: '',
+      horario_fim: '',
+      duracao_meses: '',
+      ordem: especializacoes.length
+    });
+
+    // Mudar para aba de especializações e abrir formulário
+    setActiveTab('especializacoes');
+    setShowEspecForm(true);
+    setEditingEspec(null);
+
+    toast.success('Formulário de nova especialização preenchido! Revise e complete os dados.');
+  };
+
+  // ========== RENDER TABS ==========
+  const renderCiclosTab = () => (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-gray-800">Gerenciar Ciclos de Conhecimento</h3>
+        <Button
+          onClick={() => setShowCicloForm(!showCicloForm)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Ciclo
+        </Button>
+      </div>
+
+      {showCicloForm && (
+        <Card className="mb-6 bg-blue-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {editingCiclo ? 'Editar Ciclo' : 'Novo Ciclo'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Nome do Ciclo</label>
+              <Input
+                value={cicloForm.nome}
+                onChange={(e) => setCicloForm({...cicloForm, nome: e.target.value})}
+                placeholder="Ex: Ciclo de Gestão de Projetos e Obras"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Carga Horária (horas)</label>
+              <Input
+                type="number"
+                value={cicloForm.carga_horaria}
+                onChange={(e) => setCicloForm({...cicloForm, carga_horaria: e.target.value})}
+                placeholder="120"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Disciplinas (uma por linha)</label>
+              <Textarea
+                value={cicloForm.disciplinas}
+                onChange={(e) => setCicloForm({...cicloForm, disciplinas: e.target.value})}
+                rows={6}
+                placeholder="Gerenciamento de Projetos&#10;Eficiência Energética&#10;..."
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
+              <Input
+                type="number"
+                value={cicloForm.ordem}
+                onChange={(e) => setCicloForm({...cicloForm, ordem: e.target.value})}
+                placeholder="0"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleSaveCiclo} className="bg-blue-600 hover:bg-blue-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button onClick={resetCicloForm} variant="outline">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4">
+        {loadingCiclos ? (
+          <p className="text-gray-600">Carregando ciclos...</p>
+        ) : ciclos.length === 0 ? (
+          <p className="text-gray-500 italic">Nenhum ciclo cadastrado ainda.</p>
+        ) : (
+          ciclos.map((ciclo) => (
+            <Card key={ciclo.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-800 mb-1">
+                      {ciclo.nome} ({ciclo.carga_horaria}h)
+                    </h4>
+                    {ciclo.disciplinas && ciclo.disciplinas.length > 0 && (
+                      <ul className="text-sm text-gray-600 ml-4 list-disc">
+                        {ciclo.disciplinas.slice(0, 3).map((d, i) => (
+                          <li key={i}>{d}</li>
+                        ))}
+                        {ciclo.disciplinas.length > 3 && (
+                          <li className="italic">+ {ciclo.disciplinas.length - 3} disciplinas</li>
+                        )}
+                      </ul>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleEditCiclo(ciclo)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDeleteCiclo(ciclo.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const renderEspecializacoesTab = () => (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-gray-800">Gerenciar Especializações</h3>
+        <Button
+          onClick={() => setShowEspecForm(!showEspecForm)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Especialização
+        </Button>
+      </div>
+
+      {showEspecForm && (
+        <Card className="mb-6 bg-green-50 border-green-200">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {editingEspec ? 'Editar Especialização' : 'Nova Especialização'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Nome da Especialização</label>
+              <Input
+                value={especForm.nome}
+                onChange={(e) => setEspecForm({...especForm, nome: e.target.value})}
+                placeholder="Ex: Gestão de Projetos e Obras"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Carga Horária Total (h) - Auto-calculado</label>
+                <Input
+                  type="number"
+                  value={especForm.carga_horaria_total}
+                  readOnly
+                  className="bg-gray-100"
+                  placeholder="Será calculado automaticamente"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
+                <Input
+                  type="number"
+                  value={especForm.ordem}
+                  onChange={(e) => setEspecForm({...especForm, ordem: e.target.value})}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Link Externo (Página ESUDA)</label>
+                <Input
+                  value={especForm.link_externo}
+                  onChange={(e) => setEspecForm({...especForm, link_externo: e.target.value})}
+                  placeholder="https://esuda.edu.br/posgraduacao/..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Link Inscreva-se agora</label>
+                <Input
+                  value={especForm.link_inscricao}
+                  onChange={(e) => setEspecForm({...especForm, link_inscricao: e.target.value})}
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Link Matricule-se</label>
+                <Input
+                  value={especForm.link_matricula}
+                  onChange={(e) => setEspecForm({...especForm, link_matricula: e.target.value})}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="text-sm font-semibold text-blue-900 mb-3">Informações Gerais do Curso</h4>
+              
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700 block mb-2">Formato das Aulas (selecione um ou mais)</label>
+                <div className="flex flex-wrap gap-2">
+                  {['Presencial', 'Remoto (ao vivo)', 'Gravadas'].map((formato) => (
+                    <label key={formato} className="flex items-center space-x-2 bg-white px-3 py-2 rounded-md border cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        checked={especForm.formato_aulas.includes(formato)}
+                        onChange={() => handleFormatoAulaCheckboxChange(formato)}
+                        className="rounded"
+                      />
+                      <span className="text-sm">{formato}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Horário de Início</label>
+                  <Input
+                    type="time"
+                    value={especForm.horario_inicio}
+                    onChange={(e) => setEspecForm({...especForm, horario_inicio: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Horário de Término</label>
+                  <Input
+                    type="time"
+                    value={especForm.horario_fim}
+                    onChange={(e) => setEspecForm({...especForm, horario_fim: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Duração (meses)</label>
+                  <Input
+                    type="number"
+                    value={especForm.duracao_meses}
+                    onChange={(e) => setEspecForm({...especForm, duracao_meses: e.target.value})}
+                    placeholder="10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">Dias das Aulas</label>
+                <div className="flex flex-wrap gap-2">
+                  {['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'].map((dia) => (
+                    <label key={dia} className="flex items-center space-x-2 bg-white px-3 py-2 rounded-md border cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        checked={especForm.dias_aulas.includes(dia)}
+                        onChange={() => handleDiaAulaCheckboxChange(dia)}
+                        className="rounded"
+                      />
+                      <span className="text-sm">{dia}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Período de Inscrição/Matrícula</label>
+                <Input
+                  value={especForm.periodo_inscricao}
+                  onChange={(e) => setEspecForm({...especForm, periodo_inscricao: e.target.value})}
+                  placeholder="01/01/2025 a 31/01/2025"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Data de Início das Aulas</label>
+                <Input
+                  value={especForm.data_inicio}
+                  onChange={(e) => setEspecForm({...especForm, data_inicio: e.target.value})}
+                  placeholder="25/10/2025"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Status de Inscrições/Matrículas</label>
+              <Select
+                value={especForm.status_inscricao}
+                onValueChange={(value) => setEspecForm({...especForm, status_inscricao: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Inscrições Abertas">Inscrições Abertas</SelectItem>
+                  <SelectItem value="Matrículas Abertas">Matrículas Abertas</SelectItem>
+                  <SelectItem value="Turma Iniciada (Aceitando novos alunos)">Turma Iniciada (Aceitando novos alunos)</SelectItem>
+                  <SelectItem value="Fechado">Fechado</SelectItem>
+                  <SelectItem value="Aguardando Nova Turma">Aguardando Nova Turma</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-medium text-gray-700">Condições de Pagamento (até 4)</label>
+                <Button
+                  onClick={handleAddCondicaoPagamento}
+                  size="sm"
+                  variant="outline"
+                  disabled={especForm.condicoes_pagamento.length >= 4}
+                  className="text-xs"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Adicionar Condição
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {especForm.condicoes_pagamento.map((cond, index) => (
+                  <div key={index} className="bg-white p-3 rounded-md border space-y-2">
+                    <div className="flex justify-between items-start">
+                      <span className="text-xs font-semibold text-gray-600">Condição {index + 1}</span>
+                      <Button
+                        onClick={() => handleRemoveCondicaoPagamento(index)}
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <Input
+                      value={cond.descricao}
+                      onChange={(e) => handleCondicaoPagamentoChange(index, 'descricao', e.target.value)}
+                      placeholder="Ex: 10x de R$ 249,00"
+                      className="text-sm"
+                    />
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={cond.destaque}
+                        onChange={(e) => handleCondicaoPagamentoChange(index, 'destaque', e.target.checked)}
+                        className="rounded"
+                      />
+                      <Star className={`w-4 h-4 ${cond.destaque ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'}`} />
+                      <span className="text-xs text-gray-600">Melhor condição</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {especForm.condicoes_pagamento.length === 0 && (
+                <p className="text-sm text-gray-500 italic text-center py-4 bg-gray-50 rounded-md">
+                  Nenhuma condição de pagamento cadastrada. Clique em "Adicionar Condição" para começar.
+                </p>
+              )}
+            </div>
+
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h4 className="text-sm font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Geração Inteligente de Resumo
+              </h4>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Descrição Completa para IA</label>
+                  <Textarea
+                    value={especForm.descricao_completa_ia}
+                    onChange={(e) => setEspecForm({...especForm, descricao_completa_ia: e.target.value})}
+                    rows={8}
+                    placeholder="Cole aqui o texto completo e detalhado do curso (apresentação, diferenciais, mercado de trabalho, etc.). A IA irá gerar um resumo publicitário conciso e atraente..."
+                    className="font-mono text-sm"
+                  />
+                </div>
+                <Button
+                  onClick={handleGenerateResumo}
+                  disabled={generatingResumo || !especForm.descricao_completa_ia}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {generatingResumo ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Gerando resumo...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Gerar Resumo Publicitário com IA
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Resumo do Curso (Publicitário)</label>
+              <Textarea
+                value={especForm.resumo}
+                onChange={(e) => setEspecForm({...especForm, resumo: e.target.value})}
+                rows={6}
+                placeholder="Este campo será preenchido automaticamente pela IA, mas você pode editá-lo manualmente..."
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Dica: Use o botão de IA acima para gerar automaticamente ou edite manualmente.
+              </p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Ciclos que compõem a especialização</label>
+              <div className="bg-white p-4 rounded-md border space-y-2 max-h-60 overflow-y-auto">
+                {ciclos.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Nenhum ciclo cadastrado. Cadastre ciclos primeiro.</p>
+                ) : (
+                  ciclos.map((ciclo) => (
+                    <label key={ciclo.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={especForm.ciclos.includes(ciclo.id)}
+                        onChange={() => handleCicloCheckboxChange(ciclo.id)}
+                      />
+                      <span className="text-sm">{ciclo.nome} ({ciclo.carga_horaria}h)</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Professores vinculados</label>
+              <div className="bg-white p-4 rounded-md border space-y-2 max-h-60 overflow-y-auto">
+                {professores.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Nenhum professor cadastrado.</p>
+                ) : (
+                  professores.map((professor) => (
+                    <label key={professor.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={especForm.professores.includes(professor.id)}
+                        onChange={() => handleProfessorCheckboxChange(professor.id)}
+                      />
+                      <span className="text-sm">{professor.nome}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Parceiros vinculados</label>
+              <div className="bg-white p-4 rounded-md border space-y-2 max-h-60 overflow-y-auto">
+                {parceiros.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Nenhum parceiro cadastrado.</p>
+                ) : (
+                  parceiros.map((parceiro) => (
+                    <label key={parceiro.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={especForm.parceiros.includes(parceiro.id)}
+                        onChange={() => handleParceiroCheckboxChange(parceiro.id)}
+                      />
+                      <span className="text-sm">{parceiro.nome}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Tecnologias utilizadas</label>
+              <div className="bg-white p-4 rounded-md border space-y-2 max-h-60 overflow-y-auto">
+                {tecnologias.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Nenhuma tecnologia cadastrada.</p>
+                ) : (
+                  tecnologias.map((tecnologia) => (
+                    <label key={tecnologia.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={especForm.tecnologias.includes(tecnologia.id)}
+                        onChange={() => handleTecnologiaCheckboxChange(tecnologia.id)}
+                      />
+                      <span className="text-sm">{tecnologia.nome}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleSaveEspec} className="bg-green-600 hover:bg-green-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button onClick={resetEspecForm} variant="outline">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4">
+        {loadingEspec ? (
+          <p className="text-gray-600">Carregando especializações...</p>
+        ) : especializacoes.length === 0 ? (
+          <p className="text-gray-500 italic">Nenhuma especialização cadastrada ainda.</p>
+        ) : (
+          especializacoes.map((espec) => (
+            <Card key={espec.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-bold text-gray-800">
+                        {espec.nome} ({espec.carga_horaria_total}h)
+                      </h4>
+                      {espec.link_externo && (
+                        <a href={espec.link_externo} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="w-4 h-4 text-blue-600 hover:text-blue-700" />
+                        </a>
+                      )}
+                       {espec.link_inscricao && (
+                        <a href={espec.link_inscricao} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-800 flex items-center">
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          Inscreva-se
+                        </a>
+                      )}
+                      {espec.link_matricula && (
+                        <a href={espec.link_matricula} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-800 flex items-center">
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          Matricule-se
+                        </a>
+                      )}
+                      {espec.status_inscricao && (
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          espec.status_inscricao === 'Inscrições Abertas' ? 'bg-green-100 text-green-800' :
+                          espec.status_inscricao === 'Matrículas Abertas' ? 'bg-teal-100 text-teal-800' :
+                          espec.status_inscricao === 'Turma Iniciada (Aceitando novos alunos)' ? 'bg-purple-100 text-purple-800' :
+                          espec.status_inscricao === 'Fechado' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {espec.status_inscricao}
+                        </span>
+                      )}
+                    </div>
+                    {espec.resumo && (
+                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{espec.resumo}</p>
+                    )}
+                    <div className="text-xs text-gray-500 space-y-1">
+                      {espec.formato_aulas && espec.formato_aulas.length > 0 && <p><strong>Formato:</strong> {espec.formato_aulas.join(', ')}</p>}
+                      {espec.dias_aulas && espec.dias_aulas.length > 0 && (
+                        <p><strong>Dias:</strong> {espec.dias_aulas.join(', ')}</p>
+                      )}
+                      {espec.horario_inicio && espec.horario_fim && (
+                        <p><strong>Horário:</strong> {espec.horario_inicio} às {espec.horario_fim}</p>
+                      )}
+                      {espec.duracao_meses && espec.duracao_meses > 0 && <p><strong>Duração:</strong> {espec.duracao_meses} meses</p>}
+                      {espec.periodo_inscricao && <p><strong>Inscrições:</strong> {espec.periodo_inscricao}</p>}
+                      {espec.data_inicio && <p><strong>Início:</strong> {espec.data_inicio}</p>}
+                      {espec.condicoes_pagamento && espec.condicoes_pagamento.length > 0 && (
+                        <p><strong>Condições:</strong> {espec.condicoes_pagamento.length} opção(ões) de pagamento</p>
+                      )}
+                      {espec.ciclos && espec.ciclos.length > 0 && (
+                        <p><strong>Ciclos:</strong> {espec.ciclos.length} ciclo(s)</p>
+                      )}
+                      {espec.professores && espec.professores.length > 0 && (
+                        <p><strong>Professores:</strong> {espec.professores.length} professor(es)</p>
+                      )}
+                      {espec.parceiros && espec.parceiros.length > 0 && (
+                        <p><strong>Parceiros:</strong> {espec.parceiros.length} parceiro(s)</p>
+                      )}
+                      {espec.tecnologias && espec.tecnologias.length > 0 && (
+                        <p><strong>Tecnologias:</strong> {espec.tecnologias.length} tecnologia(s)</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleEditEspec(espec)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDeleteEspec(espec.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const renderParceirosTab = () => (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-gray-800">Gerenciar Parceiros</h3>
+        <Button
+          onClick={() => setShowParceiroForm(!showParceiroForm)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Parceiro
+        </Button>
+      </div>
+
+      {showParceiroForm && (
+        <Card className="mb-6 bg-orange-50 border-orange-200">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {editingParceiro ? 'Editar Parceiro' : 'Novo Parceiro'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Nome do Parceiro</label>
+              <Input
+                value={parceiroForm.nome}
+                onChange={(e) => setParceiroForm({...parceiroForm, nome: e.target.value})}
+                placeholder="Ex: Amorim TECH"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-3">Tipos de Parceria</label>
+              <div className="bg-white p-4 rounded-md border space-y-3">
+                {tiposParceiraOptions.map((option) => (
+                  <div key={option.value} className="space-y-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={!!selectedTiposParceria[option.value]}
+                        onChange={() => handleTipoParceriaToggle(option.value)}
+                      />
+                      <span className="font-medium">{option.value}</span>
+                    </label>
+                    
+                    {selectedTiposParceria[option.value] && option.needsQuantidade && (
+                      <div className="ml-6">
+                        <label className="text-xs font-medium text-gray-600">Quantidade</label>
+                        <Input
+                          type="number"
+                          value={selectedTiposParceria[option.value].quantidade || ''}
+                          onChange={(e) => handleTipoParceriaChange(option.value, 'quantidade', e.target.value)}
+                          className="w-32"
+                          min="0"
+                        />
+                      </div>
+                    )}
+                    
+                    {selectedTiposParceria[option.value] && option.needsDiscount && (
+                      <div className="ml-6">
+                        <label className="text-xs font-medium text-gray-600">Desconto</label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={selectedTiposParceria[option.value].desconto || ''}
+                            onChange={(e) => handleTipoParceriaChange(option.value, 'desconto', e.target.value)}
+                            className="w-32"
+                            min="0"
+                            max="100"
+                          />
+                          <span className="text-gray-600">%</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Logo do Parceiro</label>
+              {parceiroForm.logo_url && (
+                <div className="mb-2">
+                  <img src={parceiroForm.logo_url} alt="Logo" className="w-32 h-32 object-cover rounded-lg border" />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadLogo}
+                  disabled={uploadingLogo}
+                  className="flex-1"
+                />
+                <Button disabled={uploadingLogo} variant="outline">
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploadingLogo ? 'Enviando...' : 'Upload'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Instagram</label>
+                <Input
+                  value={parceiroForm.instagram}
+                  onChange={(e) => setParceiroForm({...parceiroForm, instagram: e.target.value})}
+                  placeholder="https://instagram.com/..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">LinkedIn</label>
+                <Input
+                  value={parceiroForm.linkedin}
+                  onChange={(e) => setParceiroForm({...parceiroForm, linkedin: e.target.value})}
+                  placeholder="https://linkedin.com/..."
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Site</label>
+              <Input
+                value={parceiroForm.site}
+                onChange={(e) => setParceiroForm({...parceiroForm, site: e.target.value})}
+                placeholder="https://..."
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Especializações Vinculadas</label>
+              <div className="bg-white p-4 rounded-md border space-y-2 max-h-60 overflow-y-auto">
+                {especializacoes.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Nenhuma especialização cadastrada.</p>
+                ) : (
+                  especializacoes.map((espec) => (
+                    <label key={espec.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={parceiroForm.especializacoes.includes(espec.id)}
+                        onChange={() => handleParceiroEspecCheckboxChange(espec.id)}
+                      />
+                      <span className="text-sm">{espec.nome}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
+              <Input
+                type="number"
+                value={parceiroForm.ordem}
+                onChange={(e) => setParceiroForm({...parceiroForm, ordem: e.target.value})}
+                placeholder="0"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleSaveParceiro} className="bg-orange-600 hover:bg-orange-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button onClick={resetParceiroForm} variant="outline">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4">
+        {loadingParceiros ? (
+          <p className="text-gray-600">Carregando parceiros...</p>
+        ) : parceiros.length === 0 ? (
+          <p className="text-gray-500 italic">Nenhum parceiro cadastrado ainda.</p>
+        ) : (
+          parceiros.map((parceiro) => (
+            <Card key={parceiro.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex gap-4 items-start">
+                  {parceiro.logo_url && (
+                    <img src={parceiro.logo_url} alt={parceiro.nome} className="w-20 h-20 rounded-lg object-cover border" />
+                  )}
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-800 mb-2">{parceiro.nome}</h4>
+                    <div className="space-y-1">
+                      {parceiro.tipos_parceria?.map((tp, idx) => (
+                        <div key={idx} className="text-sm text-gray-600">
+                          <strong>{tp.tipo}:</strong>{' '}
+                          {tp.quantidade ? `${tp.quantidade} unidade(s)` : ''}
+                          {tp.quantidade && tp.desconto ? ' e ' : ''}
+                          {tp.desconto ? `${tp.desconto}% de desconto` : ''}
+                          {!tp.quantidade && !tp.desconto ? 'Ativo' : ''}
+                        </div>
+                      ))}
+                    </div>
+                    {parceiro.especializacoes && parceiro.especializacoes.length > 0 && (
+                      <div className="text-xs text-gray-500 mt-2">
+                        <strong>Especializações:</strong> {parceiro.especializacoes.length} vinculada(s)
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-500 flex gap-3 mt-2">
+                      {parceiro.instagram && <span>Instagram ✓</span>}
+                      {parceiro.linkedin && <span>LinkedIn ✓</span>}
+                      {parceiro.site && <span>Site ✓</span>}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleEditParceiro(parceiro)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDeleteParceiro(parceiro.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const renderTecnologiasTab = () => (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-gray-800">Gerenciar Tecnologias</h3>
+        <Button
+          onClick={() => setShowTecnologiaForm(!showTecnologiaForm)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Tecnologia
+        </Button>
+      </div>
+
+      {showTecnologiaForm && (
+        <Card className="mb-6 bg-purple-50 border-purple-200">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {editingTecnologia ? 'Editar Tecnologia' : 'Nova Tecnologia'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Nome da Tecnologia</label>
+              <Input
+                value={tecnologiaForm.nome}
+                onChange={(e) => setTecnologiaForm({...tecnologiaForm, nome: e.target.value})}
+                placeholder="Ex: BIM (Autodesk Revit)"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Especializações que utilizam esta Tecnologia</label>
+              <div className="bg-white p-4 rounded-md border space-y-2 max-h-60 overflow-y-auto">
+                {especializacoes.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Nenhuma especialização cadastrada.</p>
+                ) : (
+                  especializacoes.map((espec) => (
+                    <label key={espec.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={tecnologiaForm.especializacoes.includes(espec.id)}
+                        onChange={() => handleTecnologiaEspecCheckboxChange(espec.id)}
+                      />
+                      <span className="text-sm">{espec.nome}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
+              <Input
+                type="number"
+                value={tecnologiaForm.ordem}
+                onChange={(e) => setTecnologiaForm({...tecnologiaForm, ordem: e.target.value})}
+                placeholder="0"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleSaveTecnologia} className="bg-purple-600 hover:bg-purple-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button onClick={resetTecnologiaForm} variant="outline">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {loadingTecnologias ? (
+          <p className="text-gray-600">Carregando tecnologias...</p>
+        ) : tecnologias.length === 0 ? (
+          <p className="text-gray-500 italic col-span-full">Nenhuma tecnologia cadastrada ainda.</p>
+        ) : (
+          tecnologias.map((tecnologia) => (
+            <Card key={tecnologia.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-800 mb-2">{tecnologia.nome}</h4>
+                    {tecnologia.especializacoes && tecnologia.especializacoes.length > 0 && (
+                      <div className="text-xs text-gray-500">
+                        <strong>Especializações:</strong> {tecnologia.especializacoes.length} vinculada(s)
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleEditTecnologia(tecnologia)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDeleteTecnologia(tecnologia.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const renderProfessoresTab = () => (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-gray-800">Gerenciar Corpo Docente</h3>
+        <Button
+          onClick={() => setShowProfessorForm(!showProfessorForm)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Professor
+        </Button>
+      </div>
+
+      {showProfessorForm && (
+        <Card className="mb-6 bg-indigo-50 border-indigo-200">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {editingProfessor ? 'Editar Professor' : 'Novo Professor'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Nome Completo</label>
+                <Input
+                  value={professorForm.nome}
+                  onChange={(e) => setProfessorForm({...professorForm, nome: e.target.value})}
+                  placeholder="Ex: Dr. João Silva"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Titulação</label>
+                <Input
+                  value={professorForm.titulo}
+                  onChange={(e) => setProfessorForm({...professorForm, titulo: e.target.value})}
+                  placeholder="Ex: Doutor em Engenharia Civil"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Foto do Professor</label>
+              {professorForm.foto_url && (
+                <div className="mb-2">
+                  <img
+                    src={professorForm.foto_url}
+                    alt="Foto"
+                    className="w-32 h-32 object-cover rounded-lg border"
+                  />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadFotoProfessor}
+                  disabled={uploadingFotoProfessor}
+                  className="flex-1"
+                />
+                <Button disabled={uploadingFotoProfessor} variant="outline">
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploadingFotoProfessor ? 'Enviando...' : 'Upload'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Instagram</label>
+                <Input
+                  value={professorForm.instagram}
+                  onChange={(e) => setProfessorForm({...professorForm, instagram: e.target.value})}
+                  placeholder="https://instagram.com/..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">LinkedIn</label>
+                <Input
+                  value={professorForm.linkedin}
+                  onChange={(e) => setProfessorForm({...professorForm, linkedin: e.target.value})}
+                  placeholder="https://linkedin.com/..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Lattes</label>
+                <Input
+                  value={professorForm.lattes}
+                  onChange={(e) => setProfessorForm({...professorForm, lattes: e.target.value})}
+                  placeholder="http://lattes.cnpq.br/..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Site Pessoal</label>
+                <Input
+                  value={professorForm.site}
+                  onChange={(e) => setProfessorForm({...professorForm, site: e.target.value})}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Especializações em que Leciona</label>
+              <div className="bg-white p-4 rounded-md border space-y-2 max-h-60 overflow-y-auto">
+                {especializacoes.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Nenhuma especialização cadastrada.</p>
+                ) : (
+                  especializacoes.map((espec) => (
+                    <label key={espec.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={professorForm.especializacoes.includes(espec.id)}
+                        onChange={() => handleProfessorEspecCheckboxChange(espec.id)}
+                      />
+                      <span className="text-sm">{espec.nome}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
+              <Input
+                type="number"
+                value={professorForm.ordem}
+                onChange={(e) => setProfessorForm({...professorForm, ordem: e.target.value})}
+                placeholder="0"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleSaveProfessor} className="bg-indigo-600 hover:bg-indigo-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button onClick={resetProfessorForm} variant="outline">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loadingProf ? (
+          <p className="text-gray-600">Carregando professores...</p>
+        ) : professores.length === 0 ? (
+          <p className="text-gray-500 italic col-span-full">Nenhum professor cadastrado ainda.</p>
+        ) : (
+          professores.map((professor) => (
+            <Card key={professor.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4 text-center">
+                {professor.foto_url && (
+                  <img
+                    src={professor.foto_url}
+                    alt={professor.nome}
+                    className="w-24 h-24 rounded-full object-cover border-4 border-indigo-600 shadow-md mx-auto mb-3"
+                  />
+                )}
+                <h4 className="font-bold text-gray-800 mb-1">{professor.nome}</h4>
+                <p className="text-sm text-gray-600 mb-3">{professor.titulo}</p>
+                {professor.especializacoes && professor.especializacoes.length > 0 && (
+                  <div className="text-xs text-gray-500 mb-3">
+                    <strong>Especializações:</strong> {professor.especializacoes.length} vinculada(s)
+                  </div>
+                )}
+                <div className="flex justify-center gap-2 mb-3">
+                  {professor.instagram && <span className="text-xs text-gray-500">Instagram ✓</span>}
+                  {professor.linkedin && <span className="text-xs text-gray-500">LinkedIn ✓</span>}
+                  {professor.lattes && <span className="text-xs text-gray-500">Lattes ✓</span>}
+                  {professor.site && <span>Site ✓</span>}
+                </div>
+                <div className="flex justify-center gap-2">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleEditProfessor(professor)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleDeleteProfessor(professor.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const renderAnaliseCursosTab = () => (
+    <div>
+      <div className="mb-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-2">Análise de Viabilidade de Pós-Graduação</h3>
+        <p className="text-sm text-gray-600">
+          Selecione os ciclos de conhecimento ou uma especialização existente e deixe a IA avaliar a sinergia, conflitos, duplicidades e fazer uma análise de mercado.
+        </p>
+      </div>
+
+      <Card className="mb-6 bg-purple-50 border-purple-200">
+        <CardContent className="p-6 space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">
+              Avaliar uma Nova Pós-Graduação ou Especialização Existente?
+            </label>
+            <Select
+              value={analiseForm.especializacao_existente_id || 'nova'}
+              onValueChange={handleEspecializacaoExistenteChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma opção" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nova">✨ Nova Análise (selecione ciclos manualmente)</SelectItem>
+                {especializacoes.map((espec) => (
+                  <SelectItem key={espec.id} value={espec.id}>
+                    🔄 {espec.nome} (Reavaliação)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">
+              Nome/Foco Proposto da Nova Pós-Graduação
+            </label>
+            <Input
+              value={analiseForm.nome_proposto}
+              onChange={(e) => setAnaliseForm({ ...analiseForm, nome_proposto: e.target.value })}
+              placeholder="Ex: Gestão de Projetos e Obras com Foco em BIM"
+              className="text-base"
+              disabled={!!analiseForm.especializacao_existente_id}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {analiseForm.especializacao_existente_id 
+                ? "Nome preenchido automaticamente da especialização selecionada" 
+                : "Este nome ajudará a IA a fazer uma análise de mercado mais precisa."}
+            </p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-2">
+              Selecione os Ciclos de Conhecimento para Análise
+            </label>
+            {analiseForm.especializacao_existente_id && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                <p className="text-sm text-blue-800">
+                  ℹ️ Os ciclos foram carregados automaticamente da especialização selecionada.
+                </p>
+              </div>
+            )}
+            <div className="bg-white p-4 rounded-md border max-h-80 overflow-y-auto space-y-2">
+              {ciclos.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">Nenhum ciclo cadastrado.</p>
+              ) : (
+                ciclos.map((ciclo) => (
+                  <label 
+                    key={ciclo.id} 
+                    className={`flex items-start space-x-3 p-3 rounded-md border transition-all ${
+                      analiseForm.especializacao_existente_id 
+                        ? 'cursor-not-allowed bg-gray-50 border-gray-200' 
+                        : 'cursor-pointer hover:bg-purple-50 hover:border-purple-200 border-transparent'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="mt-1 rounded"
+                      checked={analiseForm.ciclos_selecionados.includes(ciclo.id)}
+                      onChange={() => handleAnaliseCicloCheckbox(ciclo.id)}
+                      disabled={!!analiseForm.especializacao_existente_id}
+                    />
+                    <div className="flex-1">
+                      <span className="font-semibold text-gray-800">{ciclo.nome}</span>
+                      <span className="text-sm text-gray-600 ml-2">({ciclo.carga_horaria}h)</span>
+                      {ciclo.disciplinas && ciclo.disciplinas.length > 0 && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {ciclo.disciplinas.length} disciplina(s) cadastradas
+                        </p>
+                      )}
+                    </div>
+                  </label>
+                ))
+              )}
+            </div>
+          </div>
+
+          {analiseForm.ciclos_selecionados.length > 0 && (
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-gray-800">
+                  Carga Horária Total Selecionada:
+                </span>
+                <span className="text-2xl font-bold text-green-700">
+                  {calcularCargaHorariaTotal()}h
+                </span>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                {analiseForm.ciclos_selecionados.length} ciclo(s) selecionado(s)
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={handleAvaliarViabilidade}
+              disabled={loadingAnalise || analiseForm.ciclos_selecionados.length === 0}
+              className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3"
+            >
+              {loadingAnalise ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                  Analisando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Avaliar Viabilidade com IA
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={resetAnaliseForm}
+              variant="outline"
+              className="border-gray-300"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Limpar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {loadingAnalise && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-6 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
+            <p className="text-blue-800 font-semibold">Analisando currículo e pesquisando mercado...</p>
+            <p className="text-sm text-blue-600 mt-2">Isso pode levar de 10 a 30 segundos.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {analiseResult && !loadingAnalise && (
+        <div className="space-y-6">
+          {/* Botão Criar Nova Especialização - Destaque no Topo */}
+          {!analiseForm.especializacao_existente_id && (
+            <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-400 shadow-xl">
+              <CardContent className="p-6 text-center">
+                <h3 className="text-lg font-bold text-gray-800 mb-3">
+                  ✅ Gostou desta Análise?
+                </h3>
+                <p className="text-gray-700 mb-4">
+                  Clique no botão abaixo para criar uma nova especialização com os dados já preenchidos.
+                </p>
+                <Button
+                  onClick={handleCriarNovaEspecializacao}
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-8 text-lg"
+                >
+                  <CheckCircle className="w-6 h-6 mr-2" />
+                  Criar Nova Especialização
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Resumo Executivo - Destaque Principal */}
+          {analiseResult.resumo_executivo && (
+            <Card className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-2 border-indigo-300 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-2xl text-indigo-900 flex items-center gap-3">
+                  <Star className="w-7 h-7 fill-yellow-500 text-yellow-500" />
+                  Resumo Executivo
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-lg max-w-none">
+                  <p className="text-gray-800 leading-relaxed text-justify whitespace-pre-line">
+                    {analiseResult.resumo_executivo}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Sinergia Geral */}
+          {analiseResult.sinergia_geral && (
+            <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+              <CardHeader>
+                <CardTitle className="text-lg text-green-800 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  Sinergia Geral
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700 text-justify leading-relaxed">{analiseResult.sinergia_geral}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Conflitos Potenciais - Com Estratégias de Mitigação */}
+          {analiseResult.conflitos_potenciais && analiseResult.conflitos_potenciais.length > 0 && (
+            <Card className="bg-red-50 border-red-200">
+              <CardHeader>
+                <CardTitle className="text-lg text-red-800">⚠️ Conflitos Potenciais e Como Mitigá-los</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analiseResult.conflitos_potenciais.map((item, idx) => (
+                    <div key={idx} className="bg-white p-4 rounded-lg border border-red-200">
+                      <div className="flex items-start gap-2 mb-2">
+                        <span className="text-red-600 mt-1 font-bold">▸</span>
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-800 mb-2">
+                            {typeof item === 'string' ? item : item.conflito}
+                          </p>
+                          {item.mitigacao_sugerida && (
+                            <div className="bg-green-50 p-3 rounded-md border border-green-200 mt-2">
+                              <p className="text-xs font-semibold text-green-800 mb-1">💡 Estratégia de Mitigação:</p>
+                              <p className="text-sm text-gray-700 text-justify">{item.mitigacao_sugerida}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Duplicidades Identificadas */}
+          {analiseResult.duplicidades_identificadas && analiseResult.duplicidades_identificadas.length > 0 && (
+            <Card className="bg-yellow-50 border-yellow-200">
+              <CardHeader>
+                <CardTitle className="text-lg text-yellow-800">🔄 Duplicidades Identificadas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {analiseResult.duplicidades_identificadas.map((dup, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-yellow-600 mt-1">▸</span>
+                      <span className="text-gray-700 text-justify">{dup}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Sugestões de Otimização - Lista Clara de Mudanças */}
+          {analiseResult.sugestoes_otimizacao && analiseResult.sugestoes_otimizacao.length > 0 && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-lg text-blue-800">💡 Sugestões de Otimização (Mudanças Recomendadas)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  {analiseResult.sugestoes_otimizacao.map((sug, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-blue-600 mt-1 font-bold">▸</span>
+                      <span className="text-gray-700 text-justify">{sug}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Sugestões de Disciplinas para Ciclos Vazios - COM INTERFACE DE SELEÇÃO */}
+          {analiseResult.sugestoes_disciplinas_ciclos_vazios && analiseResult.sugestoes_disciplinas_ciclos_vazios.length > 0 && (
+            <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg text-amber-900 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  Sugestões de Disciplinas para Ciclos sem Conteúdo
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {analiseResult.sugestoes_disciplinas_ciclos_vazios.map((cicloSugestao, cicloIdx) => {
+                    const nomeCiclo = cicloSugestao.nome_ciclo;
+                    const carregando = incluindoDisciplinas[nomeCiclo];
+                    const hasSelectedDisciplines = Object.values(disciplinasSelecionadas[nomeCiclo] || {}).some(v => v);
+                    
+                    return (
+                      <div key={cicloIdx} className="bg-white p-4 rounded-lg border-2 border-amber-200">
+                        <h4 className="font-bold text-gray-800 mb-3 text-lg">
+                          📚 {nomeCiclo}
+                        </h4>
+                        <div className="space-y-3 mb-4">
+                          {(cicloSugestao.disciplinas_sugeridas || []).map((disc, discIdx) => {
+                            const disciplinaEditada = disciplinasEditaveis[nomeCiclo]?.[discIdx] || disc.disciplina;
+                            const disciplinaSelecionada = disciplinasSelecionadas[nomeCiclo]?.[discIdx] || false;
+                            
+                            return (
+                              <div key={discIdx} className={`p-3 rounded-md border transition-all ${
+                                disciplinaSelecionada 
+                                  ? 'bg-green-50 border-green-400 border-2' 
+                                  : 'bg-amber-50 border-amber-200'
+                              }`}>
+                                <div className="flex items-start gap-3 mb-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={disciplinaSelecionada}
+                                    onChange={() => handleDisciplinaCheckboxChange(nomeCiclo, discIdx)}
+                                    className="mt-1 w-5 h-5 rounded cursor-pointer accent-green-600"
+                                    disabled={carregando}
+                                  />
+                                  <div className="flex-1">
+                                    <Input
+                                      value={disciplinaEditada}
+                                      onChange={(e) => handleDisciplinaInputChange(nomeCiclo, discIdx, e.target.value)}
+                                      className={`font-semibold ${
+                                        disciplinaSelecionada 
+                                          ? 'bg-white border-green-400' 
+                                          : 'bg-white border-amber-300'
+                                      }`}
+                                      disabled={carregando}
+                                    />
+                                    <p className="text-sm text-gray-600 mt-2 text-justify italic">
+                                      {disc.justificativa}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <Button
+                          onClick={() => handleIncluirDisciplinasNoCiclo(nomeCiclo)}
+                          disabled={carregando || !hasSelectedDisciplines}
+                          className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold"
+                        >
+                          {carregando ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                              Incluindo disciplinas...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Incluir Disciplinas Selecionadas neste Ciclo
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Análise de Mercado - Tabela Formatada com Links */}
+          {analiseResult.analise_mercado && analiseResult.analise_mercado.length > 0 && (
+            <Card className="bg-purple-50 border-purple-200">
+              <CardHeader>
+                <CardTitle className="text-lg text-purple-800">🎯 Análise de Mercado - Cursos Similares</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analiseResult.analise_mercado.map((curso, idx) => (
+                    <div key={idx} className="bg-white p-4 rounded-lg border border-purple-200 shadow-sm">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1">
+                          {curso.url_curso ? (
+                            <a 
+                              href={curso.url_curso} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="font-bold text-gray-800 text-lg hover:text-purple-600 underline decoration-purple-400 decoration-2 flex items-center gap-2"
+                            >
+                              {curso.nome_curso_mercado}
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          ) : (
+                            <h4 className="font-bold text-gray-800 text-lg">{curso.nome_curso_mercado}</h4>
+                          )}
+                          <p className="text-sm text-gray-600">{curso.instituicao}</p>
+                        </div>
+                        {curso.formato && (
+                          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                            {curso.formato}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Tabela de Informações */}
+                      <div className="grid grid-cols-2 gap-3 mb-3 mt-3 pt-3 border-t border-gray-200">
+                        {curso.duracao && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-purple-600" />
+                            <div>
+                              <p className="text-xs text-gray-500">Duração</p>
+                              <p className="text-sm font-semibold text-gray-800">{curso.duracao}</p>
+                            </div>
+                          </div>
+                        )}
+                        {curso.valor && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600 text-lg">💰</span>
+                            <div>
+                              <p className="text-xs text-gray-500">Valor</p>
+                              <p className="text-sm font-semibold text-green-700">{curso.valor}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Disciplinas Principais */}
+                      {curso.disciplinas_principais && curso.disciplinas_principais.length > 0 && (
+                        <div className="mb-2">
+                          <p className="text-xs font-semibold text-gray-600 mb-1">Principais Disciplinas:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {curso.disciplinas_principais.map((disc, i) => (
+                              <span key={i} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                {disc}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderRelatoriosTab = () => (
+    <div>
+      <div className="mb-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-2">Central de Relatórios</h3>
+        <p className="text-sm text-gray-600">
+          Gere relatórios detalhados e gerenciais sobre suas pós-graduações, ciclos e suas inter-relações.
+        </p>
+      </div>
+
+      <div className="space-y-8">
+        {/* Relatório Detalhado */}
+        <Card className="bg-blue-50 border-2 border-blue-300">
+          <CardHeader>
+            <CardTitle className="text-lg text-blue-900">📄 Relatório Detalhado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-700 mb-4">
+              Visualize todas as informações de cada pós-graduação, incluindo status de preenchimento de campos, ciclos, disciplinas e recursos vinculados.
+            </p>
+            <DetailedReport
+              especializacoes={especializacoes}
+              ciclos={ciclos}
+              professores={professores}
+              parceiros={parceiros}
+              tecnologias={tecnologias}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Relatório Gerencial */}
+        <Card className="bg-purple-50 border-2 border-purple-300">
+          <CardHeader>
+            <CardTitle className="text-lg text-purple-900">📊 Relatório Gerencial</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-700 mb-4">
+              Análise estratégica com mapa visual de relações, ciclos compartilhados e identificação de disciplinas comuns entre especializações.
+            </p>
+            <ManagerialReport
+              especializacoes={especializacoes}
+              ciclos={ciclos}
+              professores={professores}
+              parceiros={parceiros}
+              tecnologias={tecnologias}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderPlaceholder = (title) => (
+    <div className="text-center py-12">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">{title}</h3>
+      <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-6">
+        <Shield className="w-8 h-8 text-red-600" />
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800">Área do Administrador</h2>
+      </div>
+      
+      <div className="bg-red-50 p-6 rounded-lg border border-red-200 mb-8">
+        <p className="text-red-800 font-semibold text-justify">
+          Bem-vindo à área de administração. Aqui você pode gerenciar ciclos, especializações, parceiros, tecnologias, professores e analisar a viabilidade de novos cursos.
+        </p>
+      </div>
+
+      <div className="flex gap-2 mb-6 flex-wrap">
+        <Button
+          onClick={() => setActiveTab('ciclos')}
+          variant={activeTab === 'ciclos' ? 'default' : 'outline'}
+          className={activeTab === 'ciclos' ? 'bg-blue-600' : ''}
+        >
+          Ciclos de Conhecimento
+        </Button>
+        <Button
+          onClick={() => setActiveTab('especializacoes')}
+          variant={activeTab === 'especializacoes' ? 'default' : 'outline'}
+          className={activeTab === 'especializacoes' ? 'bg-green-600' : ''}
+        >
+          Especializações
+        </Button>
+        <Button
+          onClick={() => setActiveTab('parceiros')}
+          variant={activeTab === 'parceiros' ? 'default' : 'outline'}
+          className={activeTab === 'parceiros' ? 'bg-orange-600' : ''}
+        >
+          Parceiros
+        </Button>
+        <Button
+          onClick={() => setActiveTab('tecnologias')}
+          variant={activeTab === 'tecnologias' ? 'default' : 'outline'}
+          className={activeTab === 'tecnologias' ? 'bg-purple-600' : ''}
+        >
+          Tecnologias
+        </Button>
+        <Button
+          onClick={() => setActiveTab('professores')}
+          variant={activeTab === 'professores' ? 'default' : 'outline'}
+          className={activeTab === 'professores' ? 'bg-indigo-600' : ''}
+        >
+          Corpo Docente
+        </Button>
+        <Button
+          onClick={() => setActiveTab('analise')}
+          variant={activeTab === 'analise' ? 'default' : 'outline'}
+          className={activeTab === 'analise' ? 'bg-gradient-to-r from-purple-600 to-indigo-600' : ''}
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Análise de Cursos
+        </Button>
+        <Button
+          onClick={() => setActiveTab('relatorios')}
+          variant={activeTab === 'relatorios' ? 'default' : 'outline'}
+          className={activeTab === 'relatorios' ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Relatórios
+        </Button>
+        <Button
+          onClick={() => setActiveTab('posts')}
+          variant={activeTab === 'posts' ? 'default' : 'outline'}
+          className={activeTab === 'posts' ? 'bg-pink-600' : ''}
+        >
+          Posts "Em Ação"
+        </Button>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        {activeTab === 'ciclos' && renderCiclosTab()}
+        {activeTab === 'especializacoes' && renderEspecializacoesTab()}
+        {activeTab === 'parceiros' && renderParceirosTab()}
+        {activeTab === 'tecnologias' && renderTecnologiasTab()}
+        {activeTab === 'professores' && renderProfessoresTab()}
+        {activeTab === 'analise' && renderAnaliseCursosTab()}
+        {activeTab === 'relatorios' && renderRelatoriosTab()}
+        {activeTab === 'posts' && renderPlaceholder('Gerenciar Posts "Em Ação"')}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,115 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { createPageUrl } from '@/utils';
+import { Linkedin, Globe, Instagram, ArrowRight, CheckCircle } from 'lucide-react';
+
+export default function ParceirosPage() {
+  const { data: parceiros = [], isLoading } = useQuery({
+    queryKey: ['parceiros'],
+    queryFn: () => base44.entities.Parceiro.list('ordem')
+  });
+
+  return (
+    <div>
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">Nossos Parceiros</h2>
+      <p className="text-gray-600 mb-8 text-justify">
+        Conheça as empresas e instituições que são parceiras estratégicas de nossas pós-graduações.
+      </p>
+
+      {isLoading ? (
+        <p className="text-gray-600">Carregando parceiros...</p>
+      ) : parceiros.length === 0 ? (
+        <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 text-center">
+          <p className="text-gray-700 italic text-justify">
+            Os dados dos parceiros serão adicionados em breve pelo administrador.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {parceiros.map((parceiro) => (
+            <div key={parceiro.id} className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-shadow">
+              <div className="flex gap-4 items-start mb-4">
+                {parceiro.logo_url && (
+                  <img
+                    src={parceiro.logo_url}
+                    alt={parceiro.nome}
+                    className="w-24 h-24 rounded-lg object-cover border-4 border-green-600 shadow-md"
+                  />
+                )}
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">{parceiro.nome}</h3>
+                  <div className="flex gap-2">
+                    {parceiro.instagram && (
+                      <a href={parceiro.instagram} target="_blank" rel="noopener noreferrer">
+                        <Button size="icon" variant="ghost" className="text-pink-600 hover:text-pink-700 h-8 w-8">
+                          <Instagram className="w-4 h-4" />
+                        </Button>
+                      </a>
+                    )}
+                    {parceiro.linkedin && (
+                      <a href={parceiro.linkedin} target="_blank" rel="noopener noreferrer">
+                        <Button size="icon" variant="ghost" className="text-blue-600 hover:text-blue-700 h-8 w-8">
+                          <Linkedin className="w-4 h-4" />
+                        </Button>
+                      </a>
+                    )}
+                    {parceiro.site && (
+                      <a href={parceiro.site} target="_blank" rel="noopener noreferrer">
+                        <Button size="icon" variant="ghost" className="text-gray-600 hover:text-gray-700 h-8 w-8">
+                          <Globe className="w-4 h-4" />
+                        </Button>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  Tipos de Parceria:
+                </h4>
+                <div className="space-y-2">
+                  {parceiro.tipos_parceria?.map((tp, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-sm">
+                      <span className="text-green-600 mt-0.5">▸</span>
+                      <div>
+                        <strong className="text-gray-800">{tp.tipo}</strong>
+                        {tp.quantidade > 0 && (
+                          <span className="text-gray-600"> - {tp.quantidade} unidade(s)</span>
+                        )}
+                        {tp.desconto > 0 && (
+                          <span className="text-gray-600"> - {tp.desconto}% de desconto</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {(!parceiro.tipos_parceria || parceiro.tipos_parceria.length === 0) && (
+                    <p className="text-sm text-gray-500 italic">Nenhum tipo de parceria especificado.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex justify-between gap-4 mt-8">
+        <Link to={createPageUrl('ProfessoresPage')}>
+          <Button variant="outline" className="border-gray-300">
+            ← Voltar
+          </Button>
+        </Link>
+        <Link to={createPageUrl('EmAcaoPage')}>
+          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
+            Ver Em Ação
+            <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+}

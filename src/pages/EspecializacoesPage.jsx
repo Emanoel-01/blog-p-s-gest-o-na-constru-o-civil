@@ -1,0 +1,372 @@
+
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { createPageUrl } from '@/utils';
+import { 
+  ArrowRight, 
+  ExternalLink, 
+  Calendar, 
+  BookOpen, 
+  Users, 
+  Handshake, 
+  Cpu, 
+  Star, 
+  ChevronDown,
+  Clock,
+  CalendarDays,
+  Video,
+  DollarSign,
+  UserPlus, // New icon import
+  LogIn     // New icon import
+} from 'lucide-react';
+
+export default function EspecializacoesPage() {
+  const [expandedEspec, setExpandedEspec] = useState(null);
+
+  const { data: especializacoes = [], isLoading: loadingEspec } = useQuery({
+    queryKey: ['especializacoes'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
+  });
+
+  const { data: ciclos = [] } = useQuery({
+    queryKey: ['ciclos'],
+    queryFn: () => base44.entities.Ciclo.list('ordem')
+  });
+
+  const { data: professores = [] } = useQuery({
+    queryKey: ['professores'],
+    queryFn: () => base44.entities.Professor.list('ordem')
+  });
+
+  const { data: parceiros = [] } = useQuery({
+    queryKey: ['parceiros'],
+    queryFn: () => base44.entities.Parceiro.list('ordem')
+  });
+
+  const { data: tecnologias = [] } = useQuery({
+    queryKey: ['tecnologias'],
+    queryFn: () => base44.entities.Tecnologia.list('ordem')
+  });
+
+  const getCicloById = (id) => ciclos.find(c => c.id === id);
+  const getProfessorById = (id) => professores.find(p => p.id === id);
+  const getParceiroById = (id) => parceiros.find(p => p.id === id);
+  const getTecnologiaById = (id) => tecnologias.find(t => t.id === id);
+
+  const getStatusBadgeColor = (status) => {
+    switch(status) {
+      case 'Inscrições Abertas': return 'bg-green-100 text-green-800 border-green-300';
+      case 'Matrículas Abertas': return 'bg-blue-100 text-blue-800 border-blue-300'; // Updated status text
+      case 'Turma Iniciada (Aceitando novos alunos)': return 'bg-yellow-100 text-yellow-800 border-yellow-300'; // New status
+      case 'Fechado': return 'bg-red-100 text-red-800 border-red-300';
+      case 'Aguardando Nova Turma': return 'bg-gray-100 text-gray-800 border-gray-300'; // Updated color for this status
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const toggleEspecializacao = (especId) => {
+    setExpandedEspec(expandedEspec === especId ? null : especId);
+  };
+
+  return (
+    <div>
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">Nossas Especializações</h2>
+      <p className="text-gray-600 mb-6 text-justify">
+        Uma especialização completa é formada pela combinação de ciclos que somam, no mínimo, 360 horas.
+        Escolha os ciclos que mais interessam a você!
+      </p>
+
+      {loadingEspec ? (
+        <p className="text-gray-600">Carregando especializações...</p>
+      ) : especializacoes.length === 0 ? (
+        <p className="text-gray-500 italic text-justify">
+          Nenhuma especialização disponível no momento. Por favor, aguarde enquanto atualizamos o conteúdo.
+        </p>
+      ) : (
+        <div className="space-y-4 mb-8">
+          {especializacoes.map((espec) => {
+            const isExpanded = expandedEspec === espec.id;
+
+            return (
+              <Card key={espec.id} className="bg-white border-2 border-gray-200 hover:shadow-xl transition-shadow">
+                <div
+                  onClick={() => toggleEspecializacao(espec.id)}
+                  className="cursor-pointer p-4 flex justify-between items-center bg-gradient-to-r from-blue-50 to-green-50 hover:from-blue-100 hover:to-green-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    <h3 className="text-xl font-bold text-gray-800">
+                      Especialização em {espec.nome}
+                    </h3>
+                    {espec.status_inscricao && (
+                      <Badge className={`${getStatusBadgeColor(espec.status_inscricao)} border font-semibold`}>
+                        {espec.status_inscricao}
+                      </Badge>
+                    )}
+                    {/* ExternalLink icon removed from here, now part of the action buttons inside CardContent */}
+                  </div>
+                  <ChevronDown 
+                    className={`w-6 h-6 text-gray-600 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                  />
+                </div>
+
+                {isExpanded && (
+                  <CardContent className="p-6 space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-blue-600" />
+                        <div>
+                          <p className="text-xs text-gray-500">Carga Horária</p>
+                          <p className="font-bold text-gray-800">{espec.carga_horaria_total}h</p>
+                        </div>
+                      </div>
+
+                      {/* Updated: Handle formato_aulas as an array */}
+                      {espec.formato_aulas && espec.formato_aulas.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          <Video className="w-5 h-5 text-purple-600" />
+                          <div>
+                            <p className="text-xs text-gray-500">Formato</p>
+                            <p className="font-bold text-gray-800 text-sm">{espec.formato_aulas.join(', ')}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {espec.dias_aulas && espec.dias_aulas.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          <CalendarDays className="w-5 h-5 text-green-600" />
+                          <div>
+                            <p className="text-xs text-gray-500">Dia(s)</p>
+                            <p className="font-bold text-gray-800 text-sm">
+                              {espec.dias_aulas.map(d => d.substring(0, 3)).join(', ')}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {espec.horario_inicio && espec.horario_fim && (
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-5 h-5 text-orange-600" />
+                          <div>
+                            <p className="text-xs text-gray-500">Horário</p>
+                            <p className="font-bold text-gray-800">{espec.horario_inicio} - {espec.horario_fim}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {espec.duracao_meses && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-red-600" />
+                          <div>
+                            <p className="text-xs text-gray-500">Duração</p>
+                            <p className="font-bold text-gray-800">{espec.duracao_meses} meses</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {espec.periodo_inscricao && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-gray-500" />
+                          <div>
+                            <p className="text-xs text-gray-500">Inscrições</p>
+                            <p className="font-semibold text-gray-700 text-sm">{espec.periodo_inscricao}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {espec.data_inicio && (
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="w-5 h-5 text-gray-500" />
+                          <div>
+                            <p className="text-xs text-gray-500">Início das Aulas</p>
+                            <p className="font-semibold text-gray-700 text-sm">{espec.data_inicio}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {espec.resumo && (
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <p className="text-gray-700 leading-relaxed text-justify">{espec.resumo}</p>
+                      </div>
+                    )}
+
+                    {espec.condicoes_pagamento && espec.condicoes_pagamento.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                          <DollarSign className="w-5 h-5 text-green-600" />
+                          <span>Condições de Pagamento:</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {espec.condicoes_pagamento.map((cond, idx) => (
+                            <div
+                              key={idx}
+                              className={`p-3 rounded-lg text-sm font-semibold ${
+                                cond.destaque
+                                  ? 'bg-green-100 border-2 border-green-500 text-green-900'
+                                  : 'bg-white border-2 border-gray-300 text-gray-700'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {cond.destaque && <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />}
+                                <span>{cond.descricao}</span>
+                              </div>
+                              {cond.destaque && (
+                                <span className="mt-2 block text-xs bg-green-600 text-white px-2 py-1 rounded-full w-fit">
+                                  Melhor Condição
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* New: Action buttons for Saiba Mais, Inscreva-se, Matricule-se */}
+                    <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t">
+                      {espec.link_externo && (
+                        <a href={espec.link_externo} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px]">
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold">
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Saiba Mais
+                          </Button>
+                        </a>
+                      )}
+                      {espec.link_inscricao && (
+                        <a href={espec.link_inscricao} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px]">
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold">
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Inscreva-se Agora
+                          </Button>
+                        </a>
+                      )}
+                      {espec.link_matricula && (
+                        <a href={espec.link_matricula} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px]">
+                          <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold">
+                            <LogIn className="w-4 h-4 mr-2" />
+                            Matricule-se
+                          </Button>
+                        </a>
+                      )}
+                    </div>
+
+                    {espec.ciclos && espec.ciclos.length > 0 && (
+                      <div>
+                        <p className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 text-blue-600" />
+                          Ciclos de Conhecimento:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {espec.ciclos.map((cicloId) => {
+                            const ciclo = getCicloById(cicloId);
+                            if (!ciclo) return null;
+                            
+                            return (
+                              <Link key={cicloId} to={createPageUrl('CiclosPage')} className="group">
+                                <div className="bg-white px-3 py-1.5 rounded-full border-2 border-blue-300 hover:border-blue-500 hover:shadow-md transition-all text-sm group-hover:bg-blue-50 font-semibold text-blue-800">
+                                  {ciclo.nome} ({ciclo.carga_horaria}h)
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {espec.professores && espec.professores.length > 0 && (
+                      <div>
+                        <p className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                          <Users className="w-4 h-4 text-purple-600" />
+                          Professores:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {espec.professores.map((professorId) => {
+                            const professor = getProfessorById(professorId);
+                            if (!professor) return null;
+                            
+                            return (
+                              <div key={professorId} className="bg-purple-50 px-3 py-1.5 rounded-full border border-purple-300 text-sm font-medium text-purple-800">
+                                {professor.nome}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {espec.parceiros && espec.parceiros.length > 0 && (
+                      <div>
+                        <p className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                          <Handshake className="w-4 h-4 text-orange-600" />
+                          Parceiros:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {espec.parceiros.map((parceiroId) => {
+                            const parceiro = getParceiroById(parceiroId);
+                            if (!parceiro) return null;
+                            
+                            return (
+                              <div key={parceiroId} className="bg-orange-50 px-3 py-1.5 rounded-full border border-orange-300 text-sm font-medium text-orange-800">
+                                {parceiro.nome}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {espec.tecnologias && espec.tecnologias.length > 0 && (
+                      <div>
+                        <p className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                          <Cpu className="w-4 h-4 text-green-600" />
+                          Tecnologias:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {espec.tecnologias.map((tecnologiaId) => {
+                            const tecnologia = getTecnologiaById(tecnologiaId);
+                            if (!tecnologia) return null;
+                            
+                            return (
+                              <div key={tecnologiaId} className="bg-green-50 px-3 py-1.5 rounded-full border border-green-300 text-sm font-bold text-green-800">
+                                {tecnologia.nome}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg mt-6">
+        <h3 className="text-xl font-bold text-purple-800 mb-2">Crie sua Própria Trilha!</h3>
+        <p className="text-purple-700 text-justify">
+          Converse com nossa coordenação para combinar os ciclos que mais interessam a você e montar a formação perfeita para impulsionar sua carreira.
+        </p>
+      </div>
+
+      <div className="flex justify-between gap-4 mt-8">
+        <Link to={createPageUrl('CiclosPage')}>
+          <Button variant="outline" className="border-gray-300">
+            ← Voltar
+          </Button>
+        </Link>
+        <Link to={createPageUrl('CoordenadorPage')}>
+          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
+            Conheça a Coordenação
+            <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+}

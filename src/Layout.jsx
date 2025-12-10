@@ -35,7 +35,8 @@ export default function Layout({ children }) {
     { name: 'Corpo Docente', path: 'ProfessoresPage' },
     { name: 'Corpo Discente', path: 'CorpoDiscentePage' },
     { name: 'Parceiros', path: 'ParceirosPage' },
-    { name: 'Blog', path: 'EmAcaoPage' }
+    { name: 'Blog', path: 'EmAcaoPage' },
+    { name: 'Calendário de Aulas', path: 'CalendarioDeAula' }
   ];
 
   const icons = {
@@ -48,7 +49,8 @@ export default function Layout({ children }) {
     'Corpo Docente': Users,
     'Corpo Discente': GraduationCap,
     'Parceiros': Handshake,
-    'Blog': Rss
+    'Blog': Rss,
+    'Calendário de Aulas': CalendarDays
   };
 
   if (loadingUser) {

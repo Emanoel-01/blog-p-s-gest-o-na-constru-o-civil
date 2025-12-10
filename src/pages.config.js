@@ -10,6 +10,7 @@ import AdminPage from './pages/AdminPage';
 import ParceirosPage from './pages/ParceirosPage';
 import Documentation from './pages/Documentation';
 import CorpoDiscentePage from './pages/CorpoDiscentePage';
+import CalendarioDeAula from './pages/CalendarioDeAula';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "ParceirosPage": ParceirosPage,
     "Documentation": Documentation,
     "CorpoDiscentePage": CorpoDiscentePage,
+    "CalendarioDeAula": CalendarioDeAula,
 }
 
 export const pagesConfig = {

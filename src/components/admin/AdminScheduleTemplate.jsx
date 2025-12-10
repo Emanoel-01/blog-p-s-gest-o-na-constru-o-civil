@@ -141,6 +141,10 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cronograma'] });
       toast.success('Aula excluída com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro na exclusão:', error);
+      queryClient.invalidateQueries({ queryKey: ['cronograma'] });
     }
   });
 
@@ -292,7 +296,13 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
 
   const handleDeleteAula = async (aulaId) => {
     if (window.confirm('Tem certeza que deseja excluir esta aula?')) {
-      await deleteAulaMutation.mutateAsync(aulaId);
+      try {
+        await deleteAulaMutation.mutateAsync(aulaId);
+      } catch (error) {
+        console.error('Erro ao excluir aula:', error);
+        toast.error('Erro ao excluir aula. Ela pode já ter sido removida.');
+        queryClient.invalidateQueries({ queryKey: ['cronograma'] });
+      }
     }
   };
 

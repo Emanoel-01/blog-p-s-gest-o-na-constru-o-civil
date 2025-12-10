@@ -131,6 +131,21 @@ export default function AdminPage() {
   });
   const [uploadingMidia, setUploadingMidia] = useState(false);
 
+  // Cronograma state
+  const [editingCronograma, setEditingCronograma] = useState(null);
+  const [showCronogramaForm, setShowCronogramaForm] = useState(false);
+  const [cronogramaForm, setCronogramaForm] = useState({
+    data: '',
+    tipo: 'Presencial',
+    ciclo_id: '',
+    disciplina_nome: '',
+    professor_id: '',
+    horario_inicio: '',
+    horario_fim: '',
+    observacoes: '',
+    ordem: 0
+  });
+
   // Nova State para Análise de Cursos
   const [analiseForm, setAnaliseForm] = useState({
     nome_proposto: '',
@@ -179,6 +194,11 @@ export default function AdminPage() {
   const { data: discentes = [], isLoading: loadingDiscentes } = useQuery({
     queryKey: ['discentes'],
     queryFn: () => base44.entities.Discente.list('ordem')
+  });
+
+  const { data: cronograma = [], isLoading: loadingCronograma } = useQuery({
+    queryKey: ['cronograma'],
+    queryFn: () => base44.entities.CronogramaAula.list('data')
   });
 
   // Auto-calcular carga horária quando ciclos mudam
@@ -378,6 +398,33 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       toast.success('Post removido com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA CRONOGRAMA ==========
+  const createCronogramaMutation = useMutation({
+    mutationFn: (data) => base44.entities.CronogramaAula.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cronograma'] });
+      resetCronogramaForm();
+      toast.success('Aula adicionada ao cronograma!');
+    }
+  });
+
+  const updateCronogramaMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.CronogramaAula.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cronograma'] });
+      setEditingCronograma(null);
+      toast.success('Aula atualizada com sucesso!');
+    }
+  });
+
+  const deleteCronogramaMutation = useMutation({
+    mutationFn: (id) => base44.entities.CronogramaAula.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cronograma'] });
+      toast.success('Aula removida do cronograma!');
     }
   });
 
@@ -1182,6 +1229,70 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       ...prev,
       tags: prev.tags.filter((_, i) => i !== index)
     }));
+  };
+
+  // ========== HANDLERS PARA CRONOGRAMA ==========
+  const resetCronogramaForm = () => {
+    setCronogramaForm({
+      data: '',
+      tipo: 'Presencial',
+      ciclo_id: '',
+      disciplina_nome: '',
+      professor_id: '',
+      horario_inicio: '',
+      horario_fim: '',
+      observacoes: '',
+      ordem: 0
+    });
+    setShowCronogramaForm(false);
+    setEditingCronograma(null);
+  };
+
+  const handleSaveCronograma = () => {
+    if (!cronogramaForm.data || !cronogramaForm.tipo) {
+      toast.error('Data e tipo são obrigatórios!');
+      return;
+    }
+
+    const data = {
+      data: cronogramaForm.data,
+      tipo: cronogramaForm.tipo,
+      ciclo_id: cronogramaForm.ciclo_id,
+      disciplina_nome: cronogramaForm.disciplina_nome,
+      professor_id: cronogramaForm.professor_id,
+      horario_inicio: cronogramaForm.horario_inicio,
+      horario_fim: cronogramaForm.horario_fim,
+      observacoes: cronogramaForm.observacoes,
+      ordem: parseInt(cronogramaForm.ordem) || 0
+    };
+
+    if (editingCronograma) {
+      updateCronogramaMutation.mutate({ id: editingCronograma.id, data });
+    } else {
+      createCronogramaMutation.mutate(data);
+    }
+  };
+
+  const handleEditCronograma = (item) => {
+    setCronogramaForm({
+      data: item.data,
+      tipo: item.tipo,
+      ciclo_id: item.ciclo_id || '',
+      disciplina_nome: item.disciplina_nome || '',
+      professor_id: item.professor_id || '',
+      horario_inicio: item.horario_inicio || '',
+      horario_fim: item.horario_fim || '',
+      observacoes: item.observacoes || '',
+      ordem: item.ordem || 0
+    });
+    setEditingCronograma(item);
+    setShowCronogramaForm(true);
+  };
+
+  const handleDeleteCronograma = (id) => {
+    if (window.confirm('Tem certeza que deseja remover esta aula do cronograma?')) {
+      deleteCronogramaMutation.mutate(id);
+    }
   };
 
   // ========== HANDLERS PARA ANÁLISE DE CURSOS ==========
@@ -3517,6 +3628,224 @@ Seja detalhado, prático e objetivo na análise.`;
     </div>
   );
 
+  const renderCronogramaTab = () => (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-gray-800">Gerenciar Cronograma de Aulas</h3>
+        <Button
+          onClick={() => setShowCronogramaForm(!showCronogramaForm)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Aula
+        </Button>
+      </div>
+
+      {showCronogramaForm && (
+        <Card className="mb-6 bg-green-50 border-green-200">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {editingCronograma ? 'Editar Aula' : 'Nova Aula no Cronograma'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Data da Aula</label>
+                <Input
+                  type="text"
+                  value={cronogramaForm.data}
+                  onChange={(e) => setCronogramaForm({...cronogramaForm, data: e.target.value})}
+                  placeholder="10/jan ou 10/01/2026"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Tipo</label>
+                <Select
+                  value={cronogramaForm.tipo}
+                  onValueChange={(value) => setCronogramaForm({...cronogramaForm, tipo: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Presencial">Presencial</SelectItem>
+                    <SelectItem value="EAD">EAD</SelectItem>
+                    <SelectItem value="Prévias">Prévias</SelectItem>
+                    <SelectItem value="Carnaval">Carnaval</SelectItem>
+                    <SelectItem value="Data Magna">Data Magna</SelectItem>
+                    <SelectItem value="Sexta Santa">Sexta Santa</SelectItem>
+                    <SelectItem value="Dia do Trabalho">Dia do Trabalho</SelectItem>
+                    <SelectItem value="Intervalo">Intervalo</SelectItem>
+                    <SelectItem value="7 de Setembro">7 de Setembro</SelectItem>
+                    <SelectItem value="Dia Sem aula">Dia Sem aula</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Ciclo</label>
+                <Select
+                  value={cronogramaForm.ciclo_id}
+                  onValueChange={(value) => setCronogramaForm({...cronogramaForm, ciclo_id: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o ciclo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ciclos.map((ciclo) => (
+                      <SelectItem key={ciclo.id} value={ciclo.id}>{ciclo.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Professor</label>
+                <Select
+                  value={cronogramaForm.professor_id}
+                  onValueChange={(value) => setCronogramaForm({...cronogramaForm, professor_id: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o professor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {professores.map((prof) => (
+                      <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Nome da Disciplina</label>
+              <Input
+                value={cronogramaForm.disciplina_nome}
+                onChange={(e) => setCronogramaForm({...cronogramaForm, disciplina_nome: e.target.value})}
+                placeholder="Ex: 1ª Disciplina Presencial - Ciclo Comum"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Horário Início</label>
+                <Input
+                  type="time"
+                  value={cronogramaForm.horario_inicio}
+                  onChange={(e) => setCronogramaForm({...cronogramaForm, horario_inicio: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Horário Fim</label>
+                <Input
+                  type="time"
+                  value={cronogramaForm.horario_fim}
+                  onChange={(e) => setCronogramaForm({...cronogramaForm, horario_fim: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Ordem</label>
+                <Input
+                  type="number"
+                  value={cronogramaForm.ordem}
+                  onChange={(e) => setCronogramaForm({...cronogramaForm, ordem: e.target.value})}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Observações</label>
+              <Textarea
+                value={cronogramaForm.observacoes}
+                onChange={(e) => setCronogramaForm({...cronogramaForm, observacoes: e.target.value})}
+                rows={2}
+                placeholder="Observações adicionais..."
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleSaveCronograma} className="bg-green-600 hover:bg-green-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button onClick={resetCronogramaForm} variant="outline">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-4">
+        {loadingCronograma ? (
+          <p className="text-gray-600">Carregando cronograma...</p>
+        ) : cronograma.length === 0 ? (
+          <p className="text-gray-500 italic">Nenhuma aula cadastrada ainda.</p>
+        ) : (
+          cronograma.map((item) => (
+            <Card key={item.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Badge className={
+                        item.tipo === 'Presencial' ? 'bg-blue-100 text-blue-800' :
+                        item.tipo === 'EAD' ? 'bg-green-100 text-green-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }>
+                        {item.tipo}
+                      </Badge>
+                      <span className="font-bold text-gray-800">{item.data}</span>
+                    </div>
+                    {item.disciplina_nome && (
+                      <h4 className="font-semibold text-gray-800 mb-1">{item.disciplina_nome}</h4>
+                    )}
+                    <div className="text-xs text-gray-600 space-y-1">
+                      {item.ciclo_id && (
+                        <p><strong>Ciclo:</strong> {ciclos.find(c => c.id === item.ciclo_id)?.nome || 'N/A'}</p>
+                      )}
+                      {item.professor_id && (
+                        <p><strong>Professor:</strong> {professores.find(p => p.id === item.professor_id)?.nome || 'N/A'}</p>
+                      )}
+                      {item.horario_inicio && item.horario_fim && (
+                        <p><strong>Horário:</strong> {item.horario_inicio} - {item.horario_fim}</p>
+                      )}
+                      {item.observacoes && (
+                        <p><strong>Obs:</strong> {item.observacoes}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleEditCronograma(item)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDeleteCronograma(item.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
   const renderPostsTab = () => (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -3841,6 +4170,14 @@ Seja detalhado, prático e objetivo na análise.`;
         >
           Blog "Em Ação"
         </Button>
+        <Button
+          onClick={() => setActiveTab('cronograma')}
+          variant={activeTab === 'cronograma' ? 'default' : 'outline'}
+          className={activeTab === 'cronograma' ? 'bg-cyan-600' : ''}
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          Cronograma de Aulas
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -3853,6 +4190,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'analise' && renderAnaliseCursosTab()}
         {activeTab === 'relatorios' && renderRelatoriosTab()}
         {activeTab === 'posts' && renderPostsTab()}
+        {activeTab === 'cronograma' && renderCronogramaTab()}
       </div>
     </div>
   );

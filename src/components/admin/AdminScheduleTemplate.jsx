@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 const COURSES = [
@@ -98,7 +99,7 @@ const CALENDAR_TEMPLATE_2026 = [
 ];
 
 export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }) {
-  const [schedule, setSchedule] = useState([]);
+  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
   const [formData, setFormData] = useState({
@@ -115,6 +116,18 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
     legal: { disciplina: '', professorId: '' }
   });
 
+  const { data: cronograma = [], isLoading } = useQuery({
+    queryKey: ['cronograma'],
+    queryFn: () => base44.entities.CronogramaAula.list('data')
+  });
+
+  const createAulaMutation = useMutation({
+    mutationFn: (aulaData) => base44.entities.CronogramaAula.create(aulaData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cronograma'] });
+    }
+  });
+
   const getNextSaturday = (dateStr) => {
     const [day, month, year] = dateStr.split('/');
     const current = new Date(year, month - 1, day);
@@ -125,13 +138,19 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
 
   const getBlockStatus = () => {
     const blockStatus = {};
-    schedule.forEach(item => {
-      blockStatus[item.date] = { status: 'AGENDADO', details: item };
-      if (item.isFirstDay) {
-        const nextSat = getNextSaturday(item.date);
-        blockStatus[nextSat] = { status: 'BLOQUEADO', details: item };
+    const scheduledByDate = {};
+    
+    cronograma.forEach(aula => {
+      if (!scheduledByDate[aula.data]) {
+        scheduledByDate[aula.data] = [];
       }
+      scheduledByDate[aula.data].push(aula);
     });
+
+    Object.keys(scheduledByDate).forEach(date => {
+      blockStatus[date] = { status: 'AGENDADO', details: scheduledByDate[date] };
+    });
+    
     return blockStatus;
   };
 
@@ -156,7 +175,7 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
     }
 
     const nextDate = getNextSaturday(selectedDate);
-    const classesToSchedule = [];
+    const classesToSave = [];
 
     if (formData.cycleType === 'comum') {
       const professor = professores.find(p => p.id === formData.professorId);
@@ -168,35 +187,26 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
       const modalidade = selectedType?.includes('C-P') ? 'Presencial' : 'EAD';
       
       COURSES.forEach(course => {
-        classesToSchedule.push({
-          date: selectedDate,
-          turma: formData.turma,
-          courseId: course.id,
-          courseTitle: course.title,
-          discipline: formData.disciplina,
-          professor: professor.nome,
-          professorId: professor.id,
-          cycleType: formData.cycleType,
-          modalidade: modalidade,
-          isFirstDay: true,
+        classesToSave.push({
+          data: selectedDate,
+          tipo: modalidade,
+          disciplina_nome: formData.disciplina,
+          professor_id: professor.id,
+          observacoes: `Turma ${formData.turma} - ${course.title} - Ciclo Comum (1º Dia)`,
+          ordem: 0
         });
-        classesToSchedule.push({
-          date: nextDate,
-          turma: formData.turma,
-          courseId: course.id,
-          courseTitle: course.title,
-          discipline: formData.disciplina,
-          professor: professor.nome,
-          professorId: professor.id,
-          cycleType: formData.cycleType,
-          modalidade: modalidade,
-          isFirstDay: false,
+        classesToSave.push({
+          data: nextDate,
+          tipo: modalidade,
+          disciplina_nome: formData.disciplina,
+          professor_id: professor.id,
+          observacoes: `Turma ${formData.turma} - ${course.title} - Ciclo Comum (2º Dia)`,
+          ordem: 0
         });
       });
 
       toast.success(`Disciplina comum "${formData.disciplina}" agendada para os 4 cursos em ${selectedDate} e ${nextDate}.`);
     } else if (formData.cycleType === 'especifica') {
-      // Validar que todas as 4 disciplinas específicas foram preenchidas
       const allFilled = COURSES.every(course => 
         specificDisciplines[course.id].disciplina && specificDisciplines[course.id].professorId
       );
@@ -210,36 +220,37 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
         const professor = professores.find(p => p.id === specificDisciplines[course.id].professorId);
         const disciplina = specificDisciplines[course.id].disciplina;
 
-        classesToSchedule.push({
-          date: selectedDate,
-          turma: formData.turma,
-          courseId: course.id,
-          courseTitle: course.title,
-          discipline: disciplina,
-          professor: professor.nome,
-          professorId: professor.id,
-          cycleType: formData.cycleType,
-          modalidade: 'Específica',
-          isFirstDay: true,
+        classesToSave.push({
+          data: selectedDate,
+          tipo: 'Específica',
+          disciplina_nome: disciplina,
+          professor_id: professor.id,
+          observacoes: `Turma ${formData.turma} - ${course.title} - Específica (1º Dia)`,
+          ordem: 0
         });
-        classesToSchedule.push({
-          date: nextDate,
-          turma: formData.turma,
-          courseId: course.id,
-          courseTitle: course.title,
-          discipline: disciplina,
-          professor: professor.nome,
-          professorId: professor.id,
-          cycleType: formData.cycleType,
-          modalidade: 'Específica',
-          isFirstDay: false,
+        classesToSave.push({
+          data: nextDate,
+          tipo: 'Específica',
+          disciplina_nome: disciplina,
+          professor_id: professor.id,
+          observacoes: `Turma ${formData.turma} - ${course.title} - Específica (2º Dia)`,
+          ordem: 0
         });
       });
 
       toast.success(`4 disciplinas específicas agendadas para ${selectedDate} e ${nextDate}.`);
     }
 
-    setSchedule([...schedule, ...classesToSchedule]);
+    // Salvar no banco de dados
+    try {
+      for (const aula of classesToSave) {
+        await createAulaMutation.mutateAsync(aula);
+      }
+      toast.success('Aulas salvas com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao salvar aulas: ' + error.message);
+      return;
+    }
     
     setSelectedDate(null);
     setSelectedType(null);
@@ -313,11 +324,18 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
             const isSelectable = status === 'LIVRE' && template.type !== 'FERIADO' && template.type !== '';
             const isSelected = selectedDate === dateISO;
 
-            const scheduledClasses = schedule.filter(c => c.date === dateISO);
+            const scheduledClasses = cronograma.filter(c => c.data === dateISO);
             const grouped = scheduledClasses.reduce((acc, c) => {
-              const key = `${c.discipline}-${c.professor}`;
-              if (!acc[key]) acc[key] = { discipline: c.discipline, professor: c.professor, cycle: c.cycleType, courses: [], isFirstDay: c.isFirstDay };
-              acc[key].courses.push({ id: c.courseId, turma: c.turma });
+              const key = `${c.disciplina_nome}-${c.professor_id}`;
+              if (!acc[key]) {
+                const prof = professores.find(p => p.id === c.professor_id);
+                acc[key] = { 
+                  discipline: c.disciplina_nome, 
+                  professor: prof?.nome || 'N/A', 
+                  tipo: c.tipo,
+                  observacoes: c.observacoes
+                };
+              }
               return acc;
             }, {});
 
@@ -340,18 +358,7 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                   {status === 'LIVRE' && 'LIVRE'}
                   {status === 'FERIADO' && '---'}
                   {status === 'BLOQUEADO' && '---'}
-                  {status === 'AGENDADO' && Object.keys(grouped).map((key, idx) => (
-                    <div key={idx} className="mb-1">
-                      {grouped[key].courses.map((c, i) => {
-                        const courseData = COURSES.find(cc => cc.id === c.id);
-                        return (
-                          <span key={i} className={`inline-block px-2 py-0.5 rounded text-xs font-semibold mr-1 ${courseData.class} bg-opacity-10`}>
-                            {c.turma}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  ))}
+                  {status === 'AGENDADO' && <span className="text-gray-700">AGENDADO</span>}
                 </div>
 
                 {/* Tipo */}
@@ -369,15 +376,22 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                        'ESPECÍFICA'}
                     </span>
                   )}
-                  {status === 'AGENDADO' && Object.keys(grouped).map((key, idx) => (
-                    <div key={idx} className="mb-1">
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                        grouped[key].cycle === 'comum' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {grouped[key].cycle === 'comum' ? 'COMUM' : 'ESPECÍFICA'}
-                      </span>
-                    </div>
-                  ))}
+                  {status === 'AGENDADO' && Object.keys(grouped).map((key, idx) => {
+                    const item = grouped[key];
+                    const tipoLabel = item.tipo === 'Presencial' ? 'PRESENCIAL/REMOTO' : 
+                                     item.tipo === 'EAD' ? 'EAD' : 'ESPECÍFICA';
+                    return (
+                      <div key={idx} className="mb-1">
+                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                          item.tipo === 'Presencial' ? 'bg-blue-100 text-blue-800' :
+                          item.tipo === 'EAD' ? 'bg-green-100 text-green-800' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {tipoLabel}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* Disciplinas */}
@@ -385,17 +399,20 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                   {status === 'FERIADO' && <span className="font-bold text-red-800">{template.desc}</span>}
                   {status === 'BLOQUEADO' && (
                     <span className="text-slate-500 italic">
-                      2º DIA DO BLOCO (Início {details.date})
+                      2º DIA DO BLOCO
                     </span>
                   )}
                   {status === 'LIVRE' && <span className="text-gray-400">---</span>}
                   {status === 'AGENDADO' && Object.keys(grouped).map((key, idx) => {
                     const item = grouped[key];
-                    const blockStatusText = item.isFirstDay ? ' (1º Dia)' : ' (2º Dia)';
+                    const obs = item.observacoes || '';
+                    const isDia1 = obs.includes('1º Dia');
                     return (
                       <div key={idx} className="mb-2 p-1 rounded-md">
                         <span className="text-sm font-semibold text-slate-800 block">{item.discipline}</span>
-                        <span className="text-xs text-slate-500 block">Prof: {item.professor.split(' ')[1]} {blockStatusText}</span>
+                        <span className="text-xs text-slate-500 block">
+                          Prof: {item.professor.split(' ')[0]} {isDia1 ? '(1º Dia)' : '(2º Dia)'}
+                        </span>
                       </div>
                     );
                   })}

@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { Instagram, Linkedin, Globe, BookOpen, ArrowRight } from 'lucide-react';
+import { Instagram, Linkedin, Globe, BookOpen } from 'lucide-react';
 
 export default function CorpoDiscentePage() {
   const { data: discentes = [], isLoading } = useQuery({
@@ -96,8 +96,7 @@ export default function CorpoDiscentePage() {
         </Link>
         <Link to={createPageUrl('ParceirosPage')}>
           <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
-            Ver Parceiros
-            <ArrowRight className="ml-2 w-4 h-4" />
+            Ver Parceiros →
           </Button>
         </Link>
       </div>

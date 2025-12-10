@@ -229,8 +229,7 @@ export default function EmAcaoPage() {
         </Link>
         <Link to={createPageUrl('CalendarioDeAula')}>
           <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
-            Ver Calendário de Aulas
-            <ArrowRight className="ml-2 w-4 h-4" />
+            Ver Calendário de Aulas →
           </Button>
         </Link>
       </div>

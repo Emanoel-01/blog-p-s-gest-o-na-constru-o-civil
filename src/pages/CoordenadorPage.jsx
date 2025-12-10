@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -74,8 +73,7 @@ export default function CoordenadorPage() {
         <div className="bg-orange-50 p-5 rounded-lg border-l-4 border-orange-500">
           <h4 className="font-bold text-lg text-orange-800 mb-3">Visão Acadêmica e Missão</h4>
           <p className="mb-2 text-justify">
-            Na Faculdade Esuda, estou à frente das especializações de Engenharia e Gestão, 
-            incluindo a Pós em Gestão de Projetos e Obras. Minha missão é ir além da teoria:
+            Na Faculdade Esuda, estou à frente das especializações de Gestão e Tecnologias na Construção Civil. Minha missão é ir além da teoria:
           </p>
           <ul className="space-y-2 ml-4">
             <li className="flex items-start gap-2">
@@ -130,7 +128,7 @@ export default function CoordenadorPage() {
             </Button>
           </a>
 
-          <a href="https://www.amorimarquitetura.com.br/" target="_blank" rel="noopener noreferrer" className="md:col-span-2">
+          <a href="https://emanoel313.wixsite.com/my-site" target="_blank" rel="noopener noreferrer" className="md:col-span-2">
             <Button className="w-full bg-gray-700 hover:bg-gray-800 text-white font-bold py-3">
               <Globe className="w-5 h-5 mr-2" />
               Site - Amorim Arquitetura

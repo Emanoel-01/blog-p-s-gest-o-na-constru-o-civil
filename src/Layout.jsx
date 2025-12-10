@@ -65,11 +65,11 @@ export default function Layout({ children }) {
         .esuda-green { background: linear-gradient(135deg, #61b376 0%, #4a9960 100%); }
       `}</style>
       
-      <div className="fixed top-0 left-0 h-full w-16 md:w-64 bg-white/20 backdrop-blur-md border-r border-white/30 z-50 flex flex-col items-center py-4 space-y-4 shadow-lg">
+      <div className="fixed top-0 left-0 h-full w-16 sm:w-20 md:w-64 bg-white/20 backdrop-blur-md border-r border-white/30 z-50 flex flex-col items-center py-4 space-y-4 shadow-lg overflow-y-auto">
         <img
           src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
           alt="ESUDA Logo"
-          className="w-12 md:w-28 mx-auto mb-4"
+          className="w-10 sm:w-12 md:w-28 mx-auto mb-4"
         />
 
         <nav className="flex flex-col w-full px-2 md:px-4 space-y-2">
@@ -106,8 +106,8 @@ export default function Layout({ children }) {
         </nav>
       </div>
 
-      <main className="flex-1 ml-16 md:ml-64 p-4 md:p-8">
-        <div className="bg-transparent mx-auto p-6 opacity-100 rounded-2xl max-w-4xl shadow-xl md:p-8">
+      <main className="flex-1 ml-16 sm:ml-20 md:ml-64 p-3 sm:p-4 md:p-8">
+        <div className="bg-transparent mx-auto p-4 sm:p-6 md:p-8 opacity-100 rounded-2xl max-w-4xl shadow-xl">
           {children}
         </div>
       </main>

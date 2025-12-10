@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -96,6 +95,41 @@ export default function AdminPage() {
   });
   const [uploadingFotoProfessor, setUploadingFotoProfessor] = useState(false);
 
+  // Discentes state
+  const [editingDiscente, setEditingDiscente] = useState(null);
+  const [showDiscenteForm, setShowDiscenteForm] = useState(false);
+  const [discenteForm, setDiscenteForm] = useState({
+    nome: '',
+    titulo: '',
+    foto_url: '',
+    instagram: '',
+    linkedin: '',
+    lattes: '',
+    site: '',
+    especializacoes: [],
+    ordem: 0
+  });
+  const [uploadingFotoDiscente, setUploadingFotoDiscente] = useState(false);
+
+  // Posts state
+  const [editingPost, setEditingPost] = useState(null);
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [postForm, setPostForm] = useState({
+    titulo: '',
+    data: '',
+    descricao: '',
+    conteudo_completo: '',
+    midias: [],
+    imagem_destaque: '',
+    tags: [],
+    especializacoes: [],
+    ciclos: [],
+    professores: [],
+    parceiros: [],
+    ordem: 0
+  });
+  const [uploadingMidia, setUploadingMidia] = useState(false);
+
   // Nova State para Análise de Cursos
   const [analiseForm, setAnaliseForm] = useState({
     nome_proposto: '',
@@ -139,6 +173,11 @@ export default function AdminPage() {
   const { data: posts = [], isLoading: loadingPosts } = useQuery({
     queryKey: ['posts'],
     queryFn: () => base44.entities.Post.list('-created_date')
+  });
+
+  const { data: discentes = [], isLoading: loadingDiscentes } = useQuery({
+    queryKey: ['discentes'],
+    queryFn: () => base44.entities.Discente.list('ordem')
   });
 
   // Auto-calcular carga horária quando ciclos mudam
@@ -284,6 +323,60 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professores'] });
       toast.success('Professor removido com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA DISCENTES ==========
+  const createDiscenteMutation = useMutation({
+    mutationFn: (data) => base44.entities.Discente.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['discentes'] });
+      resetDiscenteForm();
+      toast.success('Aluno criado com sucesso!');
+    }
+  });
+
+  const updateDiscenteMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Discente.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['discentes'] });
+      setEditingDiscente(null);
+      toast.success('Aluno atualizado com sucesso!');
+    }
+  });
+
+  const deleteDiscenteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Discente.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['discentes'] });
+      toast.success('Aluno removido com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA POSTS ==========
+  const createPostMutation = useMutation({
+    mutationFn: (data) => base44.entities.Post.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      resetPostForm();
+      toast.success('Post criado com sucesso!');
+    }
+  });
+
+  const updatePostMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Post.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      setEditingPost(null);
+      toast.success('Post atualizado com sucesso!');
+    }
+  });
+
+  const deletePostMutation = useMutation({
+    mutationFn: (id) => base44.entities.Post.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      toast.success('Post removido com sucesso!');
     }
   });
 
@@ -822,6 +915,234 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     if (window.confirm('Tem certeza que deseja remover este professor?')) {
       deleteProfessorMutation.mutate(id);
     }
+  };
+
+  // ========== HANDLERS PARA DISCENTES ==========
+  const resetDiscenteForm = () => {
+    setDiscenteForm({
+      nome: '',
+      titulo: '',
+      foto_url: '',
+      instagram: '',
+      linkedin: '',
+      lattes: '',
+      site: '',
+      especializacoes: [],
+      ordem: 0
+    });
+    setShowDiscenteForm(false);
+    setEditingDiscente(null);
+  };
+
+  const handleUploadFotoDiscente = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFotoDiscente(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setDiscenteForm(prev => ({ ...prev, foto_url: file_url }));
+      toast.success('Foto enviada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao enviar foto: ' + error.message);
+    } finally {
+      setUploadingFotoDiscente(false);
+    }
+  };
+
+  const handleDiscenteEspecCheckboxChange = (especId) => {
+    setDiscenteForm(prev => ({
+      ...prev,
+      especializacoes: prev.especializacoes.includes(especId)
+        ? prev.especializacoes.filter(id => id !== especId)
+        : [...prev.especializacoes, especId]
+    }));
+  };
+
+  const handleSaveDiscente = () => {
+    if (!discenteForm.nome || !discenteForm.titulo) {
+      toast.error('Nome e formação do aluno são obrigatórios!');
+      return;
+    }
+
+    const data = {
+      nome: discenteForm.nome,
+      titulo: discenteForm.titulo,
+      foto_url: discenteForm.foto_url,
+      instagram: discenteForm.instagram,
+      linkedin: discenteForm.linkedin,
+      lattes: discenteForm.lattes,
+      site: discenteForm.site,
+      especializacoes: discenteForm.especializacoes,
+      ordem: parseInt(discenteForm.ordem) || 0
+    };
+
+    if (editingDiscente) {
+      updateDiscenteMutation.mutate({ id: editingDiscente.id, data });
+    } else {
+      createDiscenteMutation.mutate(data);
+    }
+  };
+
+  const handleEditDiscente = (discente) => {
+    setDiscenteForm({
+      nome: discente.nome,
+      titulo: discente.titulo,
+      foto_url: discente.foto_url || '',
+      instagram: discente.instagram || '',
+      linkedin: discente.linkedin || '',
+      lattes: discente.lattes || '',
+      site: discente.site || '',
+      especializacoes: discente.especializacoes || [],
+      ordem: discente.ordem || 0
+    });
+    setEditingDiscente(discente);
+    setShowDiscenteForm(true);
+  };
+
+  const handleDeleteDiscente = (id) => {
+    if (window.confirm('Tem certeza que deseja remover este aluno?')) {
+      deleteDiscenteMutation.mutate(id);
+    }
+  };
+
+  // ========== HANDLERS PARA POSTS ==========
+  const resetPostForm = () => {
+    setPostForm({
+      titulo: '',
+      data: '',
+      descricao: '',
+      conteudo_completo: '',
+      midias: [],
+      imagem_destaque: '',
+      tags: [],
+      especializacoes: [],
+      ciclos: [],
+      professores: [],
+      parceiros: [],
+      ordem: 0
+    });
+    setShowPostForm(false);
+    setEditingPost(null);
+  };
+
+  const handleSavePost = () => {
+    if (!postForm.titulo || !postForm.data || !postForm.descricao) {
+      toast.error('Título, data e descrição são obrigatórios!');
+      return;
+    }
+
+    const data = {
+      titulo: postForm.titulo,
+      data: postForm.data,
+      descricao: postForm.descricao,
+      conteudo_completo: postForm.conteudo_completo,
+      midias: postForm.midias,
+      imagem_destaque: postForm.imagem_destaque,
+      tags: postForm.tags,
+      especializacoes: postForm.especializacoes,
+      ciclos: postForm.ciclos,
+      professores: postForm.professores,
+      parceiros: postForm.parceiros,
+      ordem: parseInt(postForm.ordem) || 0
+    };
+
+    if (editingPost) {
+      updatePostMutation.mutate({ id: editingPost.id, data });
+    } else {
+      createPostMutation.mutate(data);
+    }
+  };
+
+  const handleEditPost = (post) => {
+    setPostForm({
+      titulo: post.titulo,
+      data: post.data,
+      descricao: post.descricao,
+      conteudo_completo: post.conteudo_completo || '',
+      midias: post.midias || [],
+      imagem_destaque: post.imagem_destaque || '',
+      tags: post.tags || [],
+      especializacoes: post.especializacoes || [],
+      ciclos: post.ciclos || [],
+      professores: post.professores || [],
+      parceiros: post.parceiros || [],
+      ordem: post.ordem || 0
+    });
+    setEditingPost(post);
+    setShowPostForm(true);
+  };
+
+  const handleDeletePost = (id) => {
+    if (window.confirm('Tem certeza que deseja remover este post?')) {
+      deletePostMutation.mutate(id);
+    }
+  };
+
+  const handleUploadImagemDestaque = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingMidia(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setPostForm(prev => ({ ...prev, imagem_destaque: file_url }));
+      toast.success('Imagem enviada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao enviar imagem: ' + error.message);
+    } finally {
+      setUploadingMidia(false);
+    }
+  };
+
+  const handleAddMidia = () => {
+    setPostForm(prev => ({
+      ...prev,
+      midias: [...prev.midias, { tipo: 'imagem', url: '', titulo: '' }]
+    }));
+  };
+
+  const handleRemoveMidia = (index) => {
+    setPostForm(prev => ({
+      ...prev,
+      midias: prev.midias.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleMidiaChange = (index, field, value) => {
+    setPostForm(prev => ({
+      ...prev,
+      midias: prev.midias.map((m, i) => i === index ? { ...m, [field]: value } : m)
+    }));
+  };
+
+  const handleUploadMidiaFile = async (e, index) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingMidia(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      handleMidiaChange(index, 'url', file_url);
+      toast.success('Arquivo enviado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao enviar arquivo: ' + error.message);
+    } finally {
+      setUploadingMidia(false);
+    }
+  };
+
+  const handleAddTag = (tag) => {
+    if (tag && !postForm.tags.includes(tag)) {
+      setPostForm(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+    }
+  };
+
+  const handleRemoveTag = (index) => {
+    setPostForm(prev => ({
+      ...prev,
+      tags: prev.tags.filter((_, i) => i !== index)
+    }));
   };
 
   // ========== HANDLERS PARA ANÁLISE DE CURSOS ==========
@@ -2940,10 +3261,442 @@ Seja detalhado, prático e objetivo na análise.`;
     </div>
   );
 
-  const renderPlaceholder = (title) => (
-    <div className="text-center py-12">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">{title}</h3>
-      <p className="text-gray-600">Funcionalidade em desenvolvimento...</p>
+  const renderDiscentesTab = () => (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-gray-800">Gerenciar Corpo Discente</h3>
+        <Button
+          onClick={() => setShowDiscenteForm(!showDiscenteForm)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Aluno
+        </Button>
+      </div>
+
+      {showDiscenteForm && (
+        <Card className="mb-6 bg-teal-50 border-teal-200">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {editingDiscente ? 'Editar Aluno' : 'Novo Aluno'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Nome Completo</label>
+                <Input
+                  value={discenteForm.nome}
+                  onChange={(e) => setDiscenteForm({...discenteForm, nome: e.target.value})}
+                  placeholder="Ex: Maria Silva"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Formação/Especialização</label>
+                <Input
+                  value={discenteForm.titulo}
+                  onChange={(e) => setDiscenteForm({...discenteForm, titulo: e.target.value})}
+                  placeholder="Ex: Arquiteta - Gestão de Projetos BIM"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Foto do Aluno</label>
+              {discenteForm.foto_url && (
+                <div className="mb-2">
+                  <img src={discenteForm.foto_url} alt="Foto" className="w-32 h-32 object-cover rounded-lg border" />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadFotoDiscente}
+                  disabled={uploadingFotoDiscente}
+                  className="flex-1"
+                />
+                <Button disabled={uploadingFotoDiscente} variant="outline">
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploadingFotoDiscente ? 'Enviando...' : 'Upload'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Instagram</label>
+                <Input
+                  value={discenteForm.instagram}
+                  onChange={(e) => setDiscenteForm({...discenteForm, instagram: e.target.value})}
+                  placeholder="https://instagram.com/..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">LinkedIn</label>
+                <Input
+                  value={discenteForm.linkedin}
+                  onChange={(e) => setDiscenteForm({...discenteForm, linkedin: e.target.value})}
+                  placeholder="https://linkedin.com/..."
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Lattes</label>
+                <Input
+                  value={discenteForm.lattes}
+                  onChange={(e) => setDiscenteForm({...discenteForm, lattes: e.target.value})}
+                  placeholder="http://lattes.cnpq.br/..."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Site/Portfólio Pessoal</label>
+                <Input
+                  value={discenteForm.site}
+                  onChange={(e) => setDiscenteForm({...discenteForm, site: e.target.value})}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Especializações Cursadas</label>
+              <div className="bg-white p-4 rounded-md border space-y-2 max-h-60 overflow-y-auto">
+                {especializacoes.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Nenhuma especialização cadastrada.</p>
+                ) : (
+                  especializacoes.map((espec) => (
+                    <label key={espec.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={discenteForm.especializacoes.includes(espec.id)}
+                        onChange={() => handleDiscenteEspecCheckboxChange(espec.id)}
+                      />
+                      <span className="text-sm">{espec.nome}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
+              <Input
+                type="number"
+                value={discenteForm.ordem}
+                onChange={(e) => setDiscenteForm({...discenteForm, ordem: e.target.value})}
+                placeholder="0"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleSaveDiscente} className="bg-teal-600 hover:bg-teal-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button onClick={resetDiscenteForm} variant="outline">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loadingDiscentes ? (
+          <p className="text-gray-600">Carregando alunos...</p>
+        ) : discentes.length === 0 ? (
+          <p className="text-gray-500 italic col-span-full">Nenhum aluno cadastrado ainda.</p>
+        ) : (
+          discentes.map((discente) => (
+            <Card key={discente.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4 text-center">
+                {discente.foto_url && (
+                  <img
+                    src={discente.foto_url}
+                    alt={discente.nome}
+                    className="w-24 h-24 rounded-full object-cover border-4 border-teal-600 shadow-md mx-auto mb-3"
+                  />
+                )}
+                <h4 className="font-bold text-gray-800 mb-1">{discente.nome}</h4>
+                <p className="text-sm text-gray-600 mb-3">{discente.titulo}</p>
+                {discente.especializacoes && discente.especializacoes.length > 0 && (
+                  <div className="text-xs text-gray-500 mb-3">
+                    <strong>Especializações:</strong> {discente.especializacoes.length} cursada(s)
+                  </div>
+                )}
+                <div className="flex justify-center gap-2">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleEditDiscente(discente)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleDeleteDiscente(discente.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const renderPostsTab = () => (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-gray-800">Gerenciar Posts do Blog</h3>
+        <Button
+          onClick={() => setShowPostForm(!showPostForm)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Post
+        </Button>
+      </div>
+
+      {showPostForm && (
+        <Card className="mb-6 bg-pink-50 border-pink-200">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {editingPost ? 'Editar Post' : 'Novo Post'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Título do Post</label>
+                <Input
+                  value={postForm.titulo}
+                  onChange={(e) => setPostForm({...postForm, titulo: e.target.value})}
+                  placeholder="Ex: Workshop BIM na Prática"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Data do Evento/Post</label>
+                <Input
+                  value={postForm.data}
+                  onChange={(e) => setPostForm({...postForm, data: e.target.value})}
+                  placeholder="Ex: 15/01/2025"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Descrição Resumida</label>
+              <Textarea
+                value={postForm.descricao}
+                onChange={(e) => setPostForm({...postForm, descricao: e.target.value})}
+                rows={3}
+                placeholder="Breve descrição que aparece no card..."
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Conteúdo Completo (Markdown suportado)</label>
+              <Textarea
+                value={postForm.conteudo_completo}
+                onChange={(e) => setPostForm({...postForm, conteudo_completo: e.target.value})}
+                rows={8}
+                placeholder="Conteúdo detalhado do post..."
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Imagem de Destaque (Thumbnail)</label>
+              {postForm.imagem_destaque && (
+                <div className="mb-2">
+                  <img src={postForm.imagem_destaque} alt="Destaque" className="w-full max-w-md h-48 object-cover rounded-lg border" />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadImagemDestaque}
+                  disabled={uploadingMidia}
+                  className="flex-1"
+                />
+                <Button disabled={uploadingMidia} variant="outline">
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploadingMidia ? 'Enviando...' : 'Upload'}
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-medium text-gray-700">Mídias Anexadas</label>
+                <Button onClick={handleAddMidia} size="sm" variant="outline">
+                  <Plus className="w-3 h-3 mr-1" />
+                  Adicionar Mídia
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {postForm.midias.map((midia, index) => (
+                  <div key={index} className="bg-white p-3 rounded-md border space-y-2">
+                    <div className="flex justify-between items-start">
+                      <span className="text-xs font-semibold text-gray-600">Mídia {index + 1}</span>
+                      <Button
+                        onClick={() => handleRemoveMidia(index)}
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-red-600"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <Select value={midia.tipo} onValueChange={(v) => handleMidiaChange(index, 'tipo', v)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="imagem">Imagem</SelectItem>
+                        <SelectItem value="video">Vídeo</SelectItem>
+                        <SelectItem value="pdf">PDF</SelectItem>
+                        <SelectItem value="link">Link Externo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {(midia.tipo === 'imagem' || midia.tipo === 'video' || midia.tipo === 'pdf') && (
+                      <div className="flex gap-2">
+                        <Input
+                          type="file"
+                          accept={midia.tipo === 'imagem' ? 'image/*' : midia.tipo === 'video' ? 'video/*' : 'application/pdf'}
+                          onChange={(e) => handleUploadMidiaFile(e, index)}
+                          disabled={uploadingMidia}
+                          className="flex-1 text-sm"
+                        />
+                      </div>
+                    )}
+                    {midia.tipo === 'link' && (
+                      <Input
+                        value={midia.url}
+                        onChange={(e) => handleMidiaChange(index, 'url', e.target.value)}
+                        placeholder="https://..."
+                        className="text-sm"
+                      />
+                    )}
+                    <Input
+                      value={midia.titulo}
+                      onChange={(e) => handleMidiaChange(index, 'titulo', e.target.value)}
+                      placeholder="Título/descrição da mídia"
+                      className="text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Tags</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {postForm.tags.map((tag, index) => (
+                  <span key={index} className="bg-pink-100 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    {tag}
+                    <button onClick={() => handleRemoveTag(index)} className="text-red-600 hover:text-red-800">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <Input
+                placeholder="Digite uma tag e pressione Enter"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddTag(e.target.value.trim());
+                    e.target.value = '';
+                  }
+                }}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
+              <Input
+                type="number"
+                value={postForm.ordem}
+                onChange={(e) => setPostForm({...postForm, ordem: e.target.value})}
+                placeholder="0"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleSavePost} className="bg-pink-600 hover:bg-pink-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button onClick={resetPostForm} variant="outline">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4">
+        {loadingPosts ? (
+          <p className="text-gray-600">Carregando posts...</p>
+        ) : posts.length === 0 ? (
+          <p className="text-gray-500 italic">Nenhum post cadastrado ainda.</p>
+        ) : (
+          posts.map((post) => (
+            <Card key={post.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex gap-4 items-start">
+                  {post.imagem_destaque && (
+                    <img src={post.imagem_destaque} alt={post.titulo} className="w-32 h-24 rounded-lg object-cover border" />
+                  )}
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-800 mb-1">{post.titulo}</h4>
+                    <p className="text-xs text-gray-500 mb-2">{post.data}</p>
+                    <p className="text-sm text-gray-600 line-clamp-2">{post.descricao}</p>
+                    {post.tags && post.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {post.tags.map((tag, i) => (
+                          <span key={i} className="text-xs bg-pink-100 px-2 py-0.5 rounded-full">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleEditPost(post)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDeletePost(post.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   );
 
@@ -3013,11 +3766,18 @@ Seja detalhado, prático e objetivo na análise.`;
           Relatórios
         </Button>
         <Button
+          onClick={() => setActiveTab('discentes')}
+          variant={activeTab === 'discentes' ? 'default' : 'outline'}
+          className={activeTab === 'discentes' ? 'bg-teal-600' : ''}
+        >
+          Corpo Discente
+        </Button>
+        <Button
           onClick={() => setActiveTab('posts')}
           variant={activeTab === 'posts' ? 'default' : 'outline'}
           className={activeTab === 'posts' ? 'bg-pink-600' : ''}
         >
-          Posts "Em Ação"
+          Blog "Em Ação"
         </Button>
       </div>
 
@@ -3027,9 +3787,10 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'parceiros' && renderParceirosTab()}
         {activeTab === 'tecnologias' && renderTecnologiasTab()}
         {activeTab === 'professores' && renderProfessoresTab()}
+        {activeTab === 'discentes' && renderDiscentesTab()}
         {activeTab === 'analise' && renderAnaliseCursosTab()}
         {activeTab === 'relatorios' && renderRelatoriosTab()}
-        {activeTab === 'posts' && renderPlaceholder('Gerenciar Posts "Em Ação"')}
+        {activeTab === 'posts' && renderPostsTab()}
       </div>
     </div>
   );

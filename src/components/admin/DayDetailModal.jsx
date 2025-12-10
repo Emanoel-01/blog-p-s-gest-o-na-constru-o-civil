@@ -17,25 +17,32 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
     return ciclo ? ciclo.nome : 'Não especificado';
   };
 
-  const getTipoColor = (tipo) => {
-    switch (tipo) {
-      case 'Presencial':
-        return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'EAD':
-        return 'bg-green-100 text-green-800 border-green-300';
-      case 'Carnaval':
-      case 'Data Magna':
-      case 'Sexta Santa':
-      case 'Dia do Trabalho':
-      case 'Intervalo':
-      case '7 de Setembro':
-      case 'Dia Sem aula':
-        return 'bg-red-100 text-red-800 border-red-300';
-      case 'Prévias':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+  const getTipoColor = (aula) => {
+    // Sem aula
+    if (['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo)) {
+      return 'bg-red-100 text-red-800 border-red-300';
     }
+    
+    // Disciplinas comuns por modalidade
+    if (aula.modalidade === 'Presencial') {
+      return 'bg-blue-100 text-blue-800 border-blue-300';
+    }
+    if (aula.modalidade === 'EAD') {
+      return 'bg-green-100 text-green-800 border-green-300';
+    }
+    
+    // Disciplinas específicas por curso
+    if (aula.modalidade === 'Específica') {
+      switch(aula.courseId) {
+        case 'gestao': return 'bg-orange-100 text-orange-800 border-orange-300';
+        case 'bim': return 'bg-cyan-100 text-cyan-800 border-cyan-300';
+        case 'manutencao': return 'bg-green-100 text-green-800 border-green-300';
+        case 'legal': return 'bg-purple-100 text-purple-800 border-purple-300';
+        default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      }
+    }
+    
+    return 'bg-gray-100 text-gray-800 border-gray-300';
   };
 
   return (
@@ -54,8 +61,13 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
             <Card key={index} className="border-2">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
-                  <Badge className={`${getTipoColor(aula.tipo)} border font-semibold`}>
-                    {aula.tipo}
+                  <Badge className={`${getTipoColor(aula)} border font-semibold`}>
+                    {['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo) 
+                      ? 'Sem Aula' 
+                      : aula.modalidade === 'Presencial' 
+                        ? 'Presencial/Remoto' 
+                        : aula.modalidade || aula.tipo
+                    }
                   </Badge>
                   {aula.horario_inicio && aula.horario_fim && (
                     <div className="flex items-center gap-1 text-sm text-gray-600">

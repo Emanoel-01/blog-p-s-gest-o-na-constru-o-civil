@@ -108,6 +108,12 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
     professorId: '',
     disciplina: ''
   });
+  const [specificDisciplines, setSpecificDisciplines] = useState({
+    gestao: { disciplina: '', professorId: '' },
+    bim: { disciplina: '', professorId: '' },
+    manutencao: { disciplina: '', professorId: '' },
+    legal: { disciplina: '', professorId: '' }
+  });
 
   const getNextSaturday = (dateStr) => {
     const [day, month, year] = dateStr.split('/');
@@ -149,53 +155,101 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
       return;
     }
 
-    const professor = professores.find(p => p.id === formData.professorId);
-    if (!professor || !formData.disciplina) {
-      toast.error('Preencha a Disciplina e o Professor.');
-      return;
-    }
-
     const nextDate = getNextSaturday(selectedDate);
     const classesToSchedule = [];
 
-    const scheduleBlock = (courseData) => {
-      classesToSchedule.push({
-        date: selectedDate,
-        turma: formData.turma,
-        courseId: courseData.id,
-        courseTitle: courseData.title,
-        discipline: formData.disciplina,
-        professor: professor.nome,
-        professorId: professor.id,
-        cycleType: formData.cycleType,
-        isFirstDay: true,
-      });
-      classesToSchedule.push({
-        date: nextDate,
-        turma: formData.turma,
-        courseId: courseData.id,
-        courseTitle: courseData.title,
-        discipline: formData.disciplina,
-        professor: professor.nome,
-        professorId: professor.id,
-        cycleType: formData.cycleType,
-        isFirstDay: false,
-      });
-    };
-
     if (formData.cycleType === 'comum') {
-      COURSES.forEach(course => scheduleBlock(course));
+      const professor = professores.find(p => p.id === formData.professorId);
+      if (!professor || !formData.disciplina) {
+        toast.error('Preencha a Disciplina e o Professor.');
+        return;
+      }
+
+      const modalidade = selectedType?.includes('C-P') ? 'Presencial' : 'EAD';
+      
+      COURSES.forEach(course => {
+        classesToSchedule.push({
+          date: selectedDate,
+          turma: formData.turma,
+          courseId: course.id,
+          courseTitle: course.title,
+          discipline: formData.disciplina,
+          professor: professor.nome,
+          professorId: professor.id,
+          cycleType: formData.cycleType,
+          modalidade: modalidade,
+          isFirstDay: true,
+        });
+        classesToSchedule.push({
+          date: nextDate,
+          turma: formData.turma,
+          courseId: course.id,
+          courseTitle: course.title,
+          discipline: formData.disciplina,
+          professor: professor.nome,
+          professorId: professor.id,
+          cycleType: formData.cycleType,
+          modalidade: modalidade,
+          isFirstDay: false,
+        });
+      });
+
+      toast.success(`Disciplina comum "${formData.disciplina}" agendada para os 4 cursos em ${selectedDate} e ${nextDate}.`);
     } else if (formData.cycleType === 'especifica') {
-      const courseData = COURSES.find(c => c.id === formData.courseId);
-      if (courseData) scheduleBlock(courseData);
+      // Validar que todas as 4 disciplinas específicas foram preenchidas
+      const allFilled = COURSES.every(course => 
+        specificDisciplines[course.id].disciplina && specificDisciplines[course.id].professorId
+      );
+
+      if (!allFilled) {
+        toast.error('Preencha a disciplina e professor para todos os 4 cursos.');
+        return;
+      }
+
+      COURSES.forEach(course => {
+        const professor = professores.find(p => p.id === specificDisciplines[course.id].professorId);
+        const disciplina = specificDisciplines[course.id].disciplina;
+
+        classesToSchedule.push({
+          date: selectedDate,
+          turma: formData.turma,
+          courseId: course.id,
+          courseTitle: course.title,
+          discipline: disciplina,
+          professor: professor.nome,
+          professorId: professor.id,
+          cycleType: formData.cycleType,
+          modalidade: 'Específica',
+          isFirstDay: true,
+        });
+        classesToSchedule.push({
+          date: nextDate,
+          turma: formData.turma,
+          courseId: course.id,
+          courseTitle: course.title,
+          discipline: disciplina,
+          professor: professor.nome,
+          professorId: professor.id,
+          cycleType: formData.cycleType,
+          modalidade: 'Específica',
+          isFirstDay: false,
+        });
+      });
+
+      toast.success(`4 disciplinas específicas agendadas para ${selectedDate} e ${nextDate}.`);
     }
 
     setSchedule([...schedule, ...classesToSchedule]);
-    toast.success(`Disciplina "${formData.disciplina}" agendada em bloco para ${selectedDate} e ${nextDate}.`);
     
     setSelectedDate(null);
     setSelectedType(null);
     setFormData({ turma: '', courseId: '', cycleType: '', professorId: '', disciplina: '' });
+    setSpecificDisciplines({
+      gestao: { disciplina: '', professorId: '' },
+      bim: { disciplina: '', professorId: '' },
+      manutencao: { disciplina: '', professorId: '' },
+      legal: { disciplina: '', professorId: '' }
+    });
   };
 
   const blockStatus = getBlockStatus();
@@ -410,42 +464,37 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Professor Responsável Principal</label>
-                  <Select
-                    value={formData.professorId}
-                    onValueChange={(value) => setFormData({...formData, professorId: value})}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o Professor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {professores.map(prof => (
-                        <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {formData.cycleType === 'comum' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Professor Responsável (Todos os Cursos)</label>
+                    <Select
+                      value={formData.professorId}
+                      onValueChange={(value) => setFormData({...formData, professorId: value})}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o Professor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {professores.map(prof => (
+                          <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               {/* Campos Dinâmicos */}
-              {formData.cycleType && (
-                <div className={`p-5 rounded-lg border-l-4 ${
-                  formData.cycleType === 'comum' ? 'bg-blue-50 border-blue-600' : 'bg-amber-50 border-amber-600'
-                }`}>
-                  <h3 className={`font-bold text-lg mb-4 ${
-                    formData.cycleType === 'comum' ? 'text-blue-800' : 'text-amber-800'
-                  }`}>
-                    {formData.cycleType === 'comum' 
-                      ? `Disciplina Comum (Tipo: ${selectedType?.includes('C-P') ? 'Presencial/Remoto' : 'EAD'})`
-                      : `Disciplina Específica (Turma: ${COURSES.find(c => c.id === formData.courseId)?.title || 'Curso Específico'})`
-                    }
+              {formData.cycleType === 'comum' && (
+                <div className="bg-blue-50 p-5 rounded-lg border-l-4 border-blue-600">
+                  <h3 className="font-bold text-lg mb-4 text-blue-800">
+                    Disciplina Comum (Tipo: {selectedType?.includes('C-P') ? 'Presencial/Remoto' : 'EAD'})
                   </h3>
                   
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Selecione a Disciplina {formData.cycleType === 'comum' ? 'Comum' : 'Específica'}
+                      Selecione a Disciplina Comum
                     </label>
                     <Select
                       value={formData.disciplina}
@@ -463,11 +512,77 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                     </Select>
                   </div>
 
-                  <p className={`text-xs mt-2 ${formData.cycleType === 'comum' ? 'text-blue-700' : 'text-amber-700'}`}>
-                    {formData.cycleType === 'comum' 
-                      ? 'OBS: A disciplina e o professor serão replicados em todos os 4 cursos para os 2 sábados.'
-                      : `OBS: Esta disciplina será agendada apenas para a turma de ${COURSES.find(c => c.id === formData.courseId)?.title} nos dois sábados.`
-                    }
+                  <p className="text-xs mt-2 text-blue-700">
+                    OBS: A disciplina e o professor serão replicados em todos os 4 cursos para os 2 sábados.
+                  </p>
+                </div>
+              )}
+
+              {formData.cycleType === 'especifica' && (
+                <div className="bg-amber-50 p-5 rounded-lg border-l-4 border-amber-600">
+                  <h3 className="font-bold text-lg mb-4 text-amber-800">
+                    Disciplinas Específicas (4 Cursos - 2 Sábados cada)
+                  </h3>
+                  
+                  <div className="space-y-6">
+                    {COURSES.map(course => {
+                      const key = `especifica_${course.id}`;
+                      const disciplines = DISCIPLINE_DATA[key] || [];
+                      
+                      return (
+                        <div key={course.id} className="bg-white p-4 rounded-lg border-2 border-amber-300">
+                          <h4 className={`font-bold mb-3 ${course.class}`}>{course.title}</h4>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-medium text-slate-700 mb-1">Disciplina</label>
+                              <Select
+                                value={specificDisciplines[course.id].disciplina}
+                                onValueChange={(value) => setSpecificDisciplines({
+                                  ...specificDisciplines,
+                                  [course.id]: { ...specificDisciplines[course.id], disciplina: value }
+                                })}
+                                required
+                              >
+                                <SelectTrigger className="h-9">
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {disciplines.map(disc => (
+                                    <SelectItem key={disc.name} value={disc.name}>{disc.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-xs font-medium text-slate-700 mb-1">Professor</label>
+                              <Select
+                                value={specificDisciplines[course.id].professorId}
+                                onValueChange={(value) => setSpecificDisciplines({
+                                  ...specificDisciplines,
+                                  [course.id]: { ...specificDisciplines[course.id], professorId: value }
+                                })}
+                                required
+                              >
+                                <SelectTrigger className="h-9">
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {professores.map(prof => (
+                                    <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <p className="text-xs mt-4 text-amber-700">
+                    OBS: Cada curso terá sua própria disciplina e professor nos dois sábados.
                   </p>
                 </div>
               )}

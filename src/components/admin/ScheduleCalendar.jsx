@@ -30,7 +30,8 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
 
   const getAulasForDay = (day) => {
     const dateStr = `${String(day).padStart(2, '0')}/${String(currentMonth.getMonth() + 1).padStart(2, '0')}/${currentMonth.getFullYear()}`;
-    return cronograma.filter(aula => aula.data === dateStr);
+    const dateStr2 = `${String(day).padStart(2, '0')}/${currentMonth.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}`;
+    return cronograma.filter(aula => aula.data === dateStr || aula.data.startsWith(dateStr2) || aula.data === `${String(day).padStart(2, '0')}/${String(currentMonth.getMonth() + 1).padStart(2, '0')}`);
   };
 
   const isSaturday = (day) => {
@@ -38,25 +39,32 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
     return date.getDay() === 6;
   };
 
-  const getTipoColor = (tipo) => {
-    switch (tipo) {
-      case 'Presencial':
-        return 'bg-blue-500 hover:bg-blue-600';
-      case 'EAD':
-        return 'bg-green-500 hover:bg-green-600';
-      case 'Carnaval':
-      case 'Data Magna':
-      case 'Sexta Santa':
-      case 'Dia do Trabalho':
-      case 'Intervalo':
-      case '7 de Setembro':
-      case 'Dia Sem aula':
-        return 'bg-red-500 hover:bg-red-600';
-      case 'Prévias':
-        return 'bg-purple-500 hover:bg-purple-600';
-      default:
-        return 'bg-gray-400 hover:bg-gray-500';
+  const getTipoColor = (aula) => {
+    // Se for feriado ou sem aula
+    if (['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo)) {
+      return 'bg-red-500 hover:bg-red-600';
     }
+    
+    // Para disciplinas comuns, usar cor baseada na modalidade
+    if (aula.modalidade === 'Presencial') {
+      return 'bg-blue-500 hover:bg-blue-600';
+    }
+    if (aula.modalidade === 'EAD') {
+      return 'bg-green-500 hover:bg-green-600';
+    }
+    
+    // Para disciplinas específicas, usar cor do curso
+    if (aula.modalidade === 'Específica') {
+      switch(aula.courseId) {
+        case 'gestao': return 'bg-orange-500 hover:bg-orange-600';
+        case 'bim': return 'bg-cyan-500 hover:bg-cyan-600';
+        case 'manutencao': return 'bg-green-500 hover:bg-green-600';
+        case 'legal': return 'bg-purple-500 hover:bg-purple-600';
+        default: return 'bg-gray-400 hover:bg-gray-500';
+      }
+    }
+    
+    return 'bg-gray-400 hover:bg-gray-500';
   };
 
   const days = [];
@@ -82,16 +90,17 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
         </div>
         {hasAulas && (
           <div className="space-y-1">
-            {aulas.slice(0, 2).map((aula, idx) => (
+            {aulas.slice(0, 3).map((aula, idx) => (
               <div
                 key={idx}
-                className={`text-xs px-2 py-1 rounded text-white truncate ${getTipoColor(aula.tipo)}`}
+                className={`text-xs px-1 py-0.5 rounded text-white truncate ${getTipoColor(aula)}`}
+                title={aula.disciplina_nome}
               >
-                {aula.tipo}
+                {aula.disciplina_nome || aula.tipo}
               </div>
             ))}
-            {aulas.length > 2 && (
-              <div className="text-xs text-gray-600 font-semibold">+{aulas.length - 2} mais</div>
+            {aulas.length > 3 && (
+              <div className="text-xs text-gray-600 font-semibold">+{aulas.length - 3}</div>
             )}
           </div>
         )}
@@ -131,11 +140,13 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
       </div>
 
       <div className="mt-4 flex flex-wrap gap-3 justify-center">
-        <Badge className="bg-blue-500">Presencial</Badge>
+        <Badge className="bg-blue-500">Presencial/Remoto</Badge>
         <Badge className="bg-green-500">EAD</Badge>
-        <Badge className="bg-red-500">Feriado</Badge>
-        <Badge className="bg-purple-500">Prévias</Badge>
-        <Badge className="bg-gray-400">Outros</Badge>
+        <Badge className="bg-red-500">Sem Aula</Badge>
+        <Badge className="bg-orange-500">Gestão de Projetos</Badge>
+        <Badge className="bg-cyan-500">Tecnologia BIM</Badge>
+        <Badge className="bg-green-600">Manutenção</Badge>
+        <Badge className="bg-purple-500">Engenharia Legal</Badge>
       </div>
     </div>
   );

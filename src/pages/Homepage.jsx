@@ -8,9 +8,6 @@ import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
 import { 
   ArrowRight, 
-  Users, 
-  GraduationCap, 
-  Handshake, 
   Rss, 
   Sparkles, 
   ChevronDown,
@@ -25,23 +22,10 @@ export default function Homepage() {
 
   const { data: posts = [] } = useQuery({
     queryKey: ['posts'],
-    queryFn: () => base44.entities.Post.list('-ordem', 3)
+    queryFn: () => base44.entities.Post.list('-ordem', 2)
   });
 
-  const { data: professores = [] } = useQuery({
-    queryKey: ['professores'],
-    queryFn: () => base44.entities.Professor.list('ordem', 4)
-  });
 
-  const { data: discentes = [] } = useQuery({
-    queryKey: ['discentes'],
-    queryFn: () => base44.entities.Discente.list('ordem', 4)
-  });
-
-  const { data: parceiros = [] } = useQuery({
-    queryKey: ['parceiros'],
-    queryFn: () => base44.entities.Parceiro.list('ordem', 6)
-  });
 
   const faqs = [
     {
@@ -188,114 +172,62 @@ export default function Homepage() {
         </div>
       </div>
 
-      {/* Destaques */}
-      <div className="space-y-8">
+      {/* Conheça Nossa Comunidade */}
+      <div className="space-y-6">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center">
           Conheça Nossa Comunidade
         </h2>
 
-        {/* Blog Posts */}
-        {posts.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Rss className="w-5 h-5 text-pink-600" />
-              <h3 className="text-lg sm:text-xl font-bold text-gray-800">Últimas do Blog</h3>
-              <Link to={createPageUrl('EmAcaoPage')} className="ml-auto">
-                <Button variant="outline" size="sm">
+        {/* Card do Blog */}
+        <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-200 hover:shadow-2xl transition-all">
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-pink-600 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center">
+                  <Rss className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Blog Em Ação</h3>
+                  <p className="text-sm text-gray-600">Eventos, workshops e novidades</p>
+                </div>
+              </div>
+              <Link to={createPageUrl('EmAcaoPage')}>
+                <Button variant="outline" className="border-pink-300 text-pink-700 hover:bg-pink-100">
                   Ver Todos
-                  <ArrowRight className="ml-2 w-3 h-3" />
+                  <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {posts.map((post) => (
-                <Link key={post.id} to={createPageUrl('EmAcaoPage')}>
-                  <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-                    <CardContent className="p-0">
-                      {post.imagem_destaque && (
-                        <img
-                          src={post.imagem_destaque}
-                          alt={post.titulo}
-                          className="w-full h-40 object-cover rounded-t-lg"
-                        />
-                      )}
-                      <div className="p-4">
-                        <p className="text-xs text-gray-500 mb-1">{post.data}</p>
-                        <h4 className="font-bold text-gray-800 mb-2 line-clamp-2">{post.titulo}</h4>
-                        <p className="text-sm text-gray-600 line-clamp-2">{post.descricao}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Grid de Destaques */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {/* Corpo Docente */}
-          <Link to={createPageUrl('ProfessoresPage')}>
-            <Card className="h-full hover:shadow-xl transition-all cursor-pointer bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 hover:border-indigo-400">
-              <CardContent className="p-6 text-center">
-                <div className="bg-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Corpo Docente</h3>
-                <p className="text-sm text-gray-600 mb-3">Professores experientes e atuantes no mercado</p>
-                {professores.length > 0 && (
-                  <Badge className="bg-indigo-100 text-indigo-800">{professores.length}+ Professores</Badge>
-                )}
-              </CardContent>
-            </Card>
-          </Link>
-
-          {/* Corpo Discente */}
-          <Link to={createPageUrl('CorpoDiscentePage')}>
-            <Card className="h-full hover:shadow-xl transition-all cursor-pointer bg-gradient-to-br from-teal-50 to-green-50 border-2 border-teal-200 hover:border-teal-400">
-              <CardContent className="p-6 text-center">
-                <div className="bg-teal-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <GraduationCap className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Corpo Discente</h3>
-                <p className="text-sm text-gray-600 mb-3">Conheça nossos alunos e suas jornadas</p>
-                {discentes.length > 0 && (
-                  <Badge className="bg-teal-100 text-teal-800">{discentes.length}+ Alunos</Badge>
-                )}
-              </CardContent>
-            </Card>
-          </Link>
-
-          {/* Parceiros */}
-          <Link to={createPageUrl('ParceirosPage')}>
-            <Card className="h-full hover:shadow-xl transition-all cursor-pointer bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200 hover:border-orange-400">
-              <CardContent className="p-6 text-center">
-                <div className="bg-orange-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Handshake className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Parceiros</h3>
-                <p className="text-sm text-gray-600 mb-3">Empresas e instituições que apoiam nossa jornada</p>
-                {parceiros.length > 0 && (
-                  <Badge className="bg-orange-100 text-orange-800">{parceiros.length}+ Parceiros</Badge>
-                )}
-              </CardContent>
-            </Card>
-          </Link>
-
-          {/* Blog */}
-          <Link to={createPageUrl('EmAcaoPage')}>
-            <Card className="h-full hover:shadow-xl transition-all cursor-pointer bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-200 hover:border-pink-400">
-              <CardContent className="p-6 text-center">
-                <div className="bg-pink-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Rss className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Blog Em Ação</h3>
-                <p className="text-sm text-gray-600 mb-3">Eventos, workshops e novidades da comunidade</p>
-                <Badge className="bg-pink-100 text-pink-800">Últimas Notícias</Badge>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
+            {/* Posts Recentes */}
+            {posts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {posts.map((post) => (
+                  <Link key={post.id} to={createPageUrl('EmAcaoPage')}>
+                    <Card className="h-full hover:shadow-lg transition-all cursor-pointer bg-white border border-pink-100">
+                      <CardContent className="p-0">
+                        {post.imagem_destaque && (
+                          <img
+                            src={post.imagem_destaque}
+                            alt={post.titulo}
+                            className="w-full h-36 sm:h-40 object-cover rounded-t-lg"
+                          />
+                        )}
+                        <div className="p-4">
+                          <p className="text-xs text-gray-500 mb-1">{post.data}</p>
+                          <h4 className="font-bold text-gray-800 mb-2 line-clamp-2 text-sm sm:text-base">{post.titulo}</h4>
+                          <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{post.descricao}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 py-8">Nenhum post disponível no momento.</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Dúvidas Frequentes */}

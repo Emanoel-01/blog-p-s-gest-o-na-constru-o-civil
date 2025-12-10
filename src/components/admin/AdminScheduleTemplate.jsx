@@ -128,6 +128,22 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
     }
   });
 
+  const updateAulaMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.CronogramaAula.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cronograma'] });
+      toast.success('Aula atualizada com sucesso!');
+    }
+  });
+
+  const deleteAulaMutation = useMutation({
+    mutationFn: (id) => base44.entities.CronogramaAula.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cronograma'] });
+      toast.success('Aula excluída com sucesso!');
+    }
+  });
+
   const getNextSaturday = (dateStr) => {
     const [day, month, year] = dateStr.split('/');
     const current = new Date(year, month - 1, day);
@@ -207,38 +223,32 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
 
       toast.success(`Disciplina comum "${formData.disciplina}" agendada para os 4 cursos em ${selectedDate} e ${nextDate}.`);
     } else if (formData.cycleType === 'especifica') {
-      const allFilled = COURSES.every(course => 
-        specificDisciplines[course.id].disciplina && specificDisciplines[course.id].professorId
-      );
-
-      if (!allFilled) {
-        toast.error('Preencha a disciplina e professor para todos os 4 cursos.');
+      if (!formData.courseId || !formData.disciplina || !formData.professorId) {
+        toast.error('Preencha o Curso, Disciplina e Professor.');
         return;
       }
 
-      COURSES.forEach(course => {
-        const professor = professores.find(p => p.id === specificDisciplines[course.id].professorId);
-        const disciplina = specificDisciplines[course.id].disciplina;
+      const course = COURSES.find(c => c.id === formData.courseId);
+      const professor = professores.find(p => p.id === formData.professorId);
 
-        classesToSave.push({
-          data: selectedDate,
-          tipo: 'Específica',
-          disciplina_nome: disciplina,
-          professor_id: professor.id,
-          observacoes: `Turma ${formData.turma} - ${course.title} - Específica (1º Dia)`,
-          ordem: 0
-        });
-        classesToSave.push({
-          data: nextDate,
-          tipo: 'Específica',
-          disciplina_nome: disciplina,
-          professor_id: professor.id,
-          observacoes: `Turma ${formData.turma} - ${course.title} - Específica (2º Dia)`,
-          ordem: 0
-        });
+      classesToSave.push({
+        data: selectedDate,
+        tipo: formData.courseId,
+        disciplina_nome: formData.disciplina,
+        professor_id: professor.id,
+        observacoes: `Turma ${formData.turma} - ${course.title} - Específica (1º Dia)`,
+        ordem: 0
+      });
+      classesToSave.push({
+        data: nextDate,
+        tipo: formData.courseId,
+        disciplina_nome: formData.disciplina,
+        professor_id: professor.id,
+        observacoes: `Turma ${formData.turma} - ${course.title} - Específica (2º Dia)`,
+        ordem: 0
       });
 
-      toast.success(`4 disciplinas específicas agendadas para ${selectedDate} e ${nextDate}.`);
+      toast.success(`Disciplina específica "${formData.disciplina}" agendada para ${course.title} em ${selectedDate} e ${nextDate}.`);
     }
 
     // Salvar no banco de dados
@@ -270,14 +280,20 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
     
     if (selectedType.includes('C-P') || selectedType.includes('C-EAD')) {
       const typeText = selectedType.includes('C-P') ? 'Presencial/Remoto' : 'EAD';
-      return [{ value: 'comum', label: `Ciclo I: BASE COMUM (${typeText})` }];
+      return [{ value: 'comum', label: `Ciclo I: BASE COMUM (${typeText}) - Todos os Cursos` }];
     }
     
     if (selectedType === 'E') {
-      return [{ value: 'especifica', label: 'Ciclo II: ESPECÍFICO (1 Curso)' }];
+      return [{ value: 'especifica', label: 'Ciclo II: ESPECÍFICO - Escolher 1 Curso' }];
     }
     
     return [];
+  };
+
+  const handleDeleteAula = async (aulaId) => {
+    if (window.confirm('Tem certeza que deseja excluir esta aula?')) {
+      await deleteAulaMutation.mutateAsync(aulaId);
+    }
   };
 
   const getDisciplineOptions = () => {
@@ -403,19 +419,39 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                     </span>
                   )}
                   {status === 'LIVRE' && <span className="text-gray-400">---</span>}
-                  {status === 'AGENDADO' && Object.keys(grouped).map((key, idx) => {
-                    const item = grouped[key];
-                    const obs = item.observacoes || '';
+                  {status === 'AGENDADO' && scheduledClasses.slice(0, 3).map((aula, idx) => {
+                    const obs = aula.observacoes || '';
                     const isDia1 = obs.includes('1º Dia');
+                    const prof = professores.find(p => p.id === aula.professor_id);
                     return (
-                      <div key={idx} className="mb-2 p-1 rounded-md">
-                        <span className="text-sm font-semibold text-slate-800 block">{item.discipline}</span>
-                        <span className="text-xs text-slate-500 block">
-                          Prof: {item.professor.split(' ')[0]} {isDia1 ? '(1º Dia)' : '(2º Dia)'}
-                        </span>
+                      <div key={idx} className="mb-1 p-2 rounded-md bg-white border border-gray-200 group hover:shadow-sm transition-shadow">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-semibold text-slate-800 block truncate">{aula.disciplina_nome}</span>
+                            <span className="text-xs text-slate-500 block">
+                              Prof: {prof?.nome.split(' ')[0]} {isDia1 ? '(1º)' : '(2º)'}
+                            </span>
+                          </div>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteAula(aula.id);
+                            }}
+                            className="h-6 w-6 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
+                  {status === 'AGENDADO' && scheduledClasses.length > 3 && (
+                    <div className="text-xs text-gray-600 font-semibold mt-1">+{scheduledClasses.length - 3} mais</div>
+                  )}
                 </div>
               </div>
             );
@@ -431,35 +467,16 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Dados Básicos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Identificação da Turma (Ex: T01/26)
-                  </label>
-                  <Input
-                    value={formData.turma}
-                    onChange={(e) => setFormData({...formData, turma: e.target.value})}
-                    placeholder="Ex: T01/2026"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Curso Principal</label>
-                  <Select
-                    value={formData.courseId}
-                    onValueChange={(value) => setFormData({...formData, courseId: value})}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o Curso" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COURSES.map(course => (
-                        <SelectItem key={course.id} value={course.id}>{course.title}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Identificação da Turma (Ex: T01/26)
+                </label>
+                <Input
+                  value={formData.turma}
+                  onChange={(e) => setFormData({...formData, turma: e.target.value})}
+                  placeholder="Ex: T01/2026"
+                  required
+                />
               </div>
 
               {/* Seleção de Ciclo */}
@@ -538,68 +555,73 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
               {formData.cycleType === 'especifica' && (
                 <div className="bg-amber-50 p-5 rounded-lg border-l-4 border-amber-600">
                   <h3 className="font-bold text-lg mb-4 text-amber-800">
-                    Disciplinas Específicas (4 Cursos - 2 Sábados cada)
+                    Disciplina Específica - Cadastrar 1 Curso por vez
                   </h3>
                   
-                  <div className="space-y-6">
-                    {COURSES.map(course => {
-                      const key = `especifica_${course.id}`;
-                      const disciplines = DISCIPLINE_DATA[key] || [];
-                      
-                      return (
-                        <div key={course.id} className="bg-white p-4 rounded-lg border-2 border-amber-300">
-                          <h4 className={`font-bold mb-3 ${course.class}`}>{course.title}</h4>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs font-medium text-slate-700 mb-1">Disciplina</label>
-                              <Select
-                                value={specificDisciplines[course.id].disciplina}
-                                onValueChange={(value) => setSpecificDisciplines({
-                                  ...specificDisciplines,
-                                  [course.id]: { ...specificDisciplines[course.id], disciplina: value }
-                                })}
-                                required
-                              >
-                                <SelectTrigger className="h-9">
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {disciplines.map(disc => (
-                                    <SelectItem key={disc.name} value={disc.name}>{disc.name}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-xs font-medium text-slate-700 mb-1">Professor</label>
-                              <Select
-                                value={specificDisciplines[course.id].professorId}
-                                onValueChange={(value) => setSpecificDisciplines({
-                                  ...specificDisciplines,
-                                  [course.id]: { ...specificDisciplines[course.id], professorId: value }
-                                })}
-                                required
-                              >
-                                <SelectTrigger className="h-9">
-                                  <SelectValue placeholder="Selecione" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {professores.map(prof => (
-                                    <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Selecione o Curso</label>
+                      <Select
+                        value={formData.courseId}
+                        onValueChange={(value) => setFormData({...formData, courseId: value, disciplina: ''})}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Escolha o curso" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COURSES.map(course => (
+                            <SelectItem key={course.id} value={course.id}>
+                              <span className={course.class}>{course.title}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {formData.courseId && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">Disciplina Específica</label>
+                          <Select
+                            value={formData.disciplina}
+                            onValueChange={(value) => setFormData({...formData, disciplina: value})}
+                            required
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a disciplina" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(DISCIPLINE_DATA[`especifica_${formData.courseId}`] || []).map(disc => (
+                                <SelectItem key={disc.name} value={disc.name}>{disc.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                      );
-                    })}
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">Professor Responsável</label>
+                          <Select
+                            value={formData.professorId}
+                            onValueChange={(value) => setFormData({...formData, professorId: value})}
+                            required
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o professor" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {professores.map(prof => (
+                                <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <p className="text-xs mt-4 text-amber-700">
-                    OBS: Cada curso terá sua própria disciplina e professor nos dois sábados.
+                    OBS: Esta disciplina será agendada apenas para o curso selecionado nos dois sábados. Para cadastrar outras disciplinas específicas, repita o processo para cada curso.
                   </p>
                 </div>
               )}

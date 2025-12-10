@@ -46,25 +46,21 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
     }
     
     // Para disciplinas comuns, usar cor baseada na modalidade
-    if (aula.modalidade === 'Presencial') {
+    if (aula.tipo === 'Presencial') {
       return 'bg-blue-500 hover:bg-blue-600';
     }
-    if (aula.modalidade === 'EAD') {
+    if (aula.tipo === 'EAD') {
       return 'bg-green-500 hover:bg-green-600';
     }
     
-    // Para disciplinas específicas, usar cor do curso
-    if (aula.modalidade === 'Específica') {
-      switch(aula.courseId) {
-        case 'gestao': return 'bg-orange-500 hover:bg-orange-600';
-        case 'bim': return 'bg-cyan-500 hover:bg-cyan-600';
-        case 'manutencao': return 'bg-green-500 hover:bg-green-600';
-        case 'legal': return 'bg-purple-500 hover:bg-purple-600';
-        default: return 'bg-gray-400 hover:bg-gray-500';
-      }
+    // Para disciplinas específicas, usar cor do curso (tipo contém o courseId)
+    switch(aula.tipo) {
+      case 'gestao': return 'bg-orange-500 hover:bg-orange-600';
+      case 'bim': return 'bg-cyan-500 hover:bg-cyan-600';
+      case 'manutencao': return 'bg-green-600 hover:bg-green-700';
+      case 'legal': return 'bg-purple-500 hover:bg-purple-600';
+      default: return 'bg-gray-400 hover:bg-gray-500';
     }
-    
-    return 'bg-gray-400 hover:bg-gray-500';
   };
 
   const days = [];

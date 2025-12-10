@@ -38,52 +38,60 @@ export default function CalendarioDeAula() {
   };
 
   return (
-    <div className="space-y-8">
-      {selectedDay && (
-        <DayDetailModal
-          day={selectedDay}
-          aulas={selectedAulas}
-          professores={professores}
-          ciclos={ciclos}
-          onClose={handleCloseModal}
-        />
-      )}
+    <div className="space-y-6">
+          {selectedDay && (
+            <DayDetailModal
+              day={selectedDay}
+              aulas={selectedAulas}
+              professores={professores}
+              ciclos={ciclos}
+              onClose={handleCloseModal}
+            />
+          )}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-            📅 Calendário de Aulas
-          </h1>
-          <p className="text-gray-600 text-lg max-w-3xl">
-            Acompanhe o cronograma completo das aulas. Clique nos dias com aula para ver mais detalhes.
-          </p>
-        </div>
-        <Link to={createPageUrl('EmAcaoPage')}>
-          <Button variant="outline" className="border-gray-300">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar ao Blog
-          </Button>
-        </Link>
-      </div>
+          <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white p-8 rounded-2xl shadow-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-extrabold mb-2 flex items-center gap-3">
+                  📅 Calendário de Aulas 2026
+                </h1>
+                <p className="text-green-50 text-base md:text-lg max-w-3xl">
+                  Acompanhe o cronograma completo das aulas. Clique nos dias com aula para ver mais detalhes sobre horários, professores e disciplinas.
+                </p>
+              </div>
+              <Link to={createPageUrl('EmAcaoPage')}>
+                <Button variant="outline" className="border-white bg-white/10 hover:bg-white/20 text-white">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar
+                </Button>
+              </Link>
+            </div>
+          </div>
 
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4" />
-          <p className="text-gray-600">Carregando cronograma...</p>
+        <div className="text-center py-16">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-6" />
+          <p className="text-gray-600 text-lg font-medium">Carregando cronograma...</p>
         </div>
       ) : cronograma.length === 0 ? (
-        <div className="bg-gray-50 p-12 rounded-xl text-center">
-          <p className="text-gray-500 italic">
-            Nenhuma aula agendada no momento. Em breve o cronograma será atualizado.
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-16 rounded-2xl text-center border-2 border-dashed border-gray-300">
+          <div className="mb-4 text-6xl">📚</div>
+          <p className="text-gray-600 text-lg font-medium mb-2">
+            Nenhuma aula agendada no momento
+          </p>
+          <p className="text-gray-500 text-sm">
+            Em breve o cronograma será atualizado com as próximas aulas.
           </p>
         </div>
       ) : (
-        <ScheduleCalendar
-          cronograma={cronograma}
-          professores={professores}
-          ciclos={ciclos}
-          onDayClick={handleDayClick}
-        />
+        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+          <ScheduleCalendar
+            cronograma={cronograma}
+            professores={professores}
+            ciclos={ciclos}
+            onDayClick={handleDayClick}
+          />
+        </div>
       )}
     </div>
   );

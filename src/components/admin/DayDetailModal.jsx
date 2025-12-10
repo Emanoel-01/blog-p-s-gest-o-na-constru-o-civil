@@ -24,25 +24,21 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
     }
     
     // Disciplinas comuns por modalidade
-    if (aula.modalidade === 'Presencial') {
+    if (aula.tipo === 'Presencial') {
       return 'bg-blue-100 text-blue-800 border-blue-300';
     }
-    if (aula.modalidade === 'EAD') {
+    if (aula.tipo === 'EAD') {
       return 'bg-green-100 text-green-800 border-green-300';
     }
     
     // Disciplinas específicas por curso
-    if (aula.modalidade === 'Específica') {
-      switch(aula.courseId) {
-        case 'gestao': return 'bg-orange-100 text-orange-800 border-orange-300';
-        case 'bim': return 'bg-cyan-100 text-cyan-800 border-cyan-300';
-        case 'manutencao': return 'bg-green-100 text-green-800 border-green-300';
-        case 'legal': return 'bg-purple-100 text-purple-800 border-purple-300';
-        default: return 'bg-gray-100 text-gray-800 border-gray-300';
-      }
+    switch(aula.tipo) {
+      case 'gestao': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'bim': return 'bg-cyan-100 text-cyan-800 border-cyan-300';
+      case 'manutencao': return 'bg-green-100 text-green-800 border-green-300';
+      case 'legal': return 'bg-purple-100 text-purple-800 border-purple-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
-    
-    return 'bg-gray-100 text-gray-800 border-gray-300';
   };
 
   return (
@@ -64,9 +60,19 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
                   <Badge className={`${getTipoColor(aula)} border font-semibold`}>
                     {['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo) 
                       ? 'Sem Aula' 
-                      : aula.modalidade === 'Presencial' 
-                        ? 'Presencial/Remoto' 
-                        : aula.modalidade || aula.tipo
+                      : aula.tipo === 'Presencial' 
+                        ? 'Presencial/Remoto'
+                        : aula.tipo === 'EAD'
+                          ? 'EAD'
+                          : aula.tipo === 'gestao'
+                            ? 'Gestão de Projetos'
+                            : aula.tipo === 'bim'
+                              ? 'Tecnologia BIM'
+                              : aula.tipo === 'manutencao'
+                                ? 'Manutenção'
+                                : aula.tipo === 'legal'
+                                  ? 'Engenharia Legal'
+                                  : aula.tipo
                     }
                   </Badge>
                   {aula.horario_inicio && aula.horario_fim && (

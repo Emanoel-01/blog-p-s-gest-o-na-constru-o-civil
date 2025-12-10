@@ -6,10 +6,10 @@ import EspecializacoesPage from './pages/EspecializacoesPage';
 import CoordenadorPage from './pages/CoordenadorPage';
 import ProfessoresPage from './pages/ProfessoresPage';
 import EmAcaoPage from './pages/EmAcaoPage';
-import InscricoesMatriculasPage from './pages/InscricoesMatriculasPage';
 import AdminPage from './pages/AdminPage';
 import ParceirosPage from './pages/ParceirosPage';
 import Documentation from './pages/Documentation';
+import CorpoDiscentePage from './pages/CorpoDiscentePage';
 import __Layout from './Layout.jsx';
 
 
@@ -22,10 +22,10 @@ export const PAGES = {
     "CoordenadorPage": CoordenadorPage,
     "ProfessoresPage": ProfessoresPage,
     "EmAcaoPage": EmAcaoPage,
-    "InscricoesMatriculasPage": InscricoesMatriculasPage,
     "AdminPage": AdminPage,
     "ParceirosPage": ParceirosPage,
     "Documentation": Documentation,
+    "CorpoDiscentePage": CorpoDiscentePage,
 }
 
 export const pagesConfig = {

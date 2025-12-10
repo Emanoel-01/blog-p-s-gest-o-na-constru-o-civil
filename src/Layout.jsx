@@ -33,9 +33,9 @@ export default function Layout({ children }) {
     { name: 'Especializações', path: 'EspecializacoesPage' },
     { name: 'Coordenação', path: 'CoordenadorPage' },
     { name: 'Corpo Docente', path: 'ProfessoresPage' },
+    { name: 'Corpo Discente', path: 'CorpoDiscentePage' },
     { name: 'Parceiros', path: 'ParceirosPage' },
-    { name: 'Em Ação', path: 'EmAcaoPage' },
-    { name: 'Inscrições', path: 'InscricoesMatriculasPage' }
+    { name: 'Blog', path: 'EmAcaoPage' }
   ];
 
   const icons = {
@@ -46,9 +46,9 @@ export default function Layout({ children }) {
     'Especializações': GraduationCap,
     'Coordenação': User,
     'Corpo Docente': Users,
+    'Corpo Discente': GraduationCap,
     'Parceiros': Handshake,
-    'Em Ação': Rss,
-    'Inscrições': CalendarDays
+    'Blog': Rss
   };
 
   if (loadingUser) {

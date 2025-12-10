@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 import DetailedReport from '../components/admin/DetailedReport';
 import ManagerialReport from '../components/admin/ManagerialReport';
+import DisciplinaFormFields from '../components/admin/DisciplinaFormFields';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -22,7 +23,7 @@ export default function AdminPage() {
   const [cicloForm, setCicloForm] = useState({
     nome: '',
     carga_horaria: '',
-    disciplinas: '',
+    disciplinas: [],
     ordem: 0
   });
 
@@ -382,21 +383,16 @@ export default function AdminPage() {
 
   // ========== HANDLERS PARA CICLOS ==========
   const resetCicloForm = () => {
-    setCicloForm({ nome: '', carga_horaria: '', disciplinas: '', ordem: 0 });
+    setCicloForm({ nome: '', carga_horaria: '', disciplinas: [], ordem: 0 });
     setShowCicloForm(false);
     setEditingCiclo(null);
   };
 
   const handleSaveCiclo = () => {
-    const disciplinasArray = cicloForm.disciplinas
-      .split('\n')
-      .map(d => d.trim())
-      .filter(d => d);
-
     const data = {
       nome: cicloForm.nome,
       carga_horaria: parseInt(cicloForm.carga_horaria),
-      disciplinas: disciplinasArray,
+      disciplinas: cicloForm.disciplinas,
       ordem: parseInt(cicloForm.ordem) || 0
     };
 
@@ -408,10 +404,21 @@ export default function AdminPage() {
   };
 
   const handleEditCiclo = (ciclo) => {
+    // Converter disciplinas antigas (strings) para novo formato (objetos)
+    let disciplinasFormatadas = [];
+    if (ciclo.disciplinas) {
+      disciplinasFormatadas = ciclo.disciplinas.map(d => {
+        if (typeof d === 'string') {
+          return { nome: d, ementa_sintetica: '', ementa_detalhada: '', conhecimento_adquirido: '', habilidade_tecnica: '', habilidade_comportamental: '', modalidade: 'Presencial', carga_horaria: 0 };
+        }
+        return d;
+      });
+    }
+    
     setCicloForm({
       nome: ciclo.nome,
       carga_horaria: ciclo.carga_horaria.toString(),
-      disciplinas: ciclo.disciplinas?.join('\n') || '',
+      disciplinas: disciplinasFormatadas,
       ordem: ciclo.ordem || 0
     });
     setEditingCiclo(ciclo);
@@ -422,6 +429,38 @@ export default function AdminPage() {
     if (window.confirm('Tem certeza que deseja remover este ciclo?')) {
       deleteCicloMutation.mutate(id);
     }
+  };
+
+  const handleAddDisciplina = () => {
+    setCicloForm(prev => ({
+      ...prev,
+      disciplinas: [...prev.disciplinas, {
+        nome: '',
+        ementa_sintetica: '',
+        ementa_detalhada: '',
+        conhecimento_adquirido: '',
+        habilidade_tecnica: '',
+        habilidade_comportamental: '',
+        carga_horaria: 0,
+        modalidade: 'Presencial'
+      }]
+    }));
+  };
+
+  const handleDisciplinaChange = (index, field, value) => {
+    setCicloForm(prev => ({
+      ...prev,
+      disciplinas: prev.disciplinas.map((d, i) => 
+        i === index ? { ...d, [field]: field === 'carga_horaria' ? parseInt(value) || 0 : value } : d
+      )
+    }));
+  };
+
+  const handleRemoveDisciplina = (index) => {
+    setCicloForm(prev => ({
+      ...prev,
+      disciplinas: prev.disciplinas.filter((_, i) => i !== index)
+    }));
   };
 
   // ========== HANDLERS PARA ESPECIALIZAÇÕES ==========
@@ -1634,13 +1673,35 @@ Seja detalhado, prático e objetivo na análise.`;
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Disciplinas (uma por linha)</label>
-              <Textarea
-                value={cicloForm.disciplinas}
-                onChange={(e) => setCicloForm({...cicloForm, disciplinas: e.target.value})}
-                rows={6}
-                placeholder="Gerenciamento de Projetos&#10;Eficiência Energética&#10;..."
-              />
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-sm font-medium text-gray-700">Disciplinas do Ciclo</label>
+                <Button
+                  onClick={handleAddDisciplina}
+                  size="sm"
+                  variant="outline"
+                  type="button"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Adicionar Disciplina
+                </Button>
+              </div>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {cicloForm.disciplinas.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic text-center py-6 bg-gray-50 rounded-lg">
+                    Nenhuma disciplina adicionada. Clique em "Adicionar Disciplina" para começar.
+                  </p>
+                ) : (
+                  cicloForm.disciplinas.map((disciplina, index) => (
+                    <DisciplinaFormFields
+                      key={index}
+                      disciplina={disciplina}
+                      index={index}
+                      onChange={handleDisciplinaChange}
+                      onRemove={handleRemoveDisciplina}
+                    />
+                  ))
+                )}
+              </div>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
@@ -1681,7 +1742,7 @@ Seja detalhado, prático e objetivo na análise.`;
                     {ciclo.disciplinas && ciclo.disciplinas.length > 0 && (
                       <ul className="text-sm text-gray-600 ml-4 list-disc">
                         {ciclo.disciplinas.slice(0, 3).map((d, i) => (
-                          <li key={i}>{d}</li>
+                          <li key={i}>{typeof d === 'string' ? d : d.nome}</li>
                         ))}
                         {ciclo.disciplinas.length > 3 && (
                           <li className="italic">+ {ciclo.disciplinas.length - 3} disciplinas</li>

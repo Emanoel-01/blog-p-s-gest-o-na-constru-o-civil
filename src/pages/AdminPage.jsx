@@ -263,6 +263,11 @@ export default function AdminPage() {
     queryFn: () => base44.entities.ChatbotFAQ.list('ordem')
   });
 
+  const { data: leads = [] } = useQuery({
+    queryKey: ['leads'],
+    queryFn: () => base44.entities.Lead.list('-created_date')
+  });
+
   // Auto-calcular carga horária quando ciclos mudam
   useEffect(() => {
     if (especForm.ciclos.length > 0 && ciclos.length > 0) {
@@ -541,6 +546,24 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatbot-faqs'] });
       toast.success('FAQ removida com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA LEADS ==========
+  const updateLeadMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Lead.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      setEditingLead(null);
+      toast.success('Lead atualizado com sucesso!');
+    }
+  });
+
+  const deleteLeadMutation = useMutation({
+    mutationFn: (id) => base44.entities.Lead.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      toast.success('Lead removido com sucesso!');
     }
   });
 
@@ -1525,6 +1548,21 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const handleDeleteFAQ = (id) => {
     if (window.confirm('Tem certeza que deseja remover esta FAQ?')) {
       deleteFAQMutation.mutate(id);
+    }
+  };
+
+  // ========== HANDLERS PARA LEADS ==========
+  const handleEditLead = (lead) => {
+    setEditingLead(lead);
+  };
+
+  const handleSaveLead = (leadId, data) => {
+    updateLeadMutation.mutate({ id: leadId, data });
+  };
+
+  const handleDeleteLead = (id) => {
+    if (window.confirm('Tem certeza que deseja remover este lead?')) {
+      deleteLeadMutation.mutate(id);
     }
   };
 
@@ -3950,6 +3988,10 @@ Seja detalhado, prático e objetivo na análise.`;
     ordem: 0
   });
 
+  // Leads state
+  const [editingLead, setEditingLead] = useState(null);
+  const [leadStatusFilter, setLeadStatusFilter] = useState('Todos');
+
   const renderIncubadoraTab = () => {
     return (
       <div className="space-y-6">
@@ -4242,6 +4284,180 @@ Seja detalhado, prático e objetivo na análise.`;
             </div>
           </div>
         )}
+      </div>
+    );
+  };
+
+  const renderLeadsTab = () => {
+    const filteredLeads = leadStatusFilter === 'Todos' 
+      ? leads 
+      : leads.filter(l => l.status === leadStatusFilter);
+
+    return (
+      <div>
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-gray-800">Gestão de Leads do Chatbot</h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Leads capturados através do assistente virtual
+          </p>
+        </div>
+
+        <div className="mb-6">
+          <label className="text-sm font-medium text-gray-700 block mb-2">Filtrar por Status</label>
+          <Select value={leadStatusFilter} onValueChange={setLeadStatusFilter}>
+            <SelectTrigger className="w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos os Leads</SelectItem>
+              <SelectItem value="Novo">Novo</SelectItem>
+              <SelectItem value="Contatado">Contatado</SelectItem>
+              <SelectItem value="Em Negociação">Em Negociação</SelectItem>
+              <SelectItem value="Convertido">Convertido</SelectItem>
+              <SelectItem value="Perdido">Perdido</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid gap-4">
+          {filteredLeads.length === 0 ? (
+            <Card className="bg-gray-50">
+              <CardContent className="p-8 text-center">
+                <p className="text-gray-500 italic">
+                  {leadStatusFilter === 'Todos' 
+                    ? 'Nenhum lead capturado ainda.' 
+                    : `Nenhum lead com status "${leadStatusFilter}".`}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredLeads.map((lead) => (
+              <Card key={lead.id} className="hover:shadow-lg transition-shadow border-2">
+                <CardContent className="p-5">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <h4 className="font-bold text-gray-900 text-lg">{lead.nome}</h4>
+                        <Badge className={`${
+                          lead.status === 'Novo' ? 'bg-blue-100 text-blue-800' :
+                          lead.status === 'Contatado' ? 'bg-yellow-100 text-yellow-800' :
+                          lead.status === 'Em Negociação' ? 'bg-purple-100 text-purple-800' :
+                          lead.status === 'Convertido' ? 'bg-green-100 text-green-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {lead.status}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">{lead.origem}</Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <p className="text-xs text-gray-500">WhatsApp</p>
+                          <p className="text-sm font-semibold text-gray-800">{lead.whatsapp}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">Data de Contato</p>
+                          <p className="text-sm text-gray-600">
+                            {new Date(lead.created_date).toLocaleDateString('pt-BR')} às {new Date(lead.created_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+
+                      {lead.interesse && (
+                        <div className="mb-3">
+                          <p className="text-xs text-gray-500">Interesse</p>
+                          <p className="text-sm text-gray-700">{lead.interesse}</p>
+                        </div>
+                      )}
+
+                      {lead.mensagem_inicial && (
+                        <div className="mb-3">
+                          <p className="text-xs text-gray-500">Primeira Mensagem</p>
+                          <p className="text-sm text-gray-700 italic">"{lead.mensagem_inicial}"</p>
+                        </div>
+                      )}
+
+                      {editingLead?.id === lead.id ? (
+                        <div className="space-y-3 mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <div>
+                            <label className="text-xs font-medium text-gray-700">Alterar Status</label>
+                            <Select 
+                              value={editingLead.status} 
+                              onValueChange={(v) => setEditingLead({...editingLead, status: v})}
+                            >
+                              <SelectTrigger className="text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Novo">Novo</SelectItem>
+                                <SelectItem value="Contatado">Contatado</SelectItem>
+                                <SelectItem value="Em Negociação">Em Negociação</SelectItem>
+                                <SelectItem value="Convertido">Convertido</SelectItem>
+                                <SelectItem value="Perdido">Perdido</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium text-gray-700">Notas</label>
+                            <Textarea
+                              value={editingLead.notas || ''}
+                              onChange={(e) => setEditingLead({...editingLead, notas: e.target.value})}
+                              rows={3}
+                              placeholder="Adicione notas sobre este lead..."
+                              className="text-sm"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              onClick={() => handleSaveLead(lead.id, { status: editingLead.status, notas: editingLead.notas })}
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              <Save className="w-3 h-3 mr-1" />
+                              Salvar
+                            </Button>
+                            <Button onClick={() => setEditingLead(null)} size="sm" variant="outline">
+                              <X className="w-3 h-3 mr-1" />
+                              Cancelar
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {lead.notas && (
+                            <div className="bg-gray-50 p-3 rounded-md border mb-3">
+                              <p className="text-xs text-gray-500 mb-1">Notas</p>
+                              <p className="text-sm text-gray-700">{lead.notas}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleEditLead(lead)}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDeleteLead(lead.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     );
   };
@@ -4771,6 +4987,13 @@ Seja detalhado, prático e objetivo na análise.`;
         >
           Chatbot FAQs
         </Button>
+        <Button
+          onClick={() => setActiveTab('leads')}
+          variant={activeTab === 'leads' ? 'default' : 'outline'}
+          className={activeTab === 'leads' ? 'bg-emerald-600' : ''}
+        >
+          Leads
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -4786,6 +5009,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'cronograma' && renderCronogramaTab()}
         {activeTab === 'incubadora' && renderIncubadoraTab()}
         {activeTab === 'chatbot' && renderChatbotTab()}
+        {activeTab === 'leads' && renderLeadsTab()}
       </div>
     </div>
   );

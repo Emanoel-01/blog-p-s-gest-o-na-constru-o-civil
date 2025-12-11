@@ -149,6 +149,28 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
   });
 
   const getNextSaturday = (dateStr) => {
+    // Encontrar a posição da data selecionada no template
+    const currentIndex = CALENDAR_TEMPLATE_2026.findIndex(item => item.date === dateStr);
+    
+    if (currentIndex === -1) {
+      // Fallback para a lógica antiga caso a data não seja encontrada
+      const [day, month, year] = dateStr.split('/');
+      const current = new Date(year, month - 1, day);
+      const next = new Date(current);
+      next.setDate(current.getDate() + 7);
+      return `${String(next.getDate()).padStart(2, '0')}/${String(next.getMonth() + 1).padStart(2, '0')}/${next.getFullYear()}`;
+    }
+    
+    // Procurar o próximo sábado disponível (não feriado) no template
+    for (let i = currentIndex + 1; i < CALENDAR_TEMPLATE_2026.length; i++) {
+      const item = CALENDAR_TEMPLATE_2026[i];
+      // Verificar se não é feriado e se é um tipo de aula válido
+      if (item.type !== 'FERIADO' && item.type !== '') {
+        return item.date;
+      }
+    }
+    
+    // Se não encontrou nenhum sábado válido, usar fallback
     const [day, month, year] = dateStr.split('/');
     const current = new Date(year, month - 1, day);
     const next = new Date(current);

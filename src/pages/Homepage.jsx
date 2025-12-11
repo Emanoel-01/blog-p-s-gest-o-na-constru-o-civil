@@ -307,17 +307,41 @@ export default function Homepage() {
                   <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Blog Em Ação</h3>
                   <p className="text-sm text-gray-600">Eventos, workshops e novidades</p>
                 </div>
-              </div>
-              <Link to={createPageUrl('EmAcaoPage')}>
+                </div>
+                <Link to={createPageUrl('EmAcaoPage')}>
                 <Button variant="outline" className="border-pink-300 text-pink-700 hover:bg-pink-100">
                   Ver Todos
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
-              </Link>
-            </div>
+                </Link>
+                </div>
 
-            {/* Posts Recentes */}
-            {posts.length > 0 ? (
+                {/* Vídeos do Instagram */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="bg-white rounded-lg overflow-hidden shadow-md">
+                  <iframe
+                    src="https://www.instagram.com/reel/DPkKSFJke6X/embed"
+                    className="w-full h-96"
+                    frameBorder="0"
+                    scrolling="no"
+                    allowTransparency={true}
+                    allow="encrypted-media"
+                  />
+                </div>
+                <div className="bg-white rounded-lg overflow-hidden shadow-md">
+                  <iframe
+                    src="https://www.instagram.com/reel/DPMARgDDhM8/embed"
+                    className="w-full h-96"
+                    frameBorder="0"
+                    scrolling="no"
+                    allowTransparency={true}
+                    allow="encrypted-media"
+                  />
+                </div>
+                </div>
+
+                {/* Posts Recentes */}
+                {posts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {posts.map((post) => (
                   <Link key={post.id} to={createPageUrl('EmAcaoPage')}>

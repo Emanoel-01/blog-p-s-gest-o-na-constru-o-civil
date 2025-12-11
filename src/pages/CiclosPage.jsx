@@ -126,12 +126,12 @@ export default function CiclosPage() {
                           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
                             <Badge className="bg-white border-green-600 text-gray-900 text-xs sm:text-sm">
                               <Clock className="w-3 h-3 mr-1" />
-                              {ciclo.carga_horaria}h
+                              {ciclo.carga_horaria}h • Pós-Graduação em Gestão e Tecnologias na Construção Civil
                             </Badge>
                             {hasDisciplinas && (
                               <Badge className="bg-white border-green-600 text-gray-900 text-xs sm:text-sm">
                                 <GraduationCap className="w-3 h-3 mr-1" />
-                                {disciplinasArray.length} disciplina{disciplinasArray.length !== 1 ? 's' : ''}
+                                {disciplinasArray.length} disciplina{disciplinasArray.length !== 1 ? 's' : ''} • {ciclo.nome.toLowerCase().includes('comum') ? 'Ciclo Comum' : 'Ciclo Específico'}
                               </Badge>
                             )}
                           </div>

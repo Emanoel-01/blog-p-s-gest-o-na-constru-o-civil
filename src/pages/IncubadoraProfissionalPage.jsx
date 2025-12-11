@@ -195,8 +195,8 @@ export default function IncubadoraProfissionalPage() {
         <TabsContent value="atividades" className="mt-6">
 
           {/* Conteúdo Fixo */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-800">
               <Target className="w-6 h-6" />
@@ -256,10 +256,10 @@ export default function IncubadoraProfissionalPage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+          </div>
 
           {/* Dashboard de Métricas */}
-          <Card className="bg-white border-2 border-gray-200">
+          <Card className="bg-white border-2 border-gray-200 mb-6">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
             <Users className="w-7 h-7 text-teal-600" />
@@ -294,20 +294,20 @@ export default function IncubadoraProfissionalPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+          </Card>
 
           {/* Listagem de Atividades */}
           <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900">Publicações e Atividades</h2>
-        
-        {allActivities.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center text-gray-500">
-              Nenhuma atividade registrada ainda.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
+            <h2 className="text-2xl font-bold text-gray-900">Publicações e Atividades</h2>
+            
+            {allActivities.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center text-gray-500">
+                  Nenhuma atividade registrada ainda.
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
             {allActivities.map((activity, idx) => {
               const Icon = activity.icon;
               const isExpanded = expandedActivity === idx;
@@ -398,8 +398,8 @@ export default function IncubadoraProfissionalPage() {
                 </Card>
               );
             })}
-          </div>
-        )}
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>

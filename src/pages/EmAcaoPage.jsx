@@ -14,7 +14,8 @@ import ImageViewer from '../components/blog/ImageViewer';
 export default function EmAcaoPage() {
   const [expandedPost, setExpandedPost] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['posts'],
@@ -36,8 +37,10 @@ export default function EmAcaoPage() {
     setExpandedPost(expandedPost === postId ? null : postId);
   };
 
-  const handleImageClick = (imageUrl) => {
-    setSelectedImage(imageUrl);
+  const handleImageClick = (imageUrl, allImages) => {
+    const index = allImages.indexOf(imageUrl);
+    setSelectedImages(allImages);
+    setSelectedImageIndex(index >= 0 ? index : 0);
   };
 
   const getMidiaIcon = (tipo) => {
@@ -52,8 +55,12 @@ export default function EmAcaoPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
-      {selectedImage && (
-        <ImageViewer imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
+      {selectedImages.length > 0 && (
+        <ImageViewer 
+          images={selectedImages} 
+          initialIndex={selectedImageIndex}
+          onClose={() => setSelectedImages([])} 
+        />
       )}
       
       <div className="text-center">
@@ -109,7 +116,15 @@ export default function EmAcaoPage() {
                       src={post.imagem_destaque}
                       alt={post.titulo}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      onClick={() => handleImageClick(post.imagem_destaque)}
+                      onClick={() => {
+                        const allImages = [
+                          post.imagem_destaque,
+                          ...(post.midias || [])
+                            .filter(m => m.tipo === 'imagem' && m.url)
+                            .map(m => m.url)
+                        ];
+                        handleImageClick(post.imagem_destaque, allImages);
+                      }}
                     />
                     <div className="absolute top-2 right-2 bg-pink-600 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
@@ -187,7 +202,15 @@ export default function EmAcaoPage() {
                                     src={midia.url} 
                                     alt={midia.titulo || 'Imagem'} 
                                     className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-gray-300" 
-                                    onClick={() => handleImageClick(midia.url)}
+                                    onClick={() => {
+                                      const allImages = [
+                                        post.imagem_destaque,
+                                        ...(post.midias || [])
+                                          .filter(m => m.tipo === 'imagem' && m.url)
+                                          .map(m => m.url)
+                                      ].filter(Boolean);
+                                      handleImageClick(midia.url, allImages);
+                                    }}
                                   />
                                 )}
                                 

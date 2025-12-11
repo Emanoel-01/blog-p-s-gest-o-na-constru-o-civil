@@ -16,6 +16,8 @@ import DisciplinaFormFields from '../components/admin/DisciplinaFormFields';
 import AdminScheduleTemplate from '../components/admin/AdminScheduleTemplate';
 import ProjetoForm from '../components/admin/incubadora/ProjetoForm';
 import AtividadeForm from '../components/admin/incubadora/AtividadeForm';
+import AtividadeList from '../components/admin/incubadora/AtividadeList';
+import AtividadeEditForm from '../components/admin/incubadora/AtividadeEditForm';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -224,6 +226,36 @@ export default function AdminPage() {
   const { data: projetos = [] } = useQuery({
     queryKey: ['projetos'],
     queryFn: () => base44.entities.Projeto.list()
+  });
+
+  const { data: eventos = [] } = useQuery({
+    queryKey: ['eventos-incubadora'],
+    queryFn: () => base44.entities.Evento.list('-data')
+  });
+
+  const { data: artigos = [] } = useQuery({
+    queryKey: ['artigos-incubadora'],
+    queryFn: () => base44.entities.ArtigoCientifico.list('-data_publicacao')
+  });
+
+  const { data: canteiros = [] } = useQuery({
+    queryKey: ['canteiros-incubadora'],
+    queryFn: () => base44.entities.CanteiroDidatico.list('-data')
+  });
+
+  const { data: freelancers = [] } = useQuery({
+    queryKey: ['freelancers-incubadora'],
+    queryFn: () => base44.entities.FreelancerNetwork.list('-data')
+  });
+
+  const { data: relatorios = [] } = useQuery({
+    queryKey: ['relatorios-incubadora'],
+    queryFn: () => base44.entities.RelatorioTecnico.list('-data')
+  });
+
+  const { data: producoes = [] } = useQuery({
+    queryKey: ['producoes-incubadora'],
+    queryFn: () => base44.entities.ProducaoTecnologica.list('-data')
   });
 
   // Auto-calcular carga horária quando ciclos mudam
@@ -3779,6 +3811,10 @@ Seja detalhado, prático e objetivo na análise.`;
     />
   );
 
+  // Estado para edição de atividades
+  const [editingAtividade, setEditingAtividade] = useState(null);
+  const [atividadeEditTipo, setAtividadeEditTipo] = useState(null);
+
   const renderIncubadoraTab = () => {
     return (
       <div className="space-y-6">
@@ -3895,7 +3931,7 @@ Seja detalhado, prático e objetivo na análise.`;
                 size="sm"
                 className={atividadeTab === 'freelancers' ? 'bg-orange-600' : ''}
               >
-                Freelancer Network
+                Network
               </Button>
               <Button
                 onClick={() => setAtividadeTab('relatorios')}
@@ -3917,50 +3953,158 @@ Seja detalhado, prático e objetivo na análise.`;
 
             <Card className="bg-gray-50 border-gray-200">
               <CardContent className="p-6">
-                {atividadeTab === 'eventos' && (
-                  <AtividadeForm
-                    tipo="Evento"
+                {editingAtividade ? (
+                  <AtividadeEditForm
+                    tipo={atividadeEditTipo}
+                    atividade={editingAtividade}
                     projetos={projetos}
-                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['eventos-incubadora'] })}
+                    onSuccess={() => {
+                      setEditingAtividade(null);
+                      setAtividadeEditTipo(null);
+                      queryClient.invalidateQueries();
+                    }}
+                    onCancel={() => {
+                      setEditingAtividade(null);
+                      setAtividadeEditTipo(null);
+                    }}
                   />
-                )}
-                {atividadeTab === 'artigos' && (
-                  <AtividadeForm
-                    tipo="ArtigoCientifico"
-                    projetos={projetos}
-                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['artigos-incubadora'] })}
-                  />
-                )}
-                {atividadeTab === 'canteiros' && (
-                  <AtividadeForm
-                    tipo="CanteiroDidatico"
-                    projetos={projetos}
-                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['canteiros-incubadora'] })}
-                  />
-                )}
-                {atividadeTab === 'freelancers' && (
-                  <AtividadeForm
-                    tipo="FreelancerNetwork"
-                    projetos={projetos}
-                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['freelancers-incubadora'] })}
-                  />
-                )}
-                {atividadeTab === 'relatorios' && (
-                  <AtividadeForm
-                    tipo="RelatorioTecnico"
-                    projetos={projetos}
-                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['relatorios-incubadora'] })}
-                  />
-                )}
-                {atividadeTab === 'producoes' && (
-                  <AtividadeForm
-                    tipo="ProducaoTecnologica"
-                    projetos={projetos}
-                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['producoes-incubadora'] })}
-                  />
+                ) : (
+                  <>
+                    {atividadeTab === 'eventos' && (
+                      <AtividadeForm
+                        tipo="Evento"
+                        projetos={projetos}
+                        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['eventos-incubadora'] })}
+                      />
+                    )}
+                    {atividadeTab === 'artigos' && (
+                      <AtividadeForm
+                        tipo="ArtigoCientifico"
+                        projetos={projetos}
+                        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['artigos-incubadora'] })}
+                      />
+                    )}
+                    {atividadeTab === 'canteiros' && (
+                      <AtividadeForm
+                        tipo="CanteiroDidatico"
+                        projetos={projetos}
+                        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['canteiros-incubadora'] })}
+                      />
+                    )}
+                    {atividadeTab === 'freelancers' && (
+                      <AtividadeForm
+                        tipo="FreelancerNetwork"
+                        projetos={projetos}
+                        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['freelancers-incubadora'] })}
+                      />
+                    )}
+                    {atividadeTab === 'relatorios' && (
+                      <AtividadeForm
+                        tipo="RelatorioTecnico"
+                        projetos={projetos}
+                        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['relatorios-incubadora'] })}
+                      />
+                    )}
+                    {atividadeTab === 'producoes' && (
+                      <AtividadeForm
+                        tipo="ProducaoTecnologica"
+                        projetos={projetos}
+                        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['producoes-incubadora'] })}
+                      />
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
+
+            {/* Listagem de Atividades Cadastradas */}
+            <div className="mt-8">
+              <h4 className="text-lg font-bold text-gray-800 mb-4">Atividades Cadastradas</h4>
+              {atividadeTab === 'eventos' && (
+                <AtividadeList
+                  atividades={eventos}
+                  tipo="Evento"
+                  onEdit={(evt) => { setEditingAtividade(evt); setAtividadeEditTipo('Evento'); }}
+                  onDelete={async (id) => {
+                    if (window.confirm('Tem certeza que deseja excluir?')) {
+                      await base44.entities.Evento.delete(id);
+                      queryClient.invalidateQueries({ queryKey: ['eventos-incubadora'] });
+                      toast.success('Evento excluído!');
+                    }
+                  }}
+                />
+              )}
+              {atividadeTab === 'artigos' && (
+                <AtividadeList
+                  atividades={artigos}
+                  tipo="ArtigoCientifico"
+                  onEdit={(art) => { setEditingAtividade(art); setAtividadeEditTipo('ArtigoCientifico'); }}
+                  onDelete={async (id) => {
+                    if (window.confirm('Tem certeza que deseja excluir?')) {
+                      await base44.entities.ArtigoCientifico.delete(id);
+                      queryClient.invalidateQueries({ queryKey: ['artigos-incubadora'] });
+                      toast.success('Artigo excluído!');
+                    }
+                  }}
+                />
+              )}
+              {atividadeTab === 'canteiros' && (
+                <AtividadeList
+                  atividades={canteiros}
+                  tipo="CanteiroDidatico"
+                  onEdit={(cant) => { setEditingAtividade(cant); setAtividadeEditTipo('CanteiroDidatico'); }}
+                  onDelete={async (id) => {
+                    if (window.confirm('Tem certeza que deseja excluir?')) {
+                      await base44.entities.CanteiroDidatico.delete(id);
+                      queryClient.invalidateQueries({ queryKey: ['canteiros-incubadora'] });
+                      toast.success('Canteiro excluído!');
+                    }
+                  }}
+                />
+              )}
+              {atividadeTab === 'freelancers' && (
+                <AtividadeList
+                  atividades={freelancers}
+                  tipo="FreelancerNetwork"
+                  onEdit={(fre) => { setEditingAtividade(fre); setAtividadeEditTipo('FreelancerNetwork'); }}
+                  onDelete={async (id) => {
+                    if (window.confirm('Tem certeza que deseja excluir?')) {
+                      await base44.entities.FreelancerNetwork.delete(id);
+                      queryClient.invalidateQueries({ queryKey: ['freelancers-incubadora'] });
+                      toast.success('Network excluído!');
+                    }
+                  }}
+                />
+              )}
+              {atividadeTab === 'relatorios' && (
+                <AtividadeList
+                  atividades={relatorios}
+                  tipo="RelatorioTecnico"
+                  onEdit={(rel) => { setEditingAtividade(rel); setAtividadeEditTipo('RelatorioTecnico'); }}
+                  onDelete={async (id) => {
+                    if (window.confirm('Tem certeza que deseja excluir?')) {
+                      await base44.entities.RelatorioTecnico.delete(id);
+                      queryClient.invalidateQueries({ queryKey: ['relatorios-incubadora'] });
+                      toast.success('Relatório excluído!');
+                    }
+                  }}
+                />
+              )}
+              {atividadeTab === 'producoes' && (
+                <AtividadeList
+                  atividades={producoes}
+                  tipo="ProducaoTecnologica"
+                  onEdit={(prod) => { setEditingAtividade(prod); setAtividadeEditTipo('ProducaoTecnologica'); }}
+                  onDelete={async (id) => {
+                    if (window.confirm('Tem certeza que deseja excluir?')) {
+                      await base44.entities.ProducaoTecnologica.delete(id);
+                      queryClient.invalidateQueries({ queryKey: ['producoes-incubadora'] });
+                      toast.success('Produção excluída!');
+                    }
+                  }}
+                />
+              )}
+            </div>
           </div>
         )}
       </div>

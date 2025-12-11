@@ -113,7 +113,7 @@ export default function IncubadoraProfissionalPage() {
       const aluno = discentes.find(d => d.id === f.aluno_id);
       return { 
         ...f, 
-        type: 'Freelancer Network', 
+        type: f.tipo || 'Network', 
         icon: Briefcase, 
         color: 'bg-orange-500',
         aluno_nome: aluno ? aluno.nome : 'N/A'
@@ -343,7 +343,7 @@ export default function IncubadoraProfissionalPage() {
 
                     {isExpanded && (
                       <div className="px-5 pb-5 space-y-4 border-t border-gray-200 pt-5">
-                        {activity.type === 'Freelancer Network' && (
+                        {['Freelancer', 'Empregado', 'Contratado', 'Network'].includes(activity.type) && (
                           <div className="grid grid-cols-2 gap-4 mb-4">
                             {activity.aluno_nome && (
                               <div>

@@ -76,6 +76,11 @@ export default function IncubadoraProfissionalPage() {
     enabled: projetos.length > 0
   });
 
+  const { data: discentes = [] } = useQuery({
+    queryKey: ['discentes'],
+    queryFn: () => base44.entities.Discente.list('nome')
+  });
+
   const { data: relatorios = [] } = useQuery({
     queryKey: ['relatorios-incubadora'],
     queryFn: async () => {
@@ -102,7 +107,16 @@ export default function IncubadoraProfissionalPage() {
     ...eventos.map(e => ({ ...e, type: 'Evento', icon: Calendar, color: 'bg-blue-500' })),
     ...artigos.map(a => ({ ...a, type: 'Artigo Científico', icon: FileText, color: 'bg-purple-500' })),
     ...canteiros.map(c => ({ ...c, type: 'Canteiro Didático', icon: Building2, color: 'bg-green-500' })),
-    ...freelancers.map(f => ({ ...f, type: 'Freelancer Network', icon: Briefcase, color: 'bg-orange-500' })),
+    ...freelancers.map(f => {
+      const aluno = discentes.find(d => d.id === f.aluno_id);
+      return { 
+        ...f, 
+        type: 'Freelancer Network', 
+        icon: Briefcase, 
+        color: 'bg-orange-500',
+        aluno_nome: aluno ? aluno.nome : 'N/A'
+      };
+    }),
     ...relatorios.map(r => ({ ...r, type: 'Relatório Técnico', icon: BookOpen, color: 'bg-cyan-500' })),
     ...producoes.map(p => ({ ...p, type: 'Produção Tecnológica', icon: Cpu, color: 'bg-pink-500' }))
   ].sort((a, b) => {
@@ -298,13 +312,36 @@ export default function IncubadoraProfissionalPage() {
 
                     {isExpanded && (
                       <div className="px-5 pb-5 space-y-4 border-t border-gray-200 pt-5">
+                        {activity.type === 'Freelancer Network' && (
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            {activity.aluno_nome && (
+                              <div>
+                                <h4 className="font-semibold text-gray-700 mb-1">Aluno Responsável</h4>
+                                <p className="text-gray-600 text-sm">{activity.aluno_nome}</p>
+                              </div>
+                            )}
+                            {activity.empresa_parceira && (
+                              <div>
+                                <h4 className="font-semibold text-gray-700 mb-1">Empresa Parceira</h4>
+                                <p className="text-gray-600 text-sm">{activity.empresa_parceira}</p>
+                              </div>
+                            )}
+                            {activity.valor && (
+                              <div>
+                                <h4 className="font-semibold text-gray-700 mb-1">Valor</h4>
+                                <p className="text-gray-600 text-sm font-bold">R$ {activity.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {activity.resumo && (
                           <div>
                             <h4 className="font-semibold text-gray-700 mb-2">Resumo</h4>
                             <p className="text-gray-600 text-sm">{activity.resumo}</p>
                           </div>
                         )}
-                        
+
                         {activity.descricao_completa && (
                           <div>
                             <h4 className="font-semibold text-gray-700 mb-2">Descrição Completa</h4>

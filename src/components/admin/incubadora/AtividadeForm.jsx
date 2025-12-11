@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 
 export default function AtividadeForm({ tipo, projetos, onSuccess }) {
   const [formData, setFormData] = useState({

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
@@ -10,8 +11,6 @@ import {
   ArrowRight, 
   Rss, 
   Sparkles, 
-  ChevronDown,
-  ChevronUp,
   ExternalLink,
   Zap,
   Building2,
@@ -19,7 +18,6 @@ import {
 } from 'lucide-react';
 
 export default function Homepage() {
-  const [expandedFaq, setExpandedFaq] = useState(null);
 
   const { data: posts = [] } = useQuery({
     queryKey: ['posts'],
@@ -105,9 +103,7 @@ export default function Homepage() {
     }
   ];
 
-  const toggleFaq = (index) => {
-    setExpandedFaq(expandedFaq === index ? null : index);
-  };
+
 
   return (
     <div className="space-y-12 pb-12">
@@ -314,27 +310,23 @@ export default function Homepage() {
           ❓ Dúvidas Frequentes
         </h2>
         
-        <div className="max-w-3xl mx-auto space-y-3">
-          {faqs.map((faq, index) => (
-            <div key={index} className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden">
-              <button
-                onClick={() => toggleFaq(index)}
-                className="w-full text-left p-4 sm:p-5 flex justify-between items-center hover:bg-gray-50 transition-colors"
+        <div className="max-w-3xl mx-auto">
+          <Accordion type="single" collapsible className="space-y-3">
+            {faqs.map((faq, index) => (
+              <AccordionItem 
+                key={index} 
+                value={`item-${index}`}
+                className="bg-white rounded-lg border-2 border-gray-200 px-4 sm:px-5 overflow-hidden"
               >
-                <span className="font-semibold text-gray-900 pr-4 text-sm sm:text-base">{faq.q}</span>
-                {expandedFaq === index ? (
-                  <ChevronUp className="w-5 h-5 text-green-600 flex-shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                )}
-              </button>
-              {expandedFaq === index && (
-                <div className="px-4 sm:px-5 pb-4 sm:pb-5 text-gray-700 text-justify text-sm sm:text-base leading-relaxed border-t border-gray-100 pt-4">
+                <AccordionTrigger className="text-left font-semibold text-gray-900 text-sm sm:text-base hover:no-underline py-4 sm:py-5">
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-700 text-justify text-sm sm:text-base leading-relaxed pb-4 sm:pb-5">
                   {faq.a}
-                </div>
-              )}
-            </div>
-          ))}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       </div>
 

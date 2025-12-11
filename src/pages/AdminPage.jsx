@@ -268,6 +268,11 @@ export default function AdminPage() {
     queryFn: () => base44.entities.Lead.list('-created_date')
   });
 
+  const { data: perguntasSemResposta = [] } = useQuery({
+    queryKey: ['perguntas-sem-resposta'],
+    queryFn: () => base44.entities.PerguntaSemResposta.list('-created_date')
+  });
+
   // Auto-calcular carga horária quando ciclos mudam
   useEffect(() => {
     if (especForm.ciclos.length > 0 && ciclos.length > 0) {
@@ -564,6 +569,23 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       toast.success('Lead removido com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA PERGUNTAS SEM RESPOSTA ==========
+  const updatePerguntaSemRespostaMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.PerguntaSemResposta.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['perguntas-sem-resposta'] });
+      toast.success('Pergunta atualizada!');
+    }
+  });
+
+  const deletePerguntaSemRespostaMutation = useMutation({
+    mutationFn: (id) => base44.entities.PerguntaSemResposta.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['perguntas-sem-resposta'] });
+      toast.success('Pergunta removida!');
     }
   });
 
@@ -4462,23 +4484,109 @@ Seja detalhado, prático e objetivo na análise.`;
     );
   };
 
+  const handleCriarFAQDePergunta = (pergunta) => {
+    setFaqForm({
+      pergunta: pergunta.pergunta,
+      resposta: '',
+      pagina_destino: '',
+      categoria: 'Informações Gerais',
+      ativo: true,
+      ordem: chatbotFAQs.length
+    });
+    setShowFAQForm(true);
+    setEditingFAQ(null);
+  };
+
   const renderChatbotTab = () => (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">Gerenciar Chatbot - FAQs</h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Configure as perguntas e respostas do assistente virtual do site
-          </p>
+    <div className="space-y-8">
+      {/* Seção de Perguntas Sem Resposta */}
+      {perguntasSemResposta.filter(p => p.status === 'Pendente').length > 0 && (
+        <Card className="bg-amber-50 border-2 border-amber-300">
+          <CardHeader>
+            <CardTitle className="text-lg text-amber-900 flex items-center gap-2">
+              ⚠️ Perguntas que Precisam de FAQ ({perguntasSemResposta.filter(p => p.status === 'Pendente').length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-700 mb-4">
+              Estas perguntas foram feitas por usuários mas a IA não tinha informação suficiente para responder adequadamente.
+            </p>
+            <div className="space-y-3">
+              {perguntasSemResposta
+                .filter(p => p.status === 'Pendente')
+                .map((pergunta) => (
+                  <Card key={pergunta.id} className="bg-white border border-amber-200">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="flex-1">
+                          <h5 className="font-bold text-gray-900 mb-2">"{pergunta.pergunta}"</h5>
+                          <div className="bg-gray-50 p-3 rounded-md mb-3">
+                            <p className="text-xs text-gray-500 mb-1">Resposta da IA:</p>
+                            <p className="text-sm text-gray-700 italic">{pergunta.resposta_ia}</p>
+                          </div>
+                          {pergunta.lead_nome && (
+                            <p className="text-xs text-gray-600">
+                              Perguntado por: <strong>{pergunta.lead_nome}</strong> ({pergunta.lead_whatsapp})
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(pergunta.created_date).toLocaleDateString('pt-BR')} às {new Date(pergunta.created_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={() => handleCriarFAQDePergunta(pergunta)}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <Plus className="w-3 h-3 mr-1" />
+                            Criar FAQ
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updatePerguntaSemRespostaMutation.mutate({ 
+                              id: pergunta.id, 
+                              data: { status: 'Ignorada' } 
+                            })}
+                          >
+                            Ignorar
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => deletePerguntaSemRespostaMutation.mutate(pergunta.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Seção de FAQs */}
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Gerenciar Chatbot - FAQs</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Configure as perguntas e respostas do assistente virtual do site
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowFAQForm(!showFAQForm)}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nova FAQ
+          </Button>
         </div>
-        <Button
-          onClick={() => setShowFAQForm(!showFAQForm)}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova FAQ
-        </Button>
-      </div>
 
       {showFAQForm && (
         <Card className="mb-6 bg-blue-50 border-blue-200">

@@ -155,6 +155,23 @@ Responda de forma clara, objetiva e amigável. Se a pergunta for sobre informaç
         add_context_from_internet: false
       });
 
+      // Salvar pergunta sem resposta adequada se a IA sugerir contato
+      const respostaLower = response.toLowerCase();
+      if (respostaLower.includes('instagram') || respostaLower.includes('entre em contato') || 
+          respostaLower.includes('visite') || respostaLower.includes('não tenho')) {
+        try {
+          await base44.entities.PerguntaSemResposta.create({
+            pergunta: inputValue,
+            resposta_ia: response,
+            lead_nome: leadInfo.nome,
+            lead_whatsapp: leadInfo.whatsapp,
+            status: 'Pendente'
+          });
+        } catch (error) {
+          console.error('Erro ao salvar pergunta sem resposta:', error);
+        }
+      }
+
       setTimeout(() => {
         const botResponse = {
           type: 'bot',

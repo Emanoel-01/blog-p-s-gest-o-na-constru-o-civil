@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,11 @@ export default function Homepage() {
   const { data: posts = [] } = useQuery({
     queryKey: ['posts'],
     queryFn: () => base44.entities.Post.list('-ordem', 2)
+  });
+
+  const { data: especializacoes = [] } = useQuery({
+    queryKey: ['especializacoes-seo'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
   });
 
   const { data: incubadoraActivities = [] } = useQuery({
@@ -105,9 +111,96 @@ export default function Homepage() {
 
 
 
+  // Dados estruturados JSON-LD para SEO
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "ESUDA - Escola Superior de Desenho e Animação",
+    "url": "https://esuda.edu.br",
+    "logo": "https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png",
+    "description": "Pós-Graduação em Gestão e Tecnologias na Construção Civil. Especializações em BIM, Gestão de Projetos e Obras, Manutenção Predial e Engenharia Legal com foco em inovação e tecnologia.",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Recife",
+      "addressRegion": "PE",
+      "addressCountry": "BR"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Admissions",
+      "availableLanguage": "Portuguese"
+    },
+    "sameAs": [
+      "https://www.instagram.com/esuda.oficial/",
+      "https://www.linkedin.com/school/esuda/"
+    ]
+  };
+
+  const coursesSchema = especializacoes.map(espec => ({
+    "@context": "https://schema.org",
+    "@type": "Course",
+    "name": `Especialização em ${espec.nome}`,
+    "description": espec.resumo || `Pós-graduação em ${espec.nome} com foco em inovação e tecnologia na construção civil`,
+    "provider": {
+      "@type": "EducationalOrganization",
+      "name": "ESUDA",
+      "url": "https://esuda.edu.br"
+    },
+    "courseCode": espec.id,
+    "educationalCredentialAwarded": "Especialização",
+    "timeRequired": `P${espec.duracao_meses || 10}M`,
+    "hasCourseInstance": {
+      "@type": "CourseInstance",
+      "courseMode": espec.formato_aulas?.includes("Presencial") ? "blended" : "online",
+      "courseWorkload": `PT${espec.carga_horaria_total}H`
+    },
+    "offers": espec.condicoes_pagamento?.length > 0 ? {
+      "@type": "Offer",
+      "category": "Paid",
+      "priceCurrency": "BRL"
+    } : undefined
+  }));
+
   return (
-    <div className="space-y-8 sm:space-y-12 pb-8 sm:pb-12 px-3 sm:px-4">
-      {/* Hero Section */}
+    <>
+      <Helmet>
+        {/* Meta Tags Básicas */}
+        <title>Pós-Graduação em Gestão e Tecnologias na Construção Civil | ESUDA</title>
+        <meta name="description" content="Especializações em BIM, Gestão de Projetos e Obras, Manutenção Predial e Engenharia Legal. Cursos com foco em inovação, tecnologia 4.0 e retorno garantido. Inscrições abertas." />
+        
+        {/* Keywords */}
+        <meta name="keywords" content="pós-graduação construção civil, especialização BIM, gestão de obras, manutenção predial, engenharia legal, mestrado construção, curso BIM, pós engenharia civil, ESUDA, Recife, tecnologia construção 4.0, GPO 4.0, Predial 4.0" />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://esuda.edu.br" />
+        <meta property="og:title" content="Pós-Graduação em Gestão e Tecnologias na Construção Civil | ESUDA" />
+        <meta property="og:description" content="Especializações com foco em inovação e tecnologia 4.0. Retorno garantido antes do fim do curso. Inscrições abertas." />
+        <meta property="og:image" content="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" />
+        
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://esuda.edu.br" />
+        <meta property="twitter:title" content="Pós-Graduação em Gestão e Tecnologias na Construção Civil | ESUDA" />
+        <meta property="twitter:description" content="Especializações com foco em inovação e tecnologia 4.0. Retorno garantido antes do fim do curso." />
+        <meta property="twitter:image" content="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://esuda.edu.br" />
+        
+        {/* Dados Estruturados JSON-LD */}
+        <script type="application/ld+json">
+          {JSON.stringify(organizationSchema)}
+        </script>
+        {coursesSchema.map((schema, idx) => (
+          <script key={idx} type="application/ld+json">
+            {JSON.stringify(schema)}
+          </script>
+        ))}
+      </Helmet>
+
+      <div className="space-y-8 sm:space-y-12 pb-8 sm:pb-12 px-3 sm:px-4">
+        {/* Hero Section */}
       <div className="flex flex-col items-center justify-center text-center py-6 sm:py-8">
         <img
           src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
@@ -419,6 +512,7 @@ export default function Homepage() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -70,6 +70,10 @@ export default function Layout({ children }) {
 
   return (
     <HelmetProvider>
+      <Helmet htmlAttributes={{ lang: 'pt-BR' }}>
+        <meta name="language" content="Portuguese" />
+        <meta httpEquiv="content-language" content="pt-BR" />
+      </Helmet>
       <div className="flex min-h-screen bg-gray-50">
         <style>{`
           .esuda-green { background: linear-gradient(135deg, #61b376 0%, #4a9960 100%); }

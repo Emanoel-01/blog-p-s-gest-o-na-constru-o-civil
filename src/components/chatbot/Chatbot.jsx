@@ -20,31 +20,35 @@ export default function Chatbot() {
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const messagesEndRef = useRef(null);
   const hasInitialized = useRef(false);
-  const [userBehavior, setUserBehavior] = useState({
-    currentPage: window.location.pathname,
-    timeOnPage: 0,
-    pagesVisited: [],
-    proactiveMessageSent: false
-  });
-  const [detectedInterests, setDetectedInterests] = useState([]);
-
-  const { data: faqs = [] } = useQuery({
-    queryKey: ['chatbot-faqs'],
-    queryFn: async () => {
-      const all = await base44.entities.ChatbotFAQ.list('ordem');
-      return all.filter(f => f.ativo !== false);
+  // Inicializar conversa com o agente
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      initializeConversation();
     }
-  });
+  }, []);
 
-  const { data: especializacoes = [] } = useQuery({
-    queryKey: ['especializacoes-chatbot'],
-    queryFn: () => base44.entities.Especializacao.list('ordem')
-  });
-
-  const { data: posts = [] } = useQuery({
-    queryKey: ['posts-chatbot'],
-    queryFn: () => base44.entities.Post.list('-ordem')
-  });
+  const initializeConversation = async () => {
+    try {
+      const conversation = await base44.agents.createConversation({
+        agent_name: 'coordenador_digital',
+        metadata: {
+          name: 'Nova Conversa',
+          page: location.pathname
+        }
+      });
+      setConversationId(conversation.id);
+      
+      // Inscrever para atualizações em tempo real
+      const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
+        setMessages(data.messages || []);
+      });
+      
+      return () => unsubscribe();
+    } catch (error) {
+      console.error('Erro ao inicializar conversa:', error);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

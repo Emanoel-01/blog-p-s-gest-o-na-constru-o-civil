@@ -163,7 +163,7 @@ Informações importantes sobre a ESUDA:
 - Programa "Quem Indica Amigo É": última mensalidade grátis se indicar alguém que se matricule
 - Aulas gravadas disponíveis na plataforma
 - Instagram oficial: @esudapos
-- WhatsApp do coordenador: (81) 99929-6909
+- WhatsApp do coordenador: (81) 99129-8803
 
 Especializações disponíveis:
 ${especializacoesInfo.map(e => `- ${e.nome}${e.link ? ` (link: ${e.link})` : ''}`).join('\n')}
@@ -341,7 +341,7 @@ Formato da resposta esperado:
                 
                 {message.cta_whatsapp && (
                   <a 
-                    href="https://wa.me/5581999296909" 
+                    href="https://wa.me/5581991298803" 
                     target="_blank" 
                     rel="noopener noreferrer"
                   >

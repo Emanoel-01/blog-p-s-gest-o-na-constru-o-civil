@@ -14,6 +14,8 @@ import DetailedReport from '../components/admin/DetailedReport';
 import ManagerialReport from '../components/admin/ManagerialReport';
 import DisciplinaFormFields from '../components/admin/DisciplinaFormFields';
 import AdminScheduleTemplate from '../components/admin/AdminScheduleTemplate';
+import ProjetoForm from '../components/admin/incubadora/ProjetoForm';
+import AtividadeForm from '../components/admin/incubadora/AtividadeForm';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -3732,9 +3734,6 @@ Seja detalhado, prático e objetivo na análise.`;
   );
 
   const renderIncubadoraTab = () => {
-    const ProjetoForm = require('../components/admin/incubadora/ProjetoForm').default;
-    const AtividadeForm = require('../components/admin/incubadora/AtividadeForm').default;
-
     return (
       <div className="space-y-6">
         {/* Gerenciamento de Projetos */}

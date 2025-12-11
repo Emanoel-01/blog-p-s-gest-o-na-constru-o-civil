@@ -4,22 +4,41 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { ChevronDown, ChevronUp, Image as ImageIcon, Video, FileText, ExternalLink, Calendar, Tag, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, Image as ImageIcon, Video, FileText, ExternalLink, Calendar, Tag, Search, MessageCircle, Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ImageViewer from '../components/blog/ImageViewer';
+import { toast } from 'sonner';
 
 export default function EmAcaoPage() {
   const [expandedPost, setExpandedPost] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [comentarios, setComentarios] = useState({});
+  const [novoComentario, setNovoComentario] = useState({});
+
+  const queryClient = useQueryClient();
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['posts'],
     queryFn: () => base44.entities.Post.list('-ordem')
+  });
+
+  const { data: allComentarios = [] } = useQuery({
+    queryKey: ['comentarios'],
+    queryFn: () => base44.entities.Comentario.list('-created_date')
+  });
+
+  const createComentarioMutation = useMutation({
+    mutationFn: (data) => base44.entities.Comentario.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['comentarios']);
+      toast.success('Comentário enviado! Aguardando aprovação.');
+    }
   });
 
   const filteredPosts = posts.filter(post => {
@@ -35,6 +54,36 @@ export default function EmAcaoPage() {
 
   const togglePost = (postId) => {
     setExpandedPost(expandedPost === postId ? null : postId);
+  };
+
+  const getComentariosAprovados = (postId) => {
+    return allComentarios.filter(c => c.post_id === postId && c.aprovado);
+  };
+
+  const getPostsRelacionados = (currentPost) => {
+    if (!currentPost.tags || currentPost.tags.length === 0) return [];
+    
+    return posts
+      .filter(p => p.id !== currentPost.id && p.tags?.some(tag => currentPost.tags.includes(tag)))
+      .slice(0, 3);
+  };
+
+  const handleSubmitComentario = (postId) => {
+    const comentario = novoComentario[postId];
+    if (!comentario?.autor_nome || !comentario?.conteudo) {
+      toast.error('Preencha nome e comentário');
+      return;
+    }
+
+    createComentarioMutation.mutate({
+      post_id: postId,
+      autor_nome: comentario.autor_nome,
+      autor_email: comentario.autor_email || '',
+      conteudo: comentario.conteudo,
+      aprovado: false
+    });
+
+    setNovoComentario(prev => ({ ...prev, [postId]: {} }));
   };
 
   const handleImageClick = (imageUrl, allImages) => {
@@ -200,7 +249,8 @@ export default function EmAcaoPage() {
                                 {midia.tipo === 'imagem' && midia.url && (
                                   <img 
                                     src={midia.url} 
-                                    alt={midia.titulo || 'Imagem'} 
+                                    alt={midia.titulo || 'Imagem'}
+                                    loading="lazy"
                                     className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-gray-300" 
                                     onClick={() => {
                                       const allImages = [
@@ -215,7 +265,7 @@ export default function EmAcaoPage() {
                                 )}
                                 
                                 {midia.tipo === 'video' && midia.url && (
-                                  <video controls className="w-full rounded-lg">
+                                  <video controls preload="metadata" className="w-full rounded-lg">
                                     <source src={midia.url} />
                                     Seu navegador não suporta o elemento de vídeo.
                                   </video>
@@ -236,14 +286,152 @@ export default function EmAcaoPage() {
                           </div>
                         </div>
                       )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+
+                      {/* Posts Relacionados */}
+                      {getPostsRelacionados(post).length > 0 && (
+                        <div className="space-y-2 sm:space-y-3 pt-3 sm:pt-4 mt-3 sm:mt-4 border-t-2 border-pink-200">
+                          <h4 className="font-bold text-gray-800 text-sm sm:text-base flex items-center gap-2">
+                            <Tag className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
+                            Posts Relacionados
+                          </h4>
+                          <div className="grid gap-2">
+                            {getPostsRelacionados(post).map((relatedPost) => (
+                              <div 
+                                key={relatedPost.id}
+                                onClick={() => {
+                                  setExpandedPost(null);
+                                  setTimeout(() => togglePost(relatedPost.id), 100);
+                                }}
+                                className="bg-white p-3 rounded-lg border-2 border-gray-200 hover:border-pink-300 transition-all cursor-pointer"
+                              >
+                                <div className="flex gap-3">
+                                  {relatedPost.imagem_destaque && (
+                                    <img 
+                                      src={relatedPost.imagem_destaque} 
+                                      alt={relatedPost.titulo}
+                                      loading="lazy"
+                                      className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <h5 className="font-bold text-sm text-gray-800 line-clamp-2 mb-1">
+                                      {relatedPost.titulo}
+                                    </h5>
+                                    <p className="text-xs text-gray-600 line-clamp-2">
+                                      {relatedPost.descricao}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Seção de Comentários */}
+                      <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 mt-3 sm:mt-4 border-t-2 border-pink-200">
+                        <h4 className="font-bold text-gray-800 text-sm sm:text-base flex items-center gap-2">
+                          <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
+                          Comentários ({getComentariosAprovados(post.id).length})
+                        </h4>
+
+                        {/* Formulário de Novo Comentário */}
+                        <div className="bg-pink-50 p-3 sm:p-4 rounded-lg border border-pink-200">
+                          <h5 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">Deixe seu comentário</h5>
+                          <div className="space-y-2">
+                            <Input
+                              placeholder="Seu nome *"
+                              value={novoComentario[post.id]?.autor_nome || ''}
+                              onChange={(e) => setNovoComentario(prev => ({
+                                ...prev,
+                                [post.id]: { ...prev[post.id], autor_nome: e.target.value }
+                              }))}
+                              className="text-xs sm:text-sm"
+                            />
+                            <Input
+                              placeholder="Seu email (opcional)"
+                              type="email"
+                              value={novoComentario[post.id]?.autor_email || ''}
+                              onChange={(e) => setNovoComentario(prev => ({
+                                ...prev,
+                                [post.id]: { ...prev[post.id], autor_email: e.target.value }
+                              }))}
+                              className="text-xs sm:text-sm"
+                            />
+                            <Textarea
+                              placeholder="Seu comentário *"
+                              rows={3}
+                              value={novoComentario[post.id]?.conteudo || ''}
+                              onChange={(e) => setNovoComentario(prev => ({
+                                ...prev,
+                                [post.id]: { ...prev[post.id], conteudo: e.target.value }
+                              }))}
+                              className="text-xs sm:text-sm"
+                            />
+                            <Button
+                              onClick={() => handleSubmitComentario(post.id)}
+                              size="sm"
+                              className="w-full bg-pink-600 hover:bg-pink-700 text-xs sm:text-sm"
+                            >
+                              <Send className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                              Enviar Comentário
+                            </Button>
+                            <p className="text-xs text-gray-500 italic">
+                              * Seu comentário será publicado após aprovação
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Lista de Comentários Aprovados */}
+                        <div className="space-y-2 sm:space-y-3">
+                          {getComentariosAprovados(post.id).length === 0 ? (
+                            <p className="text-xs sm:text-sm text-gray-500 italic text-center py-4">
+                              Seja o primeiro a comentar!
+                            </p>
+                          ) : (
+                            getComentariosAprovados(post.id).map((comentario) => (
+                              <div key={comentario.id} className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200">
+                                <div className="flex items-start gap-2 mb-2">
+                                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold text-xs flex-shrink-0">
+                                    {comentario.autor_nome.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-semibold text-xs sm:text-sm text-gray-800">
+                                        {comentario.autor_nome}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(comentario.created_date).toLocaleDateString('pt-BR')}
+                                      </span>
+                                    </div>
+                                    <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                                      {comentario.conteudo}
+                                    </p>
+                                    {comentario.resposta_admin && (
+                                      <div className="mt-2 bg-pink-50 p-2 rounded border-l-2 border-pink-400">
+                                        <p className="text-xs font-semibold text-pink-800 mb-1">
+                                          Resposta da Coordenação:
+                                        </p>
+                                        <p className="text-xs text-gray-700">
+                                          {comentario.resposta_admin}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      </div>
+                      )}
+                      </CardContent>
+                      </Card>
+                      );
+                      })}
+                      </div>
+                      )}
 
       <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
         <Link to={createPageUrl('ParceirosPage')} className="w-full sm:w-auto">

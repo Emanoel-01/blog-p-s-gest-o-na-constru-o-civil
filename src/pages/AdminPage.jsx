@@ -19,6 +19,7 @@ import AtividadeForm from '../components/admin/incubadora/AtividadeForm';
 import AtividadeList from '../components/admin/incubadora/AtividadeList';
 import AtividadeEditForm from '../components/admin/incubadora/AtividadeEditForm';
 import LeadCRM from '../components/admin/LeadCRM';
+import ComentariosManager from '../components/admin/ComentariosManager';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -267,6 +268,11 @@ export default function AdminPage() {
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
     queryFn: () => base44.entities.Lead.list('-created_date')
+  });
+
+  const { data: comentarios = [] } = useQuery({
+    queryKey: ['comentarios-admin'],
+    queryFn: () => base44.entities.Comentario.list('-created_date')
   });
 
   const { data: perguntasSemResposta = [] } = useQuery({

@@ -76,6 +76,7 @@ export default function Layout({ children }) {
           <img
             src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
             alt="ESUDA Logo"
+            loading="eager"
             className="w-10 sm:w-12 md:w-28 mx-auto mb-4"
           />
 

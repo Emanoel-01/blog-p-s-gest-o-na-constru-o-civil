@@ -206,6 +206,7 @@ export default function Homepage() {
         <img
           src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
           alt="Logo da Faculdade ESUDA"
+          loading="eager"
           className="w-40 sm:w-48 md:w-64 lg:w-80 mx-auto mb-4 sm:mb-6"
         />
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight px-2">
@@ -473,6 +474,7 @@ export default function Homepage() {
                           <img
                             src={post.imagem_destaque}
                             alt={post.titulo}
+                            loading="lazy"
                             className="w-full h-32 sm:h-36 md:h-40 object-cover rounded-t-lg"
                           />
                         )}

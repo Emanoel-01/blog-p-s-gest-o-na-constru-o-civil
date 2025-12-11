@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Bell, UserPlus, MessageCircle, AlertCircle, ChevronRight } from 'lucide-react';
+import { Bell, UserPlus, MessageCircle, AlertCircle, ChevronRight, Star } from 'lucide-react';
 
-export default function NotificationCenter({ leads, comentarios, perguntasSemResposta, onNavigate }) {
+export default function NotificationCenter({ leads, comentarios, perguntasSemResposta, depoimentos, onNavigate }) {
   const notifications = useMemo(() => {
     const notifs = [];
     
@@ -61,9 +61,23 @@ export default function NotificationCenter({ leads, comentarios, perguntasSemRes
       });
     });
 
+    // 4. Depoimentos pendentes
+    const depoimentosPendentes = (depoimentos || []).filter(d => d.status === 'Pendente');
+    depoimentosPendentes.forEach(depoimento => {
+      notifs.push({
+        id: `depoimento-${depoimento.id}`,
+        tipo: 'depoimento',
+        titulo: 'Depoimento aguardando aprovação',
+        descricao: `${depoimento.nome} - ${depoimento.profissao}`,
+        urgente: false,
+        timestamp: depoimento.created_date,
+        action: () => onNavigate('depoimentos')
+      });
+    });
+
     // Ordenar por mais recente
     return notifs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  }, [leads, comentarios, perguntasSemResposta]);
+  }, [leads, comentarios, perguntasSemResposta, depoimentos]);
 
   const urgentCount = notifications.filter(n => n.urgente).length;
   const totalCount = notifications.length;
@@ -73,6 +87,7 @@ export default function NotificationCenter({ leads, comentarios, perguntasSemRes
       case 'lead': return <UserPlus className="w-4 h-4 text-blue-600" />;
       case 'comentario': return <MessageCircle className="w-4 h-4 text-pink-600" />;
       case 'pergunta': return <AlertCircle className="w-4 h-4 text-amber-600" />;
+      case 'depoimento': return <Star className="w-4 h-4 text-yellow-600" />;
       default: return <Bell className="w-4 h-4" />;
     }
   };

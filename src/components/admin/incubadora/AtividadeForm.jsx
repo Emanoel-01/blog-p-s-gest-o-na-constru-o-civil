@@ -14,6 +14,11 @@ export default function AtividadeForm({ tipo, projetos, onSuccess }) {
   });
   const [uploading, setUploading] = useState(false);
 
+  const { data: discentes = [] } = useQuery({
+    queryKey: ['discentes'],
+    queryFn: () => base44.entities.Discente.list('nome')
+  });
+
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     setUploading(true);
@@ -58,6 +63,18 @@ export default function AtividadeForm({ tipo, projetos, onSuccess }) {
           <>
             <Input placeholder="Nome do Evento" value={formData.nome_evento || ''} 
               onChange={(e) => setFormData({ ...formData, nome_evento: e.target.value })} required />
+            <Select value={formData.aluno_id || ''} onValueChange={(value) => setFormData({ ...formData, aluno_id: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Aluno Responsável (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {discentes.map((discente) => (
+                  <SelectItem key={discente.id} value={discente.id}>{discente.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input type="number" step="0.01" placeholder="Valor (R$)" value={formData.valor || ''} 
+              onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) })} required />
             <Input type="date" value={formData.data || ''} 
               onChange={(e) => setFormData({ ...formData, data: e.target.value })} required />
             <Textarea placeholder="Resumo" value={formData.resumo || ''} 
@@ -73,6 +90,18 @@ export default function AtividadeForm({ tipo, projetos, onSuccess }) {
               onChange={(e) => setFormData({ ...formData, titulo_artigo: e.target.value })} required />
             <Input placeholder="Autores" value={formData.autores || ''} 
               onChange={(e) => setFormData({ ...formData, autores: e.target.value })} />
+            <Select value={formData.aluno_id || ''} onValueChange={(value) => setFormData({ ...formData, aluno_id: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Aluno Responsável (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {discentes.map((discente) => (
+                  <SelectItem key={discente.id} value={discente.id}>{discente.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input type="number" step="0.01" placeholder="Valor (R$)" value={formData.valor || ''} 
+              onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) })} required />
             <Input type="date" value={formData.data_publicacao || ''} 
               onChange={(e) => setFormData({ ...formData, data_publicacao: e.target.value })} required />
             <Input placeholder="Revista/Conferência" value={formData.revista_conferencia || ''} 
@@ -86,6 +115,18 @@ export default function AtividadeForm({ tipo, projetos, onSuccess }) {
           <>
             <Input placeholder="Nome do Canteiro" value={formData.nome_canteiro || ''} 
               onChange={(e) => setFormData({ ...formData, nome_canteiro: e.target.value })} required />
+            <Select value={formData.aluno_id || ''} onValueChange={(value) => setFormData({ ...formData, aluno_id: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Aluno Responsável (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {discentes.map((discente) => (
+                  <SelectItem key={discente.id} value={discente.id}>{discente.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input type="number" step="0.01" placeholder="Valor (R$)" value={formData.valor || ''} 
+              onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) })} required />
             <Input type="date" value={formData.data || ''} 
               onChange={(e) => setFormData({ ...formData, data: e.target.value })} required />
             <Input placeholder="Local" value={formData.local || ''} 
@@ -101,10 +142,20 @@ export default function AtividadeForm({ tipo, projetos, onSuccess }) {
           <>
             <Input placeholder="Nome da Atividade" value={formData.nome_atividade || ''} 
               onChange={(e) => setFormData({ ...formData, nome_atividade: e.target.value })} required />
-            <Input placeholder="Aluno Responsável" value={formData.aluno_responsavel || ''} 
-              onChange={(e) => setFormData({ ...formData, aluno_responsavel: e.target.value })} />
+            <Select value={formData.aluno_id || ''} onValueChange={(value) => setFormData({ ...formData, aluno_id: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Aluno Responsável" />
+              </SelectTrigger>
+              <SelectContent>
+                {discentes.map((discente) => (
+                  <SelectItem key={discente.id} value={discente.id}>{discente.nome} - {discente.titulo}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input placeholder="Empresa Parceira" value={formData.empresa_parceira || ''} 
               onChange={(e) => setFormData({ ...formData, empresa_parceira: e.target.value })} />
+            <Input type="number" step="0.01" placeholder="Valor (R$)" value={formData.valor || ''} 
+              onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) })} required />
             <Input type="date" value={formData.data || ''} 
               onChange={(e) => setFormData({ ...formData, data: e.target.value })} required />
             <Textarea placeholder="Resumo" value={formData.resumo || ''} 
@@ -120,6 +171,18 @@ export default function AtividadeForm({ tipo, projetos, onSuccess }) {
               onChange={(e) => setFormData({ ...formData, titulo_relatorio: e.target.value })} required />
             <Input placeholder="Autor" value={formData.autor || ''} 
               onChange={(e) => setFormData({ ...formData, autor: e.target.value })} />
+            <Select value={formData.aluno_id || ''} onValueChange={(value) => setFormData({ ...formData, aluno_id: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Aluno Responsável (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {discentes.map((discente) => (
+                  <SelectItem key={discente.id} value={discente.id}>{discente.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input type="number" step="0.01" placeholder="Valor (R$)" value={formData.valor || ''} 
+              onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) })} required />
             <Input type="date" value={formData.data || ''} 
               onChange={(e) => setFormData({ ...formData, data: e.target.value })} required />
             <Textarea placeholder="Resumo" value={formData.resumo || ''} 
@@ -144,6 +207,18 @@ export default function AtividadeForm({ tipo, projetos, onSuccess }) {
                 <SelectItem value="Outro">Outro</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={formData.aluno_id || ''} onValueChange={(value) => setFormData({ ...formData, aluno_id: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Aluno Responsável (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {discentes.map((discente) => (
+                  <SelectItem key={discente.id} value={discente.id}>{discente.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input type="number" step="0.01" placeholder="Valor (R$)" value={formData.valor || ''} 
+              onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) })} required />
             <Input type="date" value={formData.data || ''} 
               onChange={(e) => setFormData({ ...formData, data: e.target.value })} required />
             <Textarea placeholder="Resumo" value={formData.resumo || ''} 

@@ -29,42 +29,32 @@ export default function Homepage() {
     queryFn: async () => {
       const projetos = await base44.entities.Projeto.list();
       const incubadoraProjetos = projetos.filter(p => p.tipo_projeto === 'Incubadora Profissional');
-      
+
       if (incubadoraProjetos.length === 0) return [];
-      
+
       const projetoIds = incubadoraProjetos.map(p => p.id);
-      
-      const [eventos, artigos, canteiros, freelancers, relatorios, producoes, discentes] = await Promise.all([
-        base44.entities.Evento.list('-data'),
-        base44.entities.ArtigoCientifico.list('-data_publicacao'),
-        base44.entities.CanteiroDidatico.list('-data'),
+
+      const [freelancers, discentes] = await Promise.all([
         base44.entities.FreelancerNetwork.list('-data'),
-        base44.entities.RelatorioTecnico.list('-data'),
-        base44.entities.ProducaoTecnologica.list('-data'),
         base44.entities.Discente.list('nome')
       ]);
-      
-      const allActivities = [
-        ...eventos.filter(e => projetoIds.includes(e.projeto_id)).map(e => ({ ...e, type: 'Evento', date: e.data })),
-        ...artigos.filter(a => projetoIds.includes(a.projeto_id)).map(a => ({ ...a, type: 'Artigo', date: a.data_publicacao })),
-        ...canteiros.filter(c => projetoIds.includes(c.projeto_id)).map(c => ({ ...c, type: 'Canteiro', date: c.data })),
-        ...freelancers.filter(f => projetoIds.includes(f.projeto_id)).map(f => {
+
+      const networkActivities = freelancers
+        .filter(f => projetoIds.includes(f.projeto_id))
+        .map(f => {
           const aluno = discentes.find(d => d.id === f.aluno_id);
           return { 
             ...f, 
-            type: f.tipo || 'Freelancer', 
+            type: f.tipo || 'Network', 
             date: f.data,
             aluno_foto: aluno?.foto_url,
             aluno_nome: aluno?.nome
           };
-        }),
-        ...relatorios.filter(r => projetoIds.includes(r.projeto_id)).map(r => ({ ...r, type: 'Relatório', date: r.data })),
-        ...producoes.filter(p => projetoIds.includes(p.projeto_id)).map(p => ({ ...p, type: 'Produção', date: p.data }))
-      ];
-      
-      return allActivities
+        })
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 4);
+
+      return networkActivities;
     }
   });
 

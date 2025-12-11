@@ -115,7 +115,7 @@ export default function Homepage() {
           className="w-48 sm:w-64 md:w-80 mx-auto mb-6"
         />
         <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-          Pós-Graduação em Arquitetura e Engenharia Civil
+          Pós-Graduação em Gestão e Tecnologias na Construção Civil
         </h1>
         <p className="text-base sm:text-lg md:text-xl text-gray-700 mb-8 max-w-3xl leading-relaxed">
           Conheça as especializações: <span className="font-semibold text-green-700">Inovação, Tecnologia e Foco no Mercado</span>

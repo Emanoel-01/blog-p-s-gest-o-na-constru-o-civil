@@ -60,54 +60,68 @@ export default function CorpoDiscentePage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {discentes.map((discente) => (
-            <Card key={discente.id} className="hover:shadow-xl transition-shadow border-2 border-gray-200">
-              <CardContent className="p-6 text-center">
-                {discente.foto_url && (
-                  <img
-                    src={discente.foto_url}
-                    alt={discente.nome}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-purple-600 shadow-lg mx-auto mb-4"
-                  />
-                )}
-                <h4 className="font-bold text-gray-800 mb-1 text-lg">{discente.nome}</h4>
-                <p className="text-sm text-gray-600 mb-4">{discente.titulo}</p>
+        <div className="space-y-12">
+          {Object.entries(discentesAgrupados).map(([especId, turmas]) => {
+            const espec = especializacoes.find(e => e.id === especId);
+            const nomeEspec = espec ? espec.nome : 'Sem Curso Definido';
+
+            return (
+              <div key={especId}>
+                <h2 className="text-2xl font-bold text-green-700 mb-6 border-b-4 border-green-500 pb-2">
+                  {nomeEspec}
+                </h2>
                 
-                {discente.especializacoes && discente.especializacoes.length > 0 && (
-                  <div className="mb-4 text-xs text-gray-600 bg-purple-50 rounded-lg p-2">
-                    <strong>Cursou:</strong> {discente.especializacoes.length} especialização(ões)
-                  </div>
-                )}
-                
-                <div className="flex justify-center gap-2 flex-wrap">
-                  {discente.instagram && (
-                    <a href={discente.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-full hover:opacity-90">
-                      <Instagram className="w-4 h-4" />
-                      Instagram
-                    </a>
-                  )}
-                  {discente.linkedin && (
-                    <a href={discente.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-full hover:bg-blue-700">
-                      <Linkedin className="w-4 h-4" />
-                      LinkedIn
-                    </a>
-                  )}
-                  {discente.lattes && (
-                    <a href={discente.lattes} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-yellow-600 text-white px-3 py-1.5 rounded-full hover:bg-yellow-700">
-                      <BookOpen className="w-4 h-4" />
-                      Lattes
-                    </a>
-                  )}
-                  {discente.site && (
-                    <a href={discente.site} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-green-600 text-white px-3 py-1.5 rounded-full hover:bg-green-700">
-                      <Globe className="w-4 h-4" />
-                      Site
-                    </a>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                {Object.entries(turmas).map(([turma, alunos]) => (
+                  <div key={turma} className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                        Turma {turma}
+                      </span>
+                      <span className="text-sm text-gray-500">({alunos.length} aluno{alunos.length !== 1 ? 's' : ''})</span>
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {alunos.map((discente) => (
+                        <Card key={discente.id} className="hover:shadow-xl transition-shadow border-2 border-gray-200">
+                          <CardContent className="p-6 text-center">
+                            {discente.foto_url && (
+                              <img
+                                src={discente.foto_url}
+                                alt={discente.nome}
+                                className="w-32 h-32 rounded-full object-cover border-4 border-purple-600 shadow-lg mx-auto mb-4"
+                              />
+                            )}
+                            <h4 className="font-bold text-gray-800 mb-1 text-lg">{discente.nome}</h4>
+                            <p className="text-sm text-gray-600 mb-4">{discente.titulo}</p>
+                            
+                            <div className="flex justify-center gap-2 flex-wrap">
+                              {discente.instagram && (
+                                <a href={discente.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-full hover:opacity-90">
+                                  <Instagram className="w-4 h-4" />
+                                  Instagram
+                                </a>
+                              )}
+                              {discente.linkedin && (
+                                <a href={discente.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-full hover:bg-blue-700">
+                                  <Linkedin className="w-4 h-4" />
+                                  LinkedIn
+                                </a>
+                              )}
+                              {discente.lattes && (
+                                <a href={discente.lattes} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-yellow-600 text-white px-3 py-1.5 rounded-full hover:bg-yellow-700">
+                                  <BookOpen className="w-4 h-4" />
+                                  Lattes
+                                </a>
+                              )}
+                              {discente.site && (
+                                <a href={discente.site} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-green-600 text-white px-3 py-1.5 rounded-full hover:bg-green-700">
+                                  <Globe className="w-4 h-4" />
+                                  Site
+                                </a>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
                   </div>

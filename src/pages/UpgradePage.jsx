@@ -24,7 +24,7 @@ export default function UpgradePage() {
       <div className="px-2 sm:px-4">
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 text-center leading-tight">
           O Futuro da Construção Civil não é dos Generalistas. <br className="hidden sm:block"/>É dos <span className="text-green-600">Líderes de Nicho</span>.
-      </h2>
+        </h1>
 
       <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 sm:p-6 rounded-xl mb-4 sm:mb-6 border-2 border-orange-200">
         <p className="text-gray-800 leading-relaxed text-justify text-sm sm:text-base lg:text-lg">

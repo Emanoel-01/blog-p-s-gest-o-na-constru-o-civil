@@ -370,8 +370,8 @@ export default function IncubadoraProfissionalPage() {
                     </button>
 
                     {isExpanded && (
-                      <div className="px-3 sm:px-4 md:px-5 pb-3 sm:pb-4 md:pb-5 space-y-3 sm:space-y-4 border-t border-gray-200 pt-3 sm:pt-4 md:pt-5">
-                        {isFreelancer && (
+                     <div className="px-3 sm:px-4 md:px-5 pb-3 sm:pb-4 md:pb-5 space-y-3 sm:space-y-4 border-t border-gray-200 pt-3 sm:pt-4 md:pt-5">
+                       {(activity.type === 'Freelancer' || activity.type === 'Network' || activity.type === 'Empregado' || activity.type === 'Contratado') && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
                             {activity.aluno_nome && (
                               <div>

@@ -399,6 +399,7 @@ export default function EspecializacoesPage() {
           </Button>
         </Link>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

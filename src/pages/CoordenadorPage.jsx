@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
-import { Linkedin, BookOpen, GraduationCap, Instagram, Globe, ArrowRight } from 'lucide-react';
+import { Linkedin, BookOpen, GraduationCap, Instagram, Globe, ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function CoordenadorPage() {
   return (

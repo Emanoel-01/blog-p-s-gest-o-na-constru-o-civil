@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { MessageCircle, X, Send, ChevronRight } from 'lucide-react';
+import { MessageCircle, X, Send, ChevronRight, ExternalLink } from 'lucide-react';
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +29,11 @@ export default function Chatbot() {
       const all = await base44.entities.ChatbotFAQ.list('ordem');
       return all.filter(f => f.ativo !== false);
     }
+  });
+
+  const { data: especializacoes = [] } = useQuery({
+    queryKey: ['especializacoes-chatbot'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
   });
 
   const scrollToBottom = () => {
@@ -132,6 +137,13 @@ export default function Chatbot() {
     try {
       const conversationHistory = messages.map(m => `${m.type === 'user' ? 'Usuário' : 'Assistente'}: ${m.text}`).join('\n');
       
+      // Detectar qual especialização está sendo discutida
+      const especializacoesInfo = especializacoes.map(e => ({
+        nome: e.nome,
+        link: e.link_externo,
+        id: e.id
+      }));
+      
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: `Você é o assistente virtual da ESUDA - Pós-Graduação em Gestão e Tecnologias na Construção Civil.
 
@@ -150,19 +162,49 @@ Informações importantes sobre a ESUDA:
 - Ex-alunos têm matrícula grátis (1ª parcela)
 - Programa "Quem Indica Amigo É": última mensalidade grátis se indicar alguém que se matricule
 - Aulas gravadas disponíveis na plataforma
+- Instagram oficial: @esudapos
+- WhatsApp do coordenador: (81) 99929-6909
 
-Responda de forma clara, objetiva e amigável. Se a pergunta for sobre informações específicas que você não tem certeza, sugira que o usuário entre em contato pelo Instagram @esuda.oficial ou visite a página de especializações.`,
-        add_context_from_internet: false
+Especializações disponíveis:
+${especializacoesInfo.map(e => `- ${e.nome}${e.link ? ` (link: ${e.link})` : ''}`).join('\n')}
+
+IMPORTANTE: Analise o contexto da conversa para decidir qual call-to-action usar ao final:
+- Se o usuário está tirando dúvidas básicas: "Quer tirar mais dúvidas diretamente com o coordenador?"
+- Se perguntou sobre inscrição/matrícula: "Deseja se inscrever agora com ajuda do coordenador?"
+- Se perguntou sobre carreira/especialização: "Deseja uma consultoria de carreira exclusiva com o próprio coordenador do curso?"
+- Se está indeciso entre cursos: "Deseja que o coordenador te oriente sobre qual especialização escolher?"
+
+Responda de forma clara, objetiva e amigável. Se a pergunta for sobre informações específicas que você não tem certeza, sugira que o usuário entre em contato pelo Instagram @esudapos. 
+
+Ao final da resposta, SEMPRE inclua:
+1. Um link para a página da especialização relevante (se houver)
+2. Uma call-to-action personalizada para falar com o coordenador via WhatsApp
+
+Formato da resposta esperado:
+{
+  "resposta": "sua resposta aqui",
+  "especializacao_relevante": "nome da especialização mais relevante ou null",
+  "cta_whatsapp": "texto do call-to-action para WhatsApp baseado no contexto"
+}`,
+        add_context_from_internet: false,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            resposta: { type: "string" },
+            especializacao_relevante: { type: "string" },
+            cta_whatsapp: { type: "string" }
+          }
+        }
       });
 
       // Salvar pergunta sem resposta adequada se a IA sugerir contato
-      const respostaLower = response.toLowerCase();
+      const respostaLower = response.resposta.toLowerCase();
       if (respostaLower.includes('instagram') || respostaLower.includes('entre em contato') || 
           respostaLower.includes('visite') || respostaLower.includes('não tenho')) {
         try {
           await base44.entities.PerguntaSemResposta.create({
             pergunta: inputValue,
-            resposta_ia: response,
+            resposta_ia: response.resposta,
             lead_nome: leadInfo.nome,
             lead_whatsapp: leadInfo.whatsapp,
             status: 'Pendente'
@@ -172,11 +214,25 @@ Responda de forma clara, objetiva e amigável. Se a pergunta for sobre informaç
         }
       }
 
+      // Encontrar especialização relevante se mencionada
+      let especLink = null;
+      if (response.especializacao_relevante) {
+        const espec = especializacoes.find(e => 
+          e.nome.toLowerCase().includes(response.especializacao_relevante.toLowerCase()) ||
+          response.especializacao_relevante.toLowerCase().includes(e.nome.toLowerCase())
+        );
+        if (espec && espec.link_externo) {
+          especLink = espec.link_externo;
+        }
+      }
+
       setTimeout(() => {
         const botResponse = {
           type: 'bot',
-          text: response,
-          timestamp: new Date()
+          text: response.resposta,
+          timestamp: new Date(),
+          especializacao_link: especLink,
+          cta_whatsapp: response.cta_whatsapp
         };
         setMessages(prev => [...prev, botResponse]);
         setIsLoadingAI(false);
@@ -186,7 +242,7 @@ Responda de forma clara, objetiva e amigável. Se a pergunta for sobre informaç
       setTimeout(() => {
         const botResponse = {
           type: 'bot',
-          text: 'Desculpe, tive um problema ao processar sua pergunta. Entre em contato conosco através do Instagram @esuda.oficial ou visite nossa página de especializações para mais informações.',
+          text: 'Desculpe, tive um problema ao processar sua pergunta. Entre em contato conosco através do Instagram @esudapos ou visite nossa página de especializações para mais informações.',
           pagina_destino: 'EspecializacoesPage',
           timestamp: new Date()
         };
@@ -253,20 +309,52 @@ Responda de forma clara, objetiva e amigável. Se a pergunta for sobre informaç
                     : 'bg-white border border-gray-200 text-gray-800'
                 }`}
               >
-                <p className="text-sm">{message.text}</p>
+                <p className="text-sm whitespace-pre-line">{message.text}</p>
               </div>
-              {message.pagina_destino && (
-                <Link to={createPageUrl(message.pagina_destino)}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 text-xs border-green-500 text-green-700 hover:bg-green-50"
-                    onClick={() => setIsOpen(false)}
+              
+              <div className="mt-2 space-y-2">
+                {message.especializacao_link && (
+                  <a href={message.especializacao_link} target="_blank" rel="noopener noreferrer">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-xs border-blue-500 text-blue-700 hover:bg-blue-50"
+                    >
+                      <ExternalLink className="w-3 h-3 mr-1" />
+                      Ver página da Especialização
+                    </Button>
+                  </a>
+                )}
+                
+                {message.pagina_destino && (
+                  <Link to={createPageUrl(message.pagina_destino)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-xs border-green-500 text-green-700 hover:bg-green-50"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Ir para a página <ChevronRight className="w-3 h-3 ml-1" />
+                    </Button>
+                  </Link>
+                )}
+                
+                {message.cta_whatsapp && (
+                  <a 
+                    href="https://wa.me/5581999296909" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
                   >
-                    Ir para a página <ChevronRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </Link>
-              )}
+                    <Button
+                      size="sm"
+                      className="w-full text-xs bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      💬 {message.cta_whatsapp}
+                    </Button>
+                  </a>
+                )}
+              </div>
+              
               <p className="text-xs text-gray-400 mt-1">
                 {message.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
               </p>

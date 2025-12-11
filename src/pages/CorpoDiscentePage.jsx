@@ -135,7 +135,7 @@ export default function CorpoDiscentePage() {
       <div className="flex justify-between gap-4 mt-8">
         <Link to={createPageUrl('ProfessoresPage')}>
           <Button variant="outline" className="border-gray-300">
-            ← Voltar
+            ← Voltar para Professores
           </Button>
         </Link>
         <Link to={createPageUrl('ParceirosPage')}>

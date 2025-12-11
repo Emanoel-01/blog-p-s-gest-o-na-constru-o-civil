@@ -43,15 +43,15 @@ export default function ParceirosPage() {
               
               {parceiro.tipos_parceria && parceiro.tipos_parceria.length > 0 && (
                 <div className="mb-3 w-full">
-                  <p className="text-xs text-gray-600 text-center mb-1">Parcerias:</p>
+                  <p className="text-[10px] text-gray-600 text-center mb-1">Parcerias:</p>
                   <div className="flex flex-wrap gap-1 justify-center">
                     {parceiro.tipos_parceria.slice(0, 2).map((tp, idx) => (
-                      <span key={idx} className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-200">
+                      <span key={idx} className="text-[9px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded-full border border-green-200">
                         {tp.tipo.split(' ')[0]}
                       </span>
                     ))}
                     {parceiro.tipos_parceria.length > 2 && (
-                      <span className="text-xs bg-gray-50 text-gray-700 px-2 py-0.5 rounded-full border border-gray-200">
+                      <span className="text-[9px] bg-gray-50 text-gray-700 px-1.5 py-0.5 rounded-full border border-gray-200">
                         +{parceiro.tipos_parceria.length - 2}
                       </span>
                     )}

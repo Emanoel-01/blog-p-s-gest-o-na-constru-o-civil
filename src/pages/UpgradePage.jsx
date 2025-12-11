@@ -257,6 +257,15 @@ export default function UpgradePage() {
                 São apenas 10 meses. É um formato intensivo para acelerar sua carreira.
               </AccordionContent>
             </AccordionItem>
+
+            <AccordionItem value="item-11" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                Posso fazer duas Pós ao mesmo tempo?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                Sim! Você pode cursar duas especializações simultaneamente aproveitando o mesmo Ciclo Comum e garantindo 50% de desconto na segunda. Para as disciplinas específicas, a flexibilidade é total: você escolhe assistir uma presencial/remota e a outra gravada, ou acompanhar ambas pelas gravações, conquistando assim sua dupla certificação com otimização máxima de tempo e investimento.
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
         </div>
       </div>

@@ -14,7 +14,7 @@ export default function CoordenadorPage() {
           className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-green-600 shadow-lg mx-auto mb-3 sm:mb-4"
         />
         <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 px-2">Meu Perfil: Gestão Estratégica e Tecnologia (Construção 4.0)</h2>
-        <p className="text-base sm:text-lg text-gray-600 mt-2">Emanoel Amorim - Coordenador da Pós em GPO</p>
+        <p className="text-base sm:text-lg text-gray-600 mt-2">Emanoel Amorim - Coordenador das Especializações em Gestão e Tecnologias na Construção Civil</p>
       </div>
 
       <div className="space-y-3 sm:space-y-4 text-gray-700 leading-relaxed mb-6 sm:mb-8">

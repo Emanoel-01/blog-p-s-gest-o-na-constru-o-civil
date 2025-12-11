@@ -247,12 +247,12 @@ export default function ROIDashboard({
                       <div className="bg-gray-50 p-4 rounded-lg border">
                         <div className="flex items-center gap-1 mb-1">
                           <p className="text-xs text-gray-600">Investimento Total</p>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button className="w-4 h-4 rounded-full bg-gray-300 hover:bg-gray-400 flex items-center justify-center transition-colors">
-                                <div className="w-1 h-1 rounded-full bg-white"></div>
-                              </button>
-                            </TooltipTrigger>
+                          <TooltipUI>
+                           <TooltipTrigger asChild>
+                             <button className="w-4 h-4 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors">
+                               <Info className="w-3 h-3 text-white" />
+                             </button>
+                           </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                               <p className="text-sm">
                                 <strong>Cálculo:</strong> (Número de Alunos × Valor do Curso) + 20% de despesas operacionais.
@@ -260,9 +260,9 @@ export default function ROIDashboard({
                                 <strong>Exemplo:</strong> 10 alunos × R$ 2.500,00 = R$ 25.000,00 + 20% = R$ 30.000,00
                               </p>
                             </TooltipContent>
-                          </Tooltip>
+                          </TooltipUI>
                         </div>
-                        <p className="text-2xl font-bold text-gray-800">
+                        <p className="text-xl sm:text-2xl font-bold text-gray-800">
                           R$ {roi.investimentoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
@@ -272,10 +272,10 @@ export default function ROIDashboard({
                       <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                         <div className="flex items-center gap-1 mb-1">
                           <p className="text-xs text-green-700">Ganho Total Agregado</p>
-                          <Tooltip>
+                          <TooltipUI>
                             <TooltipTrigger asChild>
-                              <button className="w-4 h-4 rounded-full bg-green-300 hover:bg-green-400 flex items-center justify-center transition-colors">
-                                <div className="w-1 h-1 rounded-full bg-white"></div>
+                              <button className="w-4 h-4 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors">
+                                <Info className="w-3 h-3 text-white" />
                               </button>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
@@ -290,13 +290,13 @@ export default function ROIDashboard({
                                 <strong>Exemplo:</strong> Aluno contratado com salário de R$ 3.000/mês faltando 8 meses = R$ 24.000 agregados ao ROI
                               </p>
                             </TooltipContent>
-                          </Tooltip>
+                          </TooltipUI>
                         </div>
-                        <p className="text-2xl font-bold text-green-700">
+                        <p className="text-xl sm:text-2xl font-bold text-green-700">
                           R$ {roi.ganhoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </p>
                         <p className="text-xs text-green-600 mt-1">
-                          Soma das atividades Network
+                          {roi.totalFreelancers} atividade{roi.totalFreelancers !== 1 ? 's' : ''} (Freelancer/Empregado/Contratado)
                         </p>
                       </div>
                       <div className={`p-4 rounded-lg border ${
@@ -308,14 +308,10 @@ export default function ROIDashboard({
                           <p className={`text-xs ${roi.roiPercentual >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
                             ROI Financeiro
                           </p>
-                          <Tooltip>
+                          <TooltipUI>
                             <TooltipTrigger asChild>
-                              <button className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${
-                                roi.roiPercentual >= 0 
-                                  ? 'bg-emerald-300 hover:bg-emerald-400' 
-                                  : 'bg-red-300 hover:bg-red-400'
-                              }`}>
-                                <div className="w-1 h-1 rounded-full bg-white"></div>
+                              <button className="w-4 h-4 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors">
+                                <Info className="w-3 h-3 text-white" />
                               </button>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
@@ -332,9 +328,9 @@ export default function ROIDashboard({
                                 <br/>• ROI negativo: O investimento ainda não foi recuperado
                               </p>
                             </TooltipContent>
-                          </Tooltip>
+                          </TooltipUI>
                         </div>
-                        <p className={`text-3xl font-bold ${roi.roiPercentual >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                        <p className={`text-2xl sm:text-3xl font-bold ${roi.roiPercentual >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
                           {roi.roiPercentual.toFixed(1)}%
                         </p>
                         <p className={`text-xs mt-1 ${roi.roiPercentual >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>

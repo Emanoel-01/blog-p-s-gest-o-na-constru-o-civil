@@ -38,11 +38,11 @@ export default function CorpoDiscentePage() {
   }, {});
 
   return (
-    <div>
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+    <div className="px-2 sm:px-0">
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4 text-center">
         Corpo Discente
       </h2>
-      <p className="text-gray-600 mb-8 text-justify">
+      <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 text-center max-w-3xl mx-auto">
         Conheça nossos alunos que fazem parte do programa de pós-graduação ESUDA.
       </p>
 
@@ -73,31 +73,31 @@ export default function CorpoDiscentePage() {
                 
                 {Object.entries(turmas).map(([turma, alunos]) => (
                   <div key={turma} className="mb-8">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-3 sm:mb-4 flex items-center gap-2">
+                      <span className="bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
                         Turma {turma}
                       </span>
-                      <span className="text-sm text-gray-500">({alunos.length} aluno{alunos.length !== 1 ? 's' : ''})</span>
+                      <span className="text-xs sm:text-sm text-gray-500">({alunos.length} aluno{alunos.length !== 1 ? 's' : ''})</span>
                     </h3>
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                       {alunos.map((discente) => (
-                        <Card key={discente.id} className="hover:shadow-lg transition-shadow">
-                          <CardContent className="p-3 text-center">
+                        <Card key={discente.id} className="hover:shadow-lg transition-shadow border-2 border-gray-200 hover:border-green-600">
+                          <CardContent className="p-3 sm:p-4 text-center">
                             {discente.foto_url ? (
                               <img
                                 src={discente.foto_url}
                                 alt={discente.nome}
                                 loading="lazy"
-                                className="w-16 h-16 rounded-full object-cover border-2 border-purple-600 mx-auto mb-2"
+                                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-green-600 mx-auto mb-2"
                               />
                             ) : (
-                              <div className="w-16 h-16 rounded-full bg-gray-300 mx-auto mb-2 flex items-center justify-center">
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-300 mx-auto mb-2 flex items-center justify-center">
                                 <User className="w-8 h-8 text-gray-500" />
                               </div>
                             )}
-                            <h4 className="font-bold text-gray-800 mb-1 text-xs line-clamp-2">{discente.nome}</h4>
-                            <p className="text-[10px] text-gray-600 mb-2 line-clamp-2">{discente.titulo}</p>
+                            <h4 className="font-bold text-gray-800 mb-1 text-xs sm:text-sm line-clamp-2 leading-tight">{discente.nome}</h4>
+                            <p className="text-[10px] sm:text-xs text-gray-600 mb-2 line-clamp-2 leading-snug">{discente.titulo}</p>
                             
                             <div className="flex justify-center gap-1 flex-wrap">
                               {discente.instagram && (
@@ -141,14 +141,14 @@ export default function CorpoDiscentePage() {
         </div>
       )}
 
-      <div className="flex justify-between gap-4 mt-8">
-        <Link to={createPageUrl('ProfessoresPage')}>
-          <Button variant="outline" className="border-gray-300">
-            ← Voltar para Professores
+      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
+        <Link to={createPageUrl('ProfessoresPage')} className="w-full sm:w-auto">
+          <Button variant="outline" className="border-gray-300 w-full sm:w-auto">
+            ← Voltar
           </Button>
         </Link>
-        <Link to={createPageUrl('ParceirosPage')}>
-          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
+        <Link to={createPageUrl('ParceirosPage')} className="w-full sm:w-auto">
+          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white w-full sm:w-auto">
             Ver Parceiros →
           </Button>
         </Link>

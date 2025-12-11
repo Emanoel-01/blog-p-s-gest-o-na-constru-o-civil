@@ -299,20 +299,21 @@ export default function CiclosPage() {
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 pt-6 sm:pt-8">
-        <Link to={createPageUrl('DiferenciaisPage')} className="w-full sm:w-auto">
-          <Button variant="outline" className="border-gray-300 w-full sm:w-auto">
-            ← Voltar
-          </Button>
-        </Link>
-        <Link to={createPageUrl('EspecializacoesPage')} className="w-full sm:w-auto">
-          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white w-full sm:w-auto">
-            Ver Especializações
-            <ArrowRight className="ml-2 w-4 h-4" />
-          </Button>
-        </Link>
+        {/* Navigation */}
+        <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 pt-6 sm:pt-8">
+          <Link to={createPageUrl('DiferenciaisPage')} className="w-full sm:w-auto">
+            <Button variant="outline" className="border-gray-300 w-full sm:w-auto">
+              ← Voltar
+            </Button>
+          </Link>
+          <Link to={createPageUrl('EspecializacoesPage')} className="w-full sm:w-auto">
+            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white w-full sm:w-auto">
+              Ver Especializações
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

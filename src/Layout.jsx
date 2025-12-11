@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
@@ -64,17 +65,18 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <style>{`
-        .esuda-green { background: linear-gradient(135deg, #61b376 0%, #4a9960 100%); }
-      `}</style>
-      
-      <div className="fixed top-0 left-0 h-full w-16 sm:w-20 md:w-64 bg-white/20 backdrop-blur-md border-r border-white/30 z-50 flex flex-col items-center py-4 space-y-4 shadow-lg overflow-y-auto">
-        <img
-          src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
-          alt="ESUDA Logo"
-          className="w-10 sm:w-12 md:w-28 mx-auto mb-4"
-        />
+    <HelmetProvider>
+      <div className="flex min-h-screen bg-gray-50">
+        <style>{`
+          .esuda-green { background: linear-gradient(135deg, #61b376 0%, #4a9960 100%); }
+        `}</style>
+        
+        <div className="fixed top-0 left-0 h-full w-16 sm:w-20 md:w-64 bg-white/20 backdrop-blur-md border-r border-white/30 z-50 flex flex-col items-center py-4 space-y-4 shadow-lg overflow-y-auto">
+          <img
+            src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
+            alt="ESUDA Logo"
+            className="w-10 sm:w-12 md:w-28 mx-auto mb-4"
+          />
 
         <nav className="flex flex-col w-full px-2 md:px-4 space-y-2">
           {navItems.map((item) => {
@@ -115,6 +117,7 @@ export default function Layout({ children }) {
           {children}
         </div>
       </main>
-    </div>
+      </div>
+    </HelmetProvider>
   );
 }

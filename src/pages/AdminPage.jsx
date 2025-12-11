@@ -18,6 +18,20 @@ import AdminScheduleTemplate from '../components/admin/AdminScheduleTemplate';
 export default function AdminPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('ciclos');
+
+  // Incubadora state
+  const [showProjetoForm, setShowProjetoForm] = useState(false);
+  const [editingProjeto, setEditingProjeto] = useState(null);
+  const [projetoForm, setProjetoForm] = useState({
+    nome_projeto: '',
+    coordenador: '',
+    objetivo_geral: '',
+    justificativa: '',
+    tipo_projeto: 'Incubadora Profissional',
+    ano_projeto: new Date().getFullYear(),
+    especializacoes: []
+  });
+  const [atividadeTab, setAtividadeTab] = useState('eventos');
   
   // Ciclos state
   const [editingCiclo, setEditingCiclo] = useState(null);
@@ -201,6 +215,11 @@ export default function AdminPage() {
   const { data: cronograma = [], isLoading: loadingCronograma } = useQuery({
     queryKey: ['cronograma'],
     queryFn: () => base44.entities.CronogramaAula.list('data')
+  });
+
+  const { data: projetos = [] } = useQuery({
+    queryKey: ['projetos'],
+    queryFn: () => base44.entities.Projeto.list()
   });
 
   // Auto-calcular carga horária quando ciclos mudam
@@ -427,6 +446,33 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cronograma'] });
       toast.success('Aula removida do cronograma!');
+    }
+  });
+
+  // ========== MUTATIONS PARA PROJETO ==========
+  const createProjetoMutation = useMutation({
+    mutationFn: (data) => base44.entities.Projeto.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projetos'] });
+      resetProjetoForm();
+      toast.success('Projeto criado com sucesso!');
+    }
+  });
+
+  const updateProjetoMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Projeto.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projetos'] });
+      setEditingProjeto(null);
+      toast.success('Projeto atualizado com sucesso!');
+    }
+  });
+
+  const deleteProjetoMutation = useMutation({
+    mutationFn: (id) => base44.entities.Projeto.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projetos'] });
+      toast.success('Projeto removido com sucesso!');
     }
   });
 
@@ -1294,6 +1340,53 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const handleDeleteCronograma = (id) => {
     if (window.confirm('Tem certeza que deseja remover esta aula do cronograma?')) {
       deleteCronogramaMutation.mutate(id);
+    }
+  };
+
+  // ========== HANDLERS PARA PROJETO ==========
+  const resetProjetoForm = () => {
+    setProjetoForm({
+      nome_projeto: '',
+      coordenador: '',
+      objetivo_geral: '',
+      justificativa: '',
+      tipo_projeto: 'Incubadora Profissional',
+      ano_projeto: new Date().getFullYear(),
+      especializacoes: []
+    });
+    setShowProjetoForm(false);
+    setEditingProjeto(null);
+  };
+
+  const handleSaveProjeto = (e) => {
+    e.preventDefault();
+    
+    if (!projetoForm.nome_projeto || !projetoForm.ano_projeto) {
+      toast.error('Nome e ano do projeto são obrigatórios!');
+      return;
+    }
+
+    const data = {
+      ...projetoForm,
+      ano_projeto: parseInt(projetoForm.ano_projeto)
+    };
+
+    if (editingProjeto) {
+      updateProjetoMutation.mutate({ id: editingProjeto.id, data });
+    } else {
+      createProjetoMutation.mutate(data);
+    }
+  };
+
+  const handleEditProjeto = (projeto) => {
+    setProjetoForm(projeto);
+    setEditingProjeto(projeto);
+    setShowProjetoForm(true);
+  };
+
+  const handleDeleteProjeto = (id) => {
+    if (window.confirm('Tem certeza que deseja remover este projeto?')) {
+      deleteProjetoMutation.mutate(id);
     }
   };
 
@@ -3638,6 +3731,197 @@ Seja detalhado, prático e objetivo na análise.`;
     />
   );
 
+  const renderIncubadoraTab = () => {
+    const ProjetoForm = require('../components/admin/incubadora/ProjetoForm').default;
+    const AtividadeForm = require('../components/admin/incubadora/AtividadeForm').default;
+
+    return (
+      <div className="space-y-6">
+        {/* Gerenciamento de Projetos */}
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-gray-800">Projetos da Incubadora</h3>
+            <Button
+              onClick={() => setShowProjetoForm(!showProjetoForm)}
+              className="bg-teal-600 hover:bg-teal-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Projeto
+            </Button>
+          </div>
+
+          {showProjetoForm && (
+            <Card className="mb-6 bg-teal-50 border-teal-200">
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  {editingProjeto ? 'Editar Projeto' : 'Novo Projeto da Incubadora'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ProjetoForm
+                  formData={projetoForm}
+                  setFormData={setProjetoForm}
+                  onSubmit={handleSaveProjeto}
+                  especializacoes={especializacoes}
+                  isEditing={!!editingProjeto}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="grid gap-4">
+            {projetos.length === 0 ? (
+              <p className="text-gray-500 italic">Nenhum projeto cadastrado ainda.</p>
+            ) : (
+              projetos.map((projeto) => (
+                <Card key={projeto.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-800 mb-1">
+                          {projeto.nome_projeto} ({projeto.ano_projeto})
+                        </h4>
+                        <p className="text-sm text-gray-600">{projeto.coordenador}</p>
+                        {projeto.especializacoes && projeto.especializacoes.length > 0 && (
+                          <p className="text-xs text-gray-500 mt-2">
+                            {projeto.especializacoes.length} especialização(ões) vinculadas
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleEditProjeto(projeto)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleDeleteProjeto(projeto.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Registro de Atividades */}
+        {projetos.length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Registrar Atividades e Produções</h3>
+            
+            <div className="flex gap-2 mb-4 flex-wrap">
+              <Button
+                onClick={() => setAtividadeTab('eventos')}
+                variant={atividadeTab === 'eventos' ? 'default' : 'outline'}
+                size="sm"
+                className={atividadeTab === 'eventos' ? 'bg-blue-600' : ''}
+              >
+                Eventos
+              </Button>
+              <Button
+                onClick={() => setAtividadeTab('artigos')}
+                variant={atividadeTab === 'artigos' ? 'default' : 'outline'}
+                size="sm"
+                className={atividadeTab === 'artigos' ? 'bg-purple-600' : ''}
+              >
+                Artigos Científicos
+              </Button>
+              <Button
+                onClick={() => setAtividadeTab('canteiros')}
+                variant={atividadeTab === 'canteiros' ? 'default' : 'outline'}
+                size="sm"
+                className={atividadeTab === 'canteiros' ? 'bg-green-600' : ''}
+              >
+                Canteiros Didáticos
+              </Button>
+              <Button
+                onClick={() => setAtividadeTab('freelancers')}
+                variant={atividadeTab === 'freelancers' ? 'default' : 'outline'}
+                size="sm"
+                className={atividadeTab === 'freelancers' ? 'bg-orange-600' : ''}
+              >
+                Freelancer Network
+              </Button>
+              <Button
+                onClick={() => setAtividadeTab('relatorios')}
+                variant={atividadeTab === 'relatorios' ? 'default' : 'outline'}
+                size="sm"
+                className={atividadeTab === 'relatorios' ? 'bg-cyan-600' : ''}
+              >
+                Relatórios Técnicos
+              </Button>
+              <Button
+                onClick={() => setAtividadeTab('producoes')}
+                variant={atividadeTab === 'producoes' ? 'default' : 'outline'}
+                size="sm"
+                className={atividadeTab === 'producoes' ? 'bg-pink-600' : ''}
+              >
+                Produções Tecnológicas
+              </Button>
+            </div>
+
+            <Card className="bg-gray-50 border-gray-200">
+              <CardContent className="p-6">
+                {atividadeTab === 'eventos' && (
+                  <AtividadeForm
+                    tipo="Evento"
+                    projetos={projetos}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['eventos-incubadora'] })}
+                  />
+                )}
+                {atividadeTab === 'artigos' && (
+                  <AtividadeForm
+                    tipo="ArtigoCientifico"
+                    projetos={projetos}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['artigos-incubadora'] })}
+                  />
+                )}
+                {atividadeTab === 'canteiros' && (
+                  <AtividadeForm
+                    tipo="CanteiroDidatico"
+                    projetos={projetos}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['canteiros-incubadora'] })}
+                  />
+                )}
+                {atividadeTab === 'freelancers' && (
+                  <AtividadeForm
+                    tipo="FreelancerNetwork"
+                    projetos={projetos}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['freelancers-incubadora'] })}
+                  />
+                )}
+                {atividadeTab === 'relatorios' && (
+                  <AtividadeForm
+                    tipo="RelatorioTecnico"
+                    projetos={projetos}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['relatorios-incubadora'] })}
+                  />
+                )}
+                {atividadeTab === 'producoes' && (
+                  <AtividadeForm
+                    tipo="ProducaoTecnologica"
+                    projetos={projetos}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['producoes-incubadora'] })}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderPostsTab = () => (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -3970,6 +4254,13 @@ Seja detalhado, prático e objetivo na análise.`;
           <Calendar className="w-4 h-4 mr-2" />
           Cronograma de Aulas
         </Button>
+        <Button
+          onClick={() => setActiveTab('incubadora')}
+          variant={activeTab === 'incubadora' ? 'default' : 'outline'}
+          className={activeTab === 'incubadora' ? 'bg-teal-600' : ''}
+        >
+          Incubadora Profissional
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -3983,6 +4274,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'relatorios' && renderRelatoriosTab()}
         {activeTab === 'posts' && renderPostsTab()}
         {activeTab === 'cronograma' && renderCronogramaTab()}
+        {activeTab === 'incubadora' && renderIncubadoraTab()}
       </div>
     </div>
   );

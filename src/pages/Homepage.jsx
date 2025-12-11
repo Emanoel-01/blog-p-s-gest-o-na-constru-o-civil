@@ -409,26 +409,24 @@ export default function Homepage() {
                 </Link>
                 </div>
 
-                {/* Vídeos do Instagram */}
+                {/* Vídeos do LinkedIn */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div className="bg-white rounded-lg overflow-hidden shadow-md">
                   <iframe
-                    src="https://www.instagram.com/reel/DPkKSFJke6X/embed"
+                    src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7386641164558360576?compact=1"
                     className="w-full h-80 sm:h-96"
                     frameBorder="0"
-                    scrolling="no"
-                    allowTransparency={true}
-                    allow="encrypted-media"
+                    allowFullScreen={true}
+                    title="Publicação incorporada"
                   />
                 </div>
                 <div className="bg-white rounded-lg overflow-hidden shadow-md">
                   <iframe
-                    src="https://www.instagram.com/reel/DPMARgDDhM8/embed"
+                    src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7371274943013048321?compact=1"
                     className="w-full h-80 sm:h-96"
                     frameBorder="0"
-                    scrolling="no"
-                    allowTransparency={true}
-                    allow="encrypted-media"
+                    allowFullScreen={true}
+                    title="Publicação incorporada"
                   />
                 </div>
                 </div>

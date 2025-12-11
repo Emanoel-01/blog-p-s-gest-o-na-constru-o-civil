@@ -251,7 +251,7 @@ export default function ROIDashboard({
                         R$ {roi.ganhoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-green-600 mt-1">
-                        Soma das atividades freelancer
+                        Soma das atividades Network
                       </p>
                     </div>
                     <div className={`p-4 rounded-lg border ${

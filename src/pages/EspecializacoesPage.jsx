@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -74,9 +73,9 @@ export default function EspecializacoesPage() {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">Nossas Especializações</h2>
-      <p className="text-gray-600 mb-6 text-justify">
+    <div className="px-2 sm:px-0">
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4">Nossas Especializações</h2>
+      <p className="text-gray-600 mb-4 sm:mb-6 text-justify text-sm sm:text-base">
         Uma especialização completa é formada pela combinação de ciclos que somam, no mínimo, 360 horas.
         Escolha os ciclos que mais interessam a você!
       </p>
@@ -88,7 +87,7 @@ export default function EspecializacoesPage() {
           Nenhuma especialização disponível no momento. Por favor, aguarde enquanto atualizamos o conteúdo.
         </p>
       ) : (
-        <div className="space-y-4 mb-8">
+        <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
           {especializacoes.map((espec) => {
             const isExpanded = expandedEspec === espec.id;
 
@@ -96,32 +95,31 @@ export default function EspecializacoesPage() {
               <Card key={espec.id} className="bg-white border-2 border-gray-200 hover:shadow-xl transition-shadow">
                 <div
                   onClick={() => toggleEspecializacao(espec.id)}
-                  className="cursor-pointer p-4 flex justify-between items-center bg-gradient-to-r from-blue-50 to-green-50 hover:from-blue-100 hover:to-green-100 transition-colors"
+                  className="cursor-pointer p-3 sm:p-4 flex justify-between items-center bg-gradient-to-r from-blue-50 to-green-50 hover:from-blue-100 hover:to-green-100 transition-colors"
                 >
-                  <div className="flex items-center gap-3 flex-1">
-                    <h3 className="text-xl font-bold text-gray-800">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-1">
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">
                       Especialização em {espec.nome}
                     </h3>
                     {espec.status_inscricao && (
-                      <Badge className={`${getStatusBadgeColor(espec.status_inscricao)} border font-semibold`}>
+                      <Badge className={`${getStatusBadgeColor(espec.status_inscricao)} border font-semibold text-xs sm:text-sm`}>
                         {espec.status_inscricao}
                       </Badge>
                     )}
-                    {/* ExternalLink icon removed from here, now part of the action buttons inside CardContent */}
                   </div>
                   <ChevronDown 
-                    className={`w-6 h-6 text-gray-600 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 sm:w-6 sm:h-6 text-gray-600 transition-transform duration-300 flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`}
                   />
                 </div>
 
                 {isExpanded && (
-                  <CardContent className="p-6 space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b">
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-blue-600" />
+                  <CardContent className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-5">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 pb-3 sm:pb-4 border-b">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                         <div>
-                          <p className="text-xs text-gray-500">Carga Horária</p>
-                          <p className="font-bold text-gray-800">{espec.carga_horaria_total}h</p>
+                          <p className="text-[10px] sm:text-xs text-gray-500">Carga Horária</p>
+                          <p className="font-bold text-gray-800 text-xs sm:text-sm">{espec.carga_horaria_total}h</p>
                         </div>
                       </div>
 
@@ -190,8 +188,8 @@ export default function EspecializacoesPage() {
                     </div>
 
                     {espec.resumo && (
-                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <p className="text-gray-700 leading-relaxed text-justify">{espec.resumo}</p>
+                      <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
+                        <p className="text-gray-700 leading-relaxed text-justify text-xs sm:text-sm">{espec.resumo}</p>
                       </div>
                     )}
 
@@ -227,27 +225,27 @@ export default function EspecializacoesPage() {
                     )}
 
                     {/* New: Action buttons for Saiba Mais, Inscreva-se, Matricule-se */}
-                    <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t">
                       {espec.link_externo && (
-                        <a href={espec.link_externo} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px]">
-                          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold">
-                            <ExternalLink className="w-4 h-4 mr-2" />
+                        <a href={espec.link_externo} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-full sm:min-w-[180px]">
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm">
+                            <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                             Saiba Mais
                           </Button>
                         </a>
                       )}
                       {espec.link_inscricao && (
-                        <a href={espec.link_inscricao} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px]">
-                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold">
-                            <UserPlus className="w-4 h-4 mr-2" />
+                        <a href={espec.link_inscricao} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-full sm:min-w-[180px]">
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs sm:text-sm">
+                            <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                             Inscreva-se Agora
                           </Button>
                         </a>
                       )}
                       {espec.link_matricula && (
-                        <a href={espec.link_matricula} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[200px]">
-                          <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold">
-                            <LogIn className="w-4 h-4 mr-2" />
+                        <a href={espec.link_matricula} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-full sm:min-w-[180px]">
+                          <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs sm:text-sm">
+                            <LogIn className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                             Matricule-se
                           </Button>
                         </a>
@@ -347,21 +345,21 @@ export default function EspecializacoesPage() {
         </div>
       )}
 
-      <div className="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg mt-6">
-        <h3 className="text-xl font-bold text-purple-800 mb-2">Crie sua Própria Trilha!</h3>
-        <p className="text-purple-700 text-justify">
+      <div className="bg-purple-50 border-l-4 border-purple-500 p-4 sm:p-6 rounded-r-lg mt-4 sm:mt-6">
+        <h3 className="text-lg sm:text-xl font-bold text-purple-800 mb-2">Crie sua Própria Trilha!</h3>
+        <p className="text-purple-700 text-justify text-sm sm:text-base">
           Converse com nossa coordenação para combinar os ciclos que mais interessam a você e montar a formação perfeita para impulsionar sua carreira.
         </p>
       </div>
 
-      <div className="flex justify-between gap-4 mt-8">
-        <Link to={createPageUrl('CiclosPage')}>
-          <Button variant="outline" className="border-gray-300">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
+        <Link to={createPageUrl('CiclosPage')} className="w-full sm:w-auto">
+          <Button variant="outline" className="border-gray-300 w-full sm:w-auto">
             ← Voltar
           </Button>
         </Link>
-        <Link to={createPageUrl('CoordenadorPage')}>
-          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
+        <Link to={createPageUrl('CoordenadorPage')} className="w-full sm:w-auto">
+          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white w-full sm:w-auto">
             Conheça a Coordenação
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>

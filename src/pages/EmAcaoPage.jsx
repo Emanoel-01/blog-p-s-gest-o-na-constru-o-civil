@@ -51,32 +51,32 @@ export default function EmAcaoPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
       {selectedImage && (
         <ImageViewer imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
       )}
       
       <div className="text-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
           Blog Em Ação
         </h1>
-        <p className="text-gray-600 text-lg max-w-3xl mx-auto mb-6">
+        <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-3xl mx-auto mb-4 sm:mb-6">
           Acompanhe eventos, workshops, masterclasses e novidades da nossa comunidade acadêmica
         </p>
         
         <div className="max-w-2xl mx-auto">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <Input
               type="text"
               placeholder="Buscar por palavra-chave, título, descrição ou tag..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 py-6 text-base"
+              className="pl-9 sm:pl-10 py-4 sm:py-6 text-sm sm:text-base"
             />
           </div>
           {searchTerm && (
-            <p className="text-sm text-gray-600 mt-2">
+            <p className="text-xs sm:text-sm text-gray-600 mt-2">
               {filteredPosts.length} post(s) encontrado(s)
             </p>
           )}
@@ -97,30 +97,31 @@ export default function EmAcaoPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredPosts.map((post) => {
             const isExpanded = expandedPost === post.id;
 
             return (
               <Card key={post.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden flex flex-col">
                 {post.imagem_destaque && (
-                  <div className="relative h-56 overflow-hidden">
+                  <div className="relative h-40 sm:h-48 md:h-56 overflow-hidden">
                     <img
                       src={post.imagem_destaque}
                       alt={post.titulo}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
                       onClick={() => handleImageClick(post.imagem_destaque)}
                     />
-                    <div className="absolute top-2 right-2 bg-pink-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                    <div className="absolute top-2 right-2 bg-pink-600 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {post.data}
+                      <span className="hidden sm:inline">{post.data}</span>
+                      <span className="sm:hidden">{post.data.split('/')[0]}/{post.data.split('/')[1]}</span>
                     </div>
                   </div>
                 )}
-                <CardContent className="p-5 flex-1 flex flex-col">
+                <CardContent className="p-3 sm:p-4 md:p-5 flex-1 flex flex-col">
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">{post.titulo}</h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">{post.descricao}</p>
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-2">{post.titulo}</h3>
+                    <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3 leading-relaxed">{post.descricao}</p>
                     
                     {post.tags && post.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-4">
@@ -141,7 +142,7 @@ export default function EmAcaoPage() {
 
                   <Button
                     onClick={() => togglePost(post.id)}
-                    className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold mt-2"
+                    className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold mt-2 text-xs sm:text-sm"
                   >
                     {isExpanded ? (
                       <>
@@ -155,20 +156,20 @@ export default function EmAcaoPage() {
                   </Button>
 
                   {isExpanded && (
-                    <div className="space-y-4 pt-4 mt-4 border-t-2 border-pink-200">
+                    <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 mt-3 sm:mt-4 border-t-2 border-pink-200">
                       {post.conteudo_completo && (
-                        <div className="prose prose-sm max-w-none text-justify bg-gray-50 p-4 rounded-lg">
+                        <div className="prose prose-sm max-w-none text-justify bg-gray-50 p-3 sm:p-4 rounded-lg text-xs sm:text-sm">
                           <ReactMarkdown>{post.conteudo_completo}</ReactMarkdown>
                         </div>
                       )}
 
                       {post.midias && post.midias.length > 0 && (
-                        <div className="space-y-3">
-                          <h4 className="font-bold text-gray-800 text-base flex items-center gap-2">
-                            <ImageIcon className="w-5 h-5 text-pink-600" />
+                        <div className="space-y-2 sm:space-y-3">
+                          <h4 className="font-bold text-gray-800 text-sm sm:text-base flex items-center gap-2">
+                            <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
                             Mídias Anexadas
                           </h4>
-                          <div className="space-y-3">
+                          <div className="space-y-2 sm:space-y-3">
                             {post.midias.map((midia, idx) => (
                               <div key={idx} className="bg-white p-4 rounded-lg border-2 border-gray-200 hover:border-pink-300 transition-all">
                                 <div className="flex items-center gap-2 mb-3">
@@ -221,14 +222,14 @@ export default function EmAcaoPage() {
         </div>
       )}
 
-      <div className="flex justify-between gap-4 mt-8">
-        <Link to={createPageUrl('ParceirosPage')}>
-          <Button variant="outline" className="border-gray-300">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
+        <Link to={createPageUrl('ParceirosPage')} className="w-full sm:w-auto">
+          <Button variant="outline" className="border-gray-300 w-full sm:w-auto">
             ← Voltar
           </Button>
         </Link>
-        <Link to={createPageUrl('CalendarioDeAula')}>
-          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
+        <Link to={createPageUrl('CalendarioDeAula')} className="w-full sm:w-auto">
+          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white w-full sm:w-auto">
             Ver Calendário de Aulas →
           </Button>
         </Link>

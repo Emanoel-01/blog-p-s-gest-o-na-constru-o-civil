@@ -83,13 +83,55 @@ export default function Chatbot() {
       handleSendMessage();
     }
   };
-
-  const suggestedQuestions = [
-    'Como faço para me inscrever?',
-    'Quais cursos vocês oferecem?',
-    'Qual o valor da mensalidade?',
-    'Como entrar em contato?'
-  ];
+  
+  const renderMessageContent = (content) => {
+    // Converter links de página para links clicáveis
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    
+    return (
+      <ReactMarkdown
+        components={{
+          a: ({ node, children, href, ...props }) => {
+            // Verificar se é um link de página interna
+            const pageNames = ['EspecializacoesPage', 'CiclosPage', 'DiferenciaisPage', 'EmAcaoPage', 
+                              'CalendarioDeAula', 'IncubadoraProfissionalPage', 'CoordenadorPage', 
+                              'ProfessoresPage', 'DepoimentosPage', 'UpgradePage', 'Homepage'];
+            
+            if (pageNames.includes(href)) {
+              return (
+                <Link 
+                  to={createPageUrl(href)} 
+                  className="text-blue-600 hover:text-blue-800 underline font-semibold"
+                  onClick={() => setIsOpen(false)}
+                  {...props}
+                >
+                  {children}
+                </Link>
+              );
+            }
+            
+            // Link externo
+            return (
+              <a 
+                href={href} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline"
+                {...props}
+              >
+                {children}
+              </a>
+            );
+          },
+          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+          strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+          em: ({ children }) => <em className="italic">{children}</em>,
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    );
+  };
 
   if (!isOpen) {
     return (

@@ -150,7 +150,7 @@ export default function Chatbot() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5" />
-            <CardTitle className="text-lg">Assistente ESUDA</CardTitle>
+            <CardTitle className="text-lg">Coordenador Digital</CardTitle>
           </div>
           <Button
             variant="ghost"
@@ -161,7 +161,7 @@ export default function Chatbot() {
             <X className="w-5 h-5" />
           </Button>
         </div>
-        <p className="text-xs text-green-100 mt-1">Online • Sempre disponível</p>
+        <p className="text-xs text-green-100 mt-1">🤖 Assistente treinado pelo Coordenador Emanoel</p>
       </CardHeader>
 
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">

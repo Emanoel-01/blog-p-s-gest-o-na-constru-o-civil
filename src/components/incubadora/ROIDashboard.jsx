@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,6 +30,7 @@ export default function ROIDashboard({
   relatorios, 
   producoes 
 }) {
+  const [openTooltips, setOpenTooltips] = useState({});
   const calculateROI = (projeto) => {
     const numeroAlunos = projeto.numero_alunos || 0;
     const valorCurso = projeto.valor_curso || 0;

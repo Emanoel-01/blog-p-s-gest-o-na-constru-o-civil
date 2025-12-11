@@ -83,7 +83,25 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
     if (['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo)) {
       return 'bg-red-500 hover:bg-red-600';
     }
-    
+
+    // Lista de disciplinas EAD
+    const eadDisciplines = [
+      'Negociação e Gestão de Conflitos',
+      'Liderança e Alta Performance',
+      'Competências Estratégicas, Liderança e Alta Performance',
+      'Solução Criativa de Problemas (Design Thinking)',
+      'Solução Criativa de Problemas Complexos (Design Thinking)',
+      'Metodologia da Pesquisa e Didática',
+      'Metodologia da Pesquisa e Didática do Ensino Superior',
+      'Novas Fontes de Receita: Elaboração de Laudos',
+      'Novas Fontes de Receita: Elaboração de Laudos e Perícias'
+    ];
+
+    // Verificar se a disciplina está na lista EAD
+    if (eadDisciplines.includes(aula.disciplina_nome)) {
+      return 'bg-green-500 hover:bg-green-600';
+    }
+
     // Para disciplinas comuns, usar cor baseada na modalidade
     if (aula.isCommon || aula.tipo === 'Presencial') {
       return 'bg-blue-500 hover:bg-blue-600';
@@ -91,7 +109,7 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
     if (aula.tipo === 'EAD') {
       return 'bg-green-500 hover:bg-green-600';
     }
-    
+
     // Para disciplinas específicas, usar cor do curso (tipo contém o courseId)
     switch(aula.tipo) {
       case 'gestao': return 'bg-orange-500 hover:bg-orange-600';

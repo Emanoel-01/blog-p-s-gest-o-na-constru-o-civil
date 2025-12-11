@@ -17,10 +17,27 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
     return ciclo ? ciclo.nome : 'Não especificado';
   };
 
+  const eadDisciplines = [
+    'Negociação e Gestão de Conflitos',
+    'Liderança e Alta Performance',
+    'Competências Estratégicas, Liderança e Alta Performance',
+    'Solução Criativa de Problemas (Design Thinking)',
+    'Solução Criativa de Problemas Complexos (Design Thinking)',
+    'Metodologia da Pesquisa e Didática',
+    'Metodologia da Pesquisa e Didática do Ensino Superior',
+    'Novas Fontes de Receita: Elaboração de Laudos',
+    'Novas Fontes de Receita: Elaboração de Laudos e Perícias'
+  ];
+
   const getTipoColor = (aula) => {
     // Sem aula
     if (['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo)) {
       return 'bg-red-100 text-red-800 border-red-300';
+    }
+    
+    // Verificar se é disciplina EAD pela lista
+    if (eadDisciplines.includes(aula.disciplina_nome)) {
+      return 'bg-green-100 text-green-800 border-green-300';
     }
     
     // Disciplinas comuns por modalidade (agrupadas)
@@ -59,20 +76,22 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
                 <div className="flex items-start justify-between mb-3">
                   <Badge className={`${getTipoColor(aula)} border font-semibold`}>
                     {['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo) 
-                      ? 'Sem Aula'
-                      : aula.isCommon || aula.tipo === 'Presencial'
-                        ? 'Presencial/Remoto - Todos os Cursos'
-                        : aula.tipo === 'EAD'
-                          ? 'EAD - Todos os Cursos'
-                          : aula.tipo === 'gestao'
-                            ? 'Gestão de Projetos'
-                            : aula.tipo === 'bim'
-                              ? 'Tecnologia BIM'
-                              : aula.tipo === 'manutencao'
-                                ? 'Manutenção'
-                                : aula.tipo === 'legal'
-                                  ? 'Engenharia Legal'
-                                  : aula.tipo
+                      ? 'FERIADO'
+                      : eadDisciplines.includes(aula.disciplina_nome)
+                        ? 'EAD - Todos os Cursos'
+                        : aula.isCommon || aula.tipo === 'Presencial'
+                          ? 'Presencial/Remoto - Todos os Cursos'
+                          : aula.tipo === 'EAD'
+                            ? 'EAD - Todos os Cursos'
+                            : aula.tipo === 'gestao'
+                              ? 'Gestão de Projetos'
+                              : aula.tipo === 'bim'
+                                ? 'Tecnologia BIM'
+                                : aula.tipo === 'manutencao'
+                                  ? 'Manutenção'
+                                  : aula.tipo === 'legal'
+                                    ? 'Engenharia Legal'
+                                    : aula.tipo
                     }
                   </Badge>
                   {aula.horario_inicio && aula.horario_fim && (

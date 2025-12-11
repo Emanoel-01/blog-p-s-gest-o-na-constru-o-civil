@@ -448,6 +448,47 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
             Agendar Aula Especial
           </Button>
         </form>
+
+        {/* Lista de Aulas Especiais Agendadas */}
+        {cronograma.filter(a => a.disciplina_nome === 'Aula Especial').length > 0 && (
+          <div className="mt-6 pt-6 border-t-2 border-amber-300">
+            <h3 className="text-lg font-bold text-amber-800 mb-3">Aulas Especiais Agendadas</h3>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {cronograma
+                .filter(a => a.disciplina_nome === 'Aula Especial')
+                .sort((a, b) => {
+                  const [dayA, monthA, yearA] = a.data.split('/');
+                  const [dayB, monthB, yearB] = b.data.split('/');
+                  return new Date(yearA, monthA - 1, dayA) - new Date(yearB, monthB - 1, dayB);
+                })
+                .map(aula => (
+                  <div key={aula.id} className="bg-white p-3 rounded-lg border border-amber-200 hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex-1">
+                        <div className="font-semibold text-sm text-amber-900 mb-1">
+                          📅 {aula.data}
+                        </div>
+                        <div className="text-xs text-gray-700 whitespace-pre-wrap">
+                          {aula.observacoes}
+                        </div>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDeleteAula(aula.id)}
+                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                        title="Excluir Aula Especial"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-teal-600">

@@ -25,6 +25,40 @@ export default function Homepage() {
     queryFn: () => base44.entities.Post.list('-ordem', 2)
   });
 
+  const { data: incubadoraActivities = [] } = useQuery({
+    queryKey: ['incubadora-preview'],
+    queryFn: async () => {
+      const projetos = await base44.entities.Projeto.list();
+      const incubadoraProjetos = projetos.filter(p => p.tipo_projeto === 'Incubadora Profissional');
+      
+      if (incubadoraProjetos.length === 0) return [];
+      
+      const projetoIds = incubadoraProjetos.map(p => p.id);
+      
+      const [eventos, artigos, canteiros, freelancers, relatorios, producoes] = await Promise.all([
+        base44.entities.Evento.list('-data'),
+        base44.entities.ArtigoCientifico.list('-data_publicacao'),
+        base44.entities.CanteiroDidatico.list('-data'),
+        base44.entities.FreelancerNetwork.list('-data'),
+        base44.entities.RelatorioTecnico.list('-data'),
+        base44.entities.ProducaoTecnologica.list('-data')
+      ]);
+      
+      const allActivities = [
+        ...eventos.filter(e => projetoIds.includes(e.projeto_id)).map(e => ({ ...e, type: 'Evento', date: e.data })),
+        ...artigos.filter(a => projetoIds.includes(a.projeto_id)).map(a => ({ ...a, type: 'Artigo', date: a.data_publicacao })),
+        ...canteiros.filter(c => projetoIds.includes(c.projeto_id)).map(c => ({ ...c, type: 'Canteiro', date: c.data })),
+        ...freelancers.filter(f => projetoIds.includes(f.projeto_id)).map(f => ({ ...f, type: 'Freelancer', date: f.data })),
+        ...relatorios.filter(r => projetoIds.includes(r.projeto_id)).map(r => ({ ...r, type: 'Relatório', date: r.data })),
+        ...producoes.filter(p => projetoIds.includes(p.projeto_id)).map(p => ({ ...p, type: 'Produção', date: p.data }))
+      ];
+      
+      return allActivities
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 2);
+    }
+  });
+
 
 
   const faqs = [
@@ -104,6 +138,49 @@ export default function Homepage() {
           </Link>
         </div>
       </div>
+
+      {/* Incubadora Profissional */}
+      {incubadoraActivities.length > 0 && (
+        <div className="bg-gradient-to-r from-teal-50 via-cyan-50 to-blue-50 rounded-2xl p-6 sm:p-8 md:p-10 border-2 border-teal-200">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8 text-teal-600" />
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                Incubadora Profissional
+              </h2>
+            </div>
+            <Link to={createPageUrl('IncubadoraProfissionalPage')}>
+              <Button variant="outline" className="border-teal-300 text-teal-700 hover:bg-teal-100">
+                Ver Todos
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+          <p className="text-center text-gray-700 mb-6 max-w-3xl mx-auto text-sm sm:text-base">
+            Acompanhe as últimas atividades e produções do projeto de integração teórico-prática
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {incubadoraActivities.map((activity, idx) => {
+              const title = activity.nome_evento || activity.titulo_artigo || activity.nome_canteiro || 
+                           activity.nome_atividade || activity.titulo_relatorio || activity.titulo_producao;
+              
+              return (
+                <Link key={idx} to={createPageUrl('IncubadoraProfissionalPage')}>
+                  <Card className="h-full bg-white border-2 border-teal-200 hover:border-teal-400 hover:shadow-xl transition-all">
+                    <CardContent className="p-5">
+                      <Badge className="bg-teal-100 text-teal-800 mb-3">{activity.type}</Badge>
+                      <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2">{title}</h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-3">{activity.resumo}</p>
+                      <p className="text-xs text-gray-500">{activity.date}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Tecnologias Exclusivas */}
       <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 sm:p-8 md:p-10 border-2 border-blue-200">

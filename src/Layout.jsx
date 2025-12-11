@@ -35,6 +35,7 @@ export default function Layout({ children }) {
     { name: 'Corpo Docente', path: 'ProfessoresPage' },
     { name: 'Corpo Discente', path: 'CorpoDiscentePage' },
     { name: 'Parceiros', path: 'ParceirosPage' },
+    { name: 'Incubadora Profissional', path: 'IncubadoraProfissionalPage' },
     { name: 'Blog', path: 'EmAcaoPage' },
     { name: 'Calendário de Aulas', path: 'CalendarioDeAula' }
   ];
@@ -49,6 +50,7 @@ export default function Layout({ children }) {
     'Corpo Docente': Users,
     'Corpo Discente': GraduationCap,
     'Parceiros': Handshake,
+    'Incubadora Profissional': Lightbulb,
     'Blog': Rss,
     'Calendário de Aulas': CalendarDays
   };

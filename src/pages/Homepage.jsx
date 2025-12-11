@@ -185,7 +185,7 @@ export default function Homepage() {
           </div>
           
           <p className="text-center text-gray-700 mb-6 max-w-3xl mx-auto text-sm sm:text-base">
-            Acompanhe as últimas atividades e produções do projeto de integração teórico-prática
+            Faça parte da nossa comunidade e destaque no mercado como:
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

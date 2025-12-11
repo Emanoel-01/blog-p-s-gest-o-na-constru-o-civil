@@ -4988,6 +4988,13 @@ Seja detalhado, prático e objetivo na análise.`;
         >
           Leads
         </Button>
+        <Button
+          onClick={() => setActiveTab('depoimentos')}
+          variant={activeTab === 'depoimentos' ? 'default' : 'outline'}
+          className={activeTab === 'depoimentos' ? 'bg-yellow-600' : ''}
+        >
+          Depoimentos
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -5016,6 +5023,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'incubadora' && renderIncubadoraTab()}
         {activeTab === 'chatbot' && renderChatbotTab()}
         {activeTab === 'leads' && renderLeadsTab()}
+        {activeTab === 'depoimentos' && <DepoimentosManager />}
       </div>
     </div>
   );

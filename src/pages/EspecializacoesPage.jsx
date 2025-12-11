@@ -345,13 +345,6 @@ export default function EspecializacoesPage() {
         </div>
       )}
 
-      <div className="bg-purple-50 border-l-4 border-purple-500 p-4 sm:p-6 rounded-r-lg mt-4 sm:mt-6">
-        <h3 className="text-lg sm:text-xl font-bold text-purple-800 mb-2">Crie sua Própria Trilha!</h3>
-        <p className="text-purple-700 text-justify text-sm sm:text-base">
-          Converse com nossa coordenação para combinar os ciclos que mais interessam a você e montar a formação perfeita para impulsionar sua carreira.
-        </p>
-      </div>
-
       <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
         <Link to={createPageUrl('CiclosPage')} className="w-full sm:w-auto">
           <Button variant="outline" className="border-gray-300 w-full sm:w-auto">

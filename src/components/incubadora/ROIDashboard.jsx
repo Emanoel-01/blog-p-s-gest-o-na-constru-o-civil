@@ -1,6 +1,12 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip as TooltipUI,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -10,7 +16,8 @@ import {
   FileText,
   Briefcase,
   Cpu,
-  Building2
+  Building2,
+  Info
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -235,41 +242,107 @@ export default function ROIDashboard({
                     <DollarSign className="w-5 h-5 text-green-600" />
                     ROI Financeiro
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gray-50 p-4 rounded-lg border">
-                      <p className="text-xs text-gray-600 mb-1">Investimento Total</p>
-                      <p className="text-2xl font-bold text-gray-800">
-                        R$ {roi.investimentoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {projeto.numero_alunos || 0} alunos × R$ {(projeto.valor_curso || 0).toLocaleString('pt-BR')} + 20%
-                      </p>
+                  <TooltipProvider>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg border">
+                        <div className="flex items-center gap-1 mb-1">
+                          <p className="text-xs text-gray-600">Investimento Total</p>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button className="w-4 h-4 rounded-full bg-gray-300 hover:bg-gray-400 flex items-center justify-center transition-colors">
+                                <div className="w-1 h-1 rounded-full bg-white"></div>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-sm">
+                                <strong>Cálculo:</strong> (Número de Alunos × Valor do Curso) + 20% de despesas operacionais.
+                                <br/><br/>
+                                <strong>Exemplo:</strong> 10 alunos × R$ 2.500,00 = R$ 25.000,00 + 20% = R$ 30.000,00
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <p className="text-2xl font-bold text-gray-800">
+                          R$ {roi.investimentoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {projeto.numero_alunos || 0} alunos × R$ {(projeto.valor_curso || 0).toLocaleString('pt-BR')} + 20%
+                        </p>
+                      </div>
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div className="flex items-center gap-1 mb-1">
+                          <p className="text-xs text-green-700">Ganho Total Agregado</p>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button className="w-4 h-4 rounded-full bg-green-300 hover:bg-green-400 flex items-center justify-center transition-colors">
+                                <div className="w-1 h-1 rounded-full bg-white"></div>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-sm">
+                                <strong>Cálculo:</strong> Soma de todos os valores de trabalhos realizados pelos alunos durante o projeto.
+                                <br/><br/>
+                                <strong>Inclui:</strong>
+                                <br/>• Freelancers: valor do trabalho realizado
+                                <br/>• Contratados: salário mensal × meses restantes até o fim do curso
+                                <br/>• Empregados: salário mensal × meses restantes até o fim do curso
+                                <br/><br/>
+                                <strong>Exemplo:</strong> Aluno contratado com salário de R$ 3.000/mês faltando 8 meses = R$ 24.000 agregados ao ROI
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <p className="text-2xl font-bold text-green-700">
+                          R$ {roi.ganhoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-xs text-green-600 mt-1">
+                          Soma das atividades Network
+                        </p>
+                      </div>
+                      <div className={`p-4 rounded-lg border ${
+                        roi.roiPercentual >= 0 
+                          ? 'bg-emerald-50 border-emerald-200' 
+                          : 'bg-red-50 border-red-200'
+                      }`}>
+                        <div className="flex items-center gap-1 mb-1">
+                          <p className={`text-xs ${roi.roiPercentual >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                            ROI Financeiro
+                          </p>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${
+                                roi.roiPercentual >= 0 
+                                  ? 'bg-emerald-300 hover:bg-emerald-400' 
+                                  : 'bg-red-300 hover:bg-red-400'
+                              }`}>
+                                <div className="w-1 h-1 rounded-full bg-white"></div>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-sm">
+                                <strong>Cálculo:</strong> ((Ganho Total - Investimento Total) / Investimento Total) × 100
+                                <br/><br/>
+                                <strong>Exemplo:</strong>
+                                <br/>• Investimento: R$ 30.000,00
+                                <br/>• Ganho: R$ 45.000,00
+                                <br/>• ROI: ((45.000 - 30.000) / 30.000) × 100 = 50%
+                                <br/><br/>
+                                <strong>Interpretação:</strong>
+                                <br/>• ROI positivo: O projeto gerou mais valor do que o investido
+                                <br/>• ROI negativo: O investimento ainda não foi recuperado
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                        <p className={`text-3xl font-bold ${roi.roiPercentual >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+                          {roi.roiPercentual.toFixed(1)}%
+                        </p>
+                        <p className={`text-xs mt-1 ${roi.roiPercentual >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {roi.roiPercentual >= 0 ? 'Retorno positivo' : 'Retorno negativo'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <p className="text-xs text-green-700 mb-1">Ganho Total Agregado</p>
-                      <p className="text-2xl font-bold text-green-700">
-                        R$ {roi.ganhoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-green-600 mt-1">
-                        Soma das atividades Network
-                      </p>
-                    </div>
-                    <div className={`p-4 rounded-lg border ${
-                      roi.roiPercentual >= 0 
-                        ? 'bg-emerald-50 border-emerald-200' 
-                        : 'bg-red-50 border-red-200'
-                    }`}>
-                      <p className={`text-xs mb-1 ${roi.roiPercentual >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
-                        ROI Financeiro
-                      </p>
-                      <p className={`text-3xl font-bold ${roi.roiPercentual >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
-                        {roi.roiPercentual.toFixed(1)}%
-                      </p>
-                      <p className={`text-xs mt-1 ${roi.roiPercentual >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {roi.roiPercentual >= 0 ? 'Retorno positivo' : 'Retorno negativo'}
-                      </p>
-                    </div>
-                  </div>
+                  </TooltipProvider>
                 </div>
 
                 {/* ROI Não Financeiro */}

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { Linkedin, Globe, Instagram, ArrowRight, CheckCircle } from 'lucide-react';
+import { Linkedin, Globe, Instagram, ArrowRight, CheckCircle, Handshake } from 'lucide-react';
 
 export default function ParceirosPage() {
   const { data: parceiros = [], isLoading } = useQuery({

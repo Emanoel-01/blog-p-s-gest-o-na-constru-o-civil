@@ -39,6 +39,45 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
     return date.getDay() === 6;
   };
 
+  const groupCommonDisciplines = (aulas) => {
+    const grouped = [];
+    const processed = new Set();
+    
+    aulas.forEach((aula, index) => {
+      if (processed.has(index)) return;
+      
+      // Verificar se é disciplina comum (Presencial ou EAD)
+      if (aula.tipo === 'Presencial' || aula.tipo === 'EAD') {
+        // Encontrar todas as aulas iguais (mesma disciplina, professor, data e tipo)
+        const similar = aulas.filter((a, i) => 
+          !processed.has(i) &&
+          a.disciplina_nome === aula.disciplina_nome &&
+          a.professor_id === aula.professor_id &&
+          a.data === aula.data &&
+          a.tipo === aula.tipo
+        );
+        
+        // Se encontrou 4 (uma para cada curso), agrupa como comum
+        if (similar.length === 4) {
+          similar.forEach((_, i) => processed.add(aulas.indexOf(similar[i])));
+          grouped.push({
+            ...aula,
+            isCommon: true,
+            observacoes: aula.observacoes?.includes('1º Dia') ? 'Todos os cursos - Ciclo Comum (1º Dia)' : 'Todos os cursos - Ciclo Comum (2º Dia)'
+          });
+        } else {
+          processed.add(index);
+          grouped.push(aula);
+        }
+      } else {
+        processed.add(index);
+        grouped.push(aula);
+      }
+    });
+    
+    return grouped;
+  };
+
   const getTipoColor = (aula) => {
     // Se for feriado ou sem aula
     if (['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo)) {
@@ -46,7 +85,7 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
     }
     
     // Para disciplinas comuns, usar cor baseada na modalidade
-    if (aula.tipo === 'Presencial') {
+    if (aula.isCommon || aula.tipo === 'Presencial') {
       return 'bg-blue-500 hover:bg-blue-600';
     }
     if (aula.tipo === 'EAD') {

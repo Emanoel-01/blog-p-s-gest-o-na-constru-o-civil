@@ -107,15 +107,47 @@ export default function Homepage() {
 
   return (
     <div className="space-y-12 pb-12">
+      {/* Fixed Navigation Menu */}
+      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-md border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-2">
+              <img
+                src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
+                alt="ESUDA"
+                className="h-8 w-auto"
+              />
+            </div>
+            <div className="hidden md:flex items-center space-x-4">
+              <a href="#home" className="text-gray-700 hover:text-green-600 font-semibold transition-colors">Home</a>
+              <Link to={createPageUrl('ProfessoresPage')} className="text-gray-700 hover:text-green-600 font-semibold transition-colors">Corpo Docente</Link>
+              <Link to={createPageUrl('CorpoDiscentePage')} className="text-gray-700 hover:text-green-600 font-semibold transition-colors">Corpo Discente</Link>
+              <Link to={createPageUrl('EspecializacoesPage')} className="text-gray-700 hover:text-green-600 font-semibold transition-colors">Especializações</Link>
+              <Link to={createPageUrl('EmAcaoPage')} className="text-gray-700 hover:text-green-600 font-semibold transition-colors">Blog</Link>
+              <Link to={createPageUrl('IncubadoraProfissionalPage')} className="text-gray-700 hover:text-green-600 font-semibold transition-colors">Incubadora</Link>
+              <Link to={createPageUrl('CalendarioDeAula')} className="text-gray-700 hover:text-green-600 font-semibold transition-colors">Calendário</Link>
+            </div>
+            <div className="md:hidden">
+              <Button variant="ghost" size="sm" className="text-gray-700">
+                ☰
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <div className="flex flex-col items-center justify-center text-center px-4 py-8">
+      <div id="home" className="flex flex-col items-center justify-center text-center px-4 py-8">
         <img
           src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
           alt="Logo da Faculdade ESUDA"
-          className="w-48 sm:w-64 md:w-80 mx-auto mb-6"
+          className="w-48 sm:w-64 md:w-80 mx-auto mb-4"
         />
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+        <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-6 max-w-2xl italic">
           Pós-Graduação em Gestão e Tecnologias na Construção Civil
+        </p>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+          Transforme sua Carreira com Inovação e Tecnologia
         </h1>
         <p className="text-base sm:text-lg md:text-xl text-gray-700 mb-8 max-w-3xl leading-relaxed">
           Conheça as especializações: <span className="font-semibold text-green-700">Inovação, Tecnologia e Foco no Mercado</span>

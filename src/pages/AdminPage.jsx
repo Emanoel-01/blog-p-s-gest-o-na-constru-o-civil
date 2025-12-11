@@ -258,6 +258,11 @@ export default function AdminPage() {
     queryFn: () => base44.entities.ProducaoTecnologica.list('-data')
   });
 
+  const { data: chatbotFAQs = [] } = useQuery({
+    queryKey: ['chatbot-faqs'],
+    queryFn: () => base44.entities.ChatbotFAQ.list('ordem')
+  });
+
   // Auto-calcular carga horária quando ciclos mudam
   useEffect(() => {
     if (especForm.ciclos.length > 0 && ciclos.length > 0) {
@@ -509,6 +514,33 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projetos'] });
       toast.success('Projeto removido com sucesso!');
+    }
+  });
+
+  // ========== MUTATIONS PARA CHATBOT FAQS ==========
+  const createFAQMutation = useMutation({
+    mutationFn: (data) => base44.entities.ChatbotFAQ.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chatbot-faqs'] });
+      resetFAQForm();
+      toast.success('FAQ criada com sucesso!');
+    }
+  });
+
+  const updateFAQMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.ChatbotFAQ.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chatbot-faqs'] });
+      setEditingFAQ(null);
+      toast.success('FAQ atualizada com sucesso!');
+    }
+  });
+
+  const deleteFAQMutation = useMutation({
+    mutationFn: (id) => base44.entities.ChatbotFAQ.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chatbot-faqs'] });
+      toast.success('FAQ removida com sucesso!');
     }
   });
 
@@ -1438,6 +1470,61 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const handleDeleteProjeto = (id) => {
     if (window.confirm('Tem certeza que deseja remover este projeto?')) {
       deleteProjetoMutation.mutate(id);
+    }
+  };
+
+  // ========== HANDLERS PARA CHATBOT FAQS ==========
+  const resetFAQForm = () => {
+    setFaqForm({
+      pergunta: '',
+      resposta: '',
+      pagina_destino: '',
+      categoria: 'Informações Gerais',
+      ativo: true,
+      ordem: 0
+    });
+    setShowFAQForm(false);
+    setEditingFAQ(null);
+  };
+
+  const handleSaveFAQ = () => {
+    if (!faqForm.pergunta || !faqForm.resposta) {
+      toast.error('Pergunta e resposta são obrigatórios!');
+      return;
+    }
+
+    const data = {
+      pergunta: faqForm.pergunta,
+      resposta: faqForm.resposta,
+      pagina_destino: faqForm.pagina_destino,
+      categoria: faqForm.categoria,
+      ativo: faqForm.ativo,
+      ordem: parseInt(faqForm.ordem) || 0
+    };
+
+    if (editingFAQ) {
+      updateFAQMutation.mutate({ id: editingFAQ.id, data });
+    } else {
+      createFAQMutation.mutate(data);
+    }
+  };
+
+  const handleEditFAQ = (faq) => {
+    setFaqForm({
+      pergunta: faq.pergunta,
+      resposta: faq.resposta,
+      pagina_destino: faq.pagina_destino || '',
+      categoria: faq.categoria,
+      ativo: faq.ativo !== false,
+      ordem: faq.ordem || 0
+    });
+    setEditingFAQ(faq);
+    setShowFAQForm(true);
+  };
+
+  const handleDeleteFAQ = (id) => {
+    if (window.confirm('Tem certeza que deseja remover esta FAQ?')) {
+      deleteFAQMutation.mutate(id);
     }
   };
 
@@ -3851,6 +3938,18 @@ Seja detalhado, prático e objetivo na análise.`;
   const [editingAtividade, setEditingAtividade] = useState(null);
   const [atividadeEditTipo, setAtividadeEditTipo] = useState(null);
 
+  // Chatbot FAQs state
+  const [editingFAQ, setEditingFAQ] = useState(null);
+  const [showFAQForm, setShowFAQForm] = useState(false);
+  const [faqForm, setFaqForm] = useState({
+    pergunta: '',
+    resposta: '',
+    pagina_destino: '',
+    categoria: 'Informações Gerais',
+    ativo: true,
+    ordem: 0
+  });
+
   const renderIncubadoraTab = () => {
     return (
       <div className="space-y-6">
@@ -4146,6 +4245,185 @@ Seja detalhado, prático e objetivo na análise.`;
       </div>
     );
   };
+
+  const renderChatbotTab = () => (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800">Gerenciar Chatbot - FAQs</h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Configure as perguntas e respostas do assistente virtual do site
+          </p>
+        </div>
+        <Button
+          onClick={() => setShowFAQForm(!showFAQForm)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Nova FAQ
+        </Button>
+      </div>
+
+      {showFAQForm && (
+        <Card className="mb-6 bg-blue-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {editingFAQ ? 'Editar FAQ' : 'Nova FAQ'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Pergunta / Palavra-chave</label>
+              <Input
+                value={faqForm.pergunta}
+                onChange={(e) => setFaqForm({...faqForm, pergunta: e.target.value})}
+                placeholder="Ex: como me inscrever"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                O chatbot buscará correspondências parciais com esta pergunta
+              </p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Categoria</label>
+              <Select value={faqForm.categoria} onValueChange={(v) => setFaqForm({...faqForm, categoria: v})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cursos">Cursos</SelectItem>
+                  <SelectItem value="Inscrição">Inscrição</SelectItem>
+                  <SelectItem value="Contato">Contato</SelectItem>
+                  <SelectItem value="Informações Gerais">Informações Gerais</SelectItem>
+                  <SelectItem value="Pagamento">Pagamento</SelectItem>
+                  <SelectItem value="Calendário">Calendário</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Resposta</label>
+              <Textarea
+                value={faqForm.resposta}
+                onChange={(e) => setFaqForm({...faqForm, resposta: e.target.value})}
+                rows={4}
+                placeholder="Digite a resposta que o chatbot deve dar..."
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Página Destino (opcional)</label>
+              <Select value={faqForm.pagina_destino} onValueChange={(v) => setFaqForm({...faqForm, pagina_destino: v})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma (apenas resposta)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Nenhuma</SelectItem>
+                  <SelectItem value="Homepage">Home</SelectItem>
+                  <SelectItem value="UpgradePage">O Upgrade</SelectItem>
+                  <SelectItem value="DiferenciaisPage">Diferenciais</SelectItem>
+                  <SelectItem value="CiclosPage">Ciclos de Conhecimento</SelectItem>
+                  <SelectItem value="EspecializacoesPage">Especializações</SelectItem>
+                  <SelectItem value="CoordenadorPage">Coordenação</SelectItem>
+                  <SelectItem value="ProfessoresPage">Corpo Docente</SelectItem>
+                  <SelectItem value="CorpoDiscentePage">Corpo Discente</SelectItem>
+                  <SelectItem value="ParceirosPage">Parceiros</SelectItem>
+                  <SelectItem value="IncubadoraProfissionalPage">Incubadora Profissional</SelectItem>
+                  <SelectItem value="EmAcaoPage">Blog</SelectItem>
+                  <SelectItem value="CalendarioDeAula">Calendário de Aulas</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Se selecionado, o chatbot oferecerá um botão para ir à página
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Ordem de Prioridade</label>
+                <Input
+                  type="number"
+                  value={faqForm.ordem}
+                  onChange={(e) => setFaqForm({...faqForm, ordem: e.target.value})}
+                  placeholder="0"
+                />
+              </div>
+              <div className="flex items-center space-x-2 pt-6">
+                <input
+                  type="checkbox"
+                  checked={faqForm.ativo}
+                  onChange={(e) => setFaqForm({...faqForm, ativo: e.target.checked})}
+                  className="rounded"
+                />
+                <label className="text-sm font-medium text-gray-700">FAQ Ativa</label>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleSaveFAQ} className="bg-blue-600 hover:bg-blue-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button onClick={resetFAQForm} variant="outline">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4">
+        {chatbotFAQs.length === 0 ? (
+          <p className="text-gray-500 italic">Nenhuma FAQ cadastrada ainda.</p>
+        ) : (
+          chatbotFAQs.map((faq) => (
+            <Card key={faq.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-bold text-gray-800">{faq.pergunta}</h4>
+                      <Badge className="text-xs">{faq.categoria}</Badge>
+                      {!faq.ativo && (
+                        <Badge variant="outline" className="text-xs text-red-600 border-red-300">
+                          Inativa
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{faq.resposta}</p>
+                    {faq.pagina_destino && (
+                      <Badge variant="outline" className="text-xs">
+                        → {faq.pagina_destino}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleEditFAQ(faq)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDeleteFAQ(faq.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
 
   const renderPostsTab = () => (
     <div>
@@ -4486,6 +4764,13 @@ Seja detalhado, prático e objetivo na análise.`;
         >
           Incubadora Profissional
         </Button>
+        <Button
+          onClick={() => setActiveTab('chatbot')}
+          variant={activeTab === 'chatbot' ? 'default' : 'outline'}
+          className={activeTab === 'chatbot' ? 'bg-blue-600' : ''}
+        >
+          Chatbot FAQs
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -4500,6 +4785,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'posts' && renderPostsTab()}
         {activeTab === 'cronograma' && renderCronogramaTab()}
         {activeTab === 'incubadora' && renderIncubadoraTab()}
+        {activeTab === 'chatbot' && renderChatbotTab()}
       </div>
     </div>
   );

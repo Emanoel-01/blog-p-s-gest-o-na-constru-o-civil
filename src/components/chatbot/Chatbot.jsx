@@ -22,6 +22,13 @@ export default function Chatbot() {
   const [leadInfo, setLeadInfo] = useState({ nome: '', whatsapp: '', collectingName: true, collectingWhatsApp: false });
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const messagesEndRef = useRef(null);
+  const [userBehavior, setUserBehavior] = useState({
+    currentPage: window.location.pathname,
+    timeOnPage: 0,
+    pagesVisited: [],
+    proactiveMessageSent: false
+  });
+  const [detectedInterests, setDetectedInterests] = useState([]);
 
   const { data: faqs = [] } = useQuery({
     queryKey: ['chatbot-faqs'],
@@ -36,6 +43,11 @@ export default function Chatbot() {
     queryFn: () => base44.entities.Especializacao.list('ordem')
   });
 
+  const { data: posts = [] } = useQuery({
+    queryKey: ['posts-chatbot'],
+    queryFn: () => base44.entities.Post.list('-ordem')
+  });
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -43,6 +55,113 @@ export default function Chatbot() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Tracking de comportamento do usuário
+  useEffect(() => {
+    let timeCounter = 0;
+    const interval = setInterval(() => {
+      timeCounter += 1;
+      setUserBehavior(prev => ({
+        ...prev,
+        timeOnPage: timeCounter
+      }));
+
+      // Mensagem proativa após 30 segundos em uma página
+      if (timeCounter === 30 && !userBehavior.proactiveMessageSent && !leadInfo.collectingName && !leadInfo.collectingWhatsApp) {
+        sendProactiveMessage();
+      }
+    }, 1000);
+
+    // Detectar mudanças de página
+    const handlePageChange = () => {
+      const currentPath = window.location.pathname;
+      if (currentPath !== userBehavior.currentPage) {
+        setUserBehavior(prev => ({
+          ...prev,
+          currentPage: currentPath,
+          pagesVisited: [...prev.pagesVisited, currentPath],
+          timeOnPage: 0
+        }));
+        detectPageInterest(currentPath);
+      }
+    };
+
+    window.addEventListener('popstate', handlePageChange);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('popstate', handlePageChange);
+    };
+  }, [userBehavior.proactiveMessageSent, leadInfo]);
+
+  const detectPageInterest = (path) => {
+    const interests = [];
+    
+    if (path.includes('BIM') || path.includes('Ciclos')) {
+      interests.push('BIM');
+    }
+    if (path.includes('GPO') || path.includes('Projetos')) {
+      interests.push('Gestão de Projetos e Obras');
+    }
+    if (path.includes('Predial') || path.includes('Manutencao')) {
+      interests.push('Manutenção Predial');
+    }
+    if (path.includes('Legal') || path.includes('Juridic')) {
+      interests.push('Engenharia Legal');
+    }
+    if (path.includes('Incubadora')) {
+      interests.push('Incubadora Profissional');
+    }
+    if (path.includes('Especializacoes')) {
+      interests.push('Geral');
+    }
+    
+    setDetectedInterests(prev => [...new Set([...prev, ...interests])]);
+  };
+
+  const sendProactiveMessage = () => {
+    const pageName = userBehavior.currentPage.split('/').pop() || 'esta página';
+    const proactiveMessages = [
+      `Vejo que você está explorando nossa ${pageName}! 😊 Posso ajudar com alguma dúvida específica?`,
+      `Notei seu interesse! Quer saber mais sobre nossas especializações? Estou aqui para ajudar! 🎓`,
+      `Está procurando algo específico? Posso te orientar sobre cursos, inscrições ou tirar dúvidas! 💡`
+    ];
+
+    const randomMessage = proactiveMessages[Math.floor(Math.random() * proactiveMessages.length)];
+    
+    setMessages(prev => [...prev, {
+      type: 'bot',
+      text: randomMessage,
+      timestamp: new Date()
+    }]);
+    
+    setUserBehavior(prev => ({ ...prev, proactiveMessageSent: true }));
+  };
+
+  const detectUserIntent = (userMessage) => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    // Mapeamento de intenções
+    const intents = {
+      inscricao: ['inscri', 'matricul', 'entrar', 'começar', 'iniciar', 'me inscrever', 'como faço'],
+      preco: ['valor', 'preço', 'quanto custa', 'mensalid', 'parcela', 'pagamento', 'custo'],
+      duvida_curso: ['diferença', 'qual curso', 'melhor', 'escolher', 'recomendar', 'indicar'],
+      horario: ['horário', 'quando', 'que horas', 'dia', 'aula'],
+      duracao: ['duração', 'quanto tempo', 'meses', 'termina'],
+      online_presencial: ['online', 'presencial', 'ead', 'remoto', 'híbrido', 'formato'],
+      contato: ['falar', 'contato', 'whatsapp', 'telefone', 'coordenador'],
+      conteudo: ['artigo', 'post', 'blog', 'ler', 'material', 'conteúdo']
+    };
+
+    const detected = [];
+    for (const [intent, keywords] of Object.entries(intents)) {
+      if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+        detected.push(intent);
+      }
+    }
+
+    return detected;
+  };
 
   const findBestMatch = (userMessage) => {
     const lowerMessage = userMessage.toLowerCase();
@@ -59,6 +178,21 @@ export default function Chatbot() {
     }
 
     return null;
+  };
+
+  const getRelevantContent = (interests) => {
+    if (!interests || interests.length === 0 || posts.length === 0) return [];
+    
+    // Buscar posts relacionados aos interesses
+    const relevantPosts = posts.filter(post => {
+      return interests.some(interest => 
+        post.titulo?.toLowerCase().includes(interest.toLowerCase()) ||
+        post.descricao?.toLowerCase().includes(interest.toLowerCase()) ||
+        post.tags?.some(tag => tag.toLowerCase().includes(interest.toLowerCase()))
+      );
+    }).slice(0, 3);
+
+    return relevantPosts;
   };
 
   const handleSendMessage = async () => {
@@ -115,6 +249,9 @@ export default function Chatbot() {
       return;
     }
 
+    // Detectar intenção do usuário
+    const userIntents = detectUserIntent(inputValue);
+    
     // Busca resposta nas FAQs primeiro
     const match = findBestMatch(inputValue);
     
@@ -143,9 +280,26 @@ export default function Chatbot() {
         link: e.link_externo,
         id: e.id
       }));
+
+      // Buscar conteúdo relevante
+      const relevantContent = getRelevantContent([...detectedInterests, inputValue]);
+      const contentInfo = relevantContent.map(p => ({
+        titulo: p.titulo,
+        descricao: p.descricao,
+        data: p.data
+      }));
       
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: `Você é o assistente virtual da ESUDA - Pós-Graduação em Gestão e Tecnologias na Construção Civil.
+
+ANÁLISE DE COMPORTAMENTO DO USUÁRIO:
+- Páginas visitadas: ${userBehavior.pagesVisited.join(', ') || 'Nenhuma ainda'}
+- Interesses detectados: ${detectedInterests.join(', ') || 'Nenhum ainda'}
+- Intenções identificadas na mensagem atual: ${userIntents.join(', ') || 'Nenhuma específica'}
+
+CONTEÚDO RELEVANTE DISPONÍVEL:
+${contentInfo.length > 0 ? contentInfo.map((c, i) => `${i + 1}. ${c.titulo} (${c.data}) - ${c.descricao}`).join('\n') : 'Nenhum conteúdo específico encontrado'}
+
 
 Contexto da conversa:
 ${conversationHistory}
@@ -168,23 +322,36 @@ Informações importantes sobre a ESUDA:
 Especializações disponíveis:
 ${especializacoesInfo.map(e => `- ${e.nome}${e.link ? ` (link: ${e.link})` : ''}`).join('\n')}
 
-IMPORTANTE: Analise o contexto da conversa para decidir qual call-to-action usar ao final:
-- Se o usuário está tirando dúvidas básicas: "Quer tirar mais dúvidas diretamente com o coordenador?"
-- Se perguntou sobre inscrição/matrícula: "Deseja se inscrever agora com ajuda do coordenador?"
-- Se perguntou sobre carreira/especialização: "Deseja uma consultoria de carreira exclusiva com o próprio coordenador do curso?"
-- Se está indeciso entre cursos: "Deseja que o coordenador te oriente sobre qual especialização escolher?"
+INSTRUÇÕES IMPORTANTES:
+
+1. **RECONHECIMENTO DE INTENÇÃO**: Com base nas intenções detectadas acima, adapte sua resposta:
+   - Se a intenção é "inscricao": Seja direto sobre o processo e próximos passos
+   - Se a intenção é "preco": Foque em condições de pagamento e benefícios
+   - Se a intenção é "duvida_curso": Compare cursos e ajude na escolha
+   - Se a intenção é "contato": Facilite o contato direto com o coordenador
+   - Se a intenção é "conteudo": Recomende o conteúdo relevante listado acima
+
+2. **PERSONALIZAÇÃO**: Use o histórico de comportamento e interesses detectados para:
+   - Recomendar conteúdo (artigos/posts) se houver disponível
+   - Sugerir a especialização mais alinhada aos interesses
+   - Adaptar o tom da conversa (mais comercial para inscrição, mais consultivo para dúvidas)
+
+3. **CALL-TO-ACTION CONTEXTUAL**: Analise o contexto da conversa para decidir:
+   - Dúvidas básicas: "Quer tirar mais dúvidas diretamente com o coordenador?"
+   - Inscrição/matrícula: "Deseja se inscrever agora com ajuda do coordenador?"
+   - Carreira/especialização: "Deseja uma consultoria de carreira exclusiva com o próprio coordenador do curso?"
+   - Indeciso entre cursos: "Deseja que o coordenador te oriente sobre qual especialização escolher?"
+
+4. **RECOMENDAÇÃO DE CONTEÚDO**: Se houver posts/artigos relevantes, mencione-os naturalmente na resposta
 
 Responda de forma clara, objetiva e amigável. Se a pergunta for sobre informações específicas que você não tem certeza, sugira que o usuário entre em contato pelo Instagram @esudapos. 
 
-Ao final da resposta, SEMPRE inclua:
-1. Um link para a página da especialização relevante (se houver)
-2. Uma call-to-action personalizada para falar com o coordenador via WhatsApp
-
 Formato da resposta esperado:
 {
-  "resposta": "sua resposta aqui",
+  "resposta": "sua resposta aqui (mencione conteúdo relevante se houver)",
   "especializacao_relevante": "nome da especialização mais relevante ou null",
-  "cta_whatsapp": "texto do call-to-action para WhatsApp baseado no contexto"
+  "cta_whatsapp": "texto do call-to-action para WhatsApp baseado no contexto",
+  "posts_recomendados": ["titulo1", "titulo2"] ou []
 }`,
         add_context_from_internet: false,
         response_json_schema: {
@@ -192,7 +359,11 @@ Formato da resposta esperado:
           properties: {
             resposta: { type: "string" },
             especializacao_relevante: { type: "string" },
-            cta_whatsapp: { type: "string" }
+            cta_whatsapp: { type: "string" },
+            posts_recomendados: {
+              type: "array",
+              items: { type: "string" }
+            }
           }
         }
       });
@@ -263,13 +434,25 @@ Formato da resposta esperado:
         }
       }
 
+      // Buscar posts recomendados pela IA
+      let postsRecomendados = [];
+      if (response.posts_recomendados && response.posts_recomendados.length > 0) {
+        postsRecomendados = posts.filter(p => 
+          response.posts_recomendados.some(titulo => 
+            p.titulo.toLowerCase().includes(titulo.toLowerCase()) ||
+            titulo.toLowerCase().includes(p.titulo.toLowerCase())
+          )
+        );
+      }
+
       setTimeout(() => {
         const botResponse = {
           type: 'bot',
           text: response.resposta,
           timestamp: new Date(),
           especializacao_link: especLink,
-          cta_whatsapp: response.cta_whatsapp
+          cta_whatsapp: response.cta_whatsapp,
+          posts_recomendados: postsRecomendados
         };
         setMessages(prev => [...prev, botResponse]);
         setIsLoadingAI(false);
@@ -389,6 +572,28 @@ Formato da resposta esperado:
                       💬 {message.cta_whatsapp}
                     </Button>
                   </a>
+                )}
+
+                {message.posts_recomendados && message.posts_recomendados.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    <p className="text-xs text-gray-600 font-semibold">📚 Conteúdo Recomendado:</p>
+                    {message.posts_recomendados.map((post, idx) => (
+                      <div key={idx} className="bg-gray-50 p-2 rounded-lg border border-gray-200">
+                        <h6 className="text-xs font-bold text-gray-800 mb-1">{post.titulo}</h6>
+                        <p className="text-xs text-gray-600 line-clamp-2 mb-2">{post.descricao}</p>
+                        <Link to={createPageUrl('EmAcaoPage')}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full text-xs border-gray-300 hover:bg-gray-100"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            Ler artigo completo <ChevronRight className="w-3 h-3 ml-1" />
+                          </Button>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
               

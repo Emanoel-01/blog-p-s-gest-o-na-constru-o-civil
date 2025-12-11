@@ -21,6 +21,7 @@ import AtividadeEditForm from '../components/admin/incubadora/AtividadeEditForm'
 import LeadCRM from '../components/admin/LeadCRM';
 import ComentariosManager from '../components/admin/ComentariosManager';
 import NotificationCenter from '../components/admin/NotificationCenter';
+import DepoimentosManager from '../components/admin/DepoimentosManager';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();

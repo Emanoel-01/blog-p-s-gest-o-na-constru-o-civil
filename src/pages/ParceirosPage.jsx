@@ -1,35 +1,83 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
 import { Linkedin, Globe, Instagram, ArrowRight, CheckCircle, Handshake } from 'lucide-react';
+import AdvancedFilters from '@/components/filters/AdvancedFilters';
+import Breadcrumb from '@/components/ui/Breadcrumb';
 
 export default function ParceirosPage() {
+  const [filters, setFilters] = useState({
+    tipo_parceria: '',
+    busca: ''
+  });
+
   const { data: parceiros = [], isLoading } = useQuery({
     queryKey: ['parceiros'],
     queryFn: () => base44.entities.Parceiro.list('ordem')
   });
 
+  const filterOptions = [
+    {
+      key: 'tipo_parceria',
+      label: 'Tipo de Parceria',
+      type: 'select',
+      placeholder: 'Selecione o tipo',
+      options: [
+        { value: 'Canteiros Didáticos', label: 'Canteiros Didáticos' },
+        { value: 'Workshops', label: 'Workshops' },
+        { value: 'Masterclasses', label: 'Masterclasses' },
+        { value: 'Contratação de Alunos', label: 'Contratação de Alunos' },
+        { value: 'Incubadora Profissional', label: 'Incubadora Profissional' },
+        { value: 'Licença Educacional', label: 'Licença Educacional' },
+        { value: 'Convênios Corporativos', label: 'Convênios Corporativos' }
+      ]
+    },
+    {
+      key: 'busca',
+      label: 'Buscar por Nome',
+      type: 'text',
+      placeholder: 'Digite o nome do parceiro'
+    }
+  ];
+
+  const filteredParceiros = parceiros.filter(parceiro => {
+    const matchesTipo = !filters.tipo_parceria || 
+      parceiro.tipos_parceria?.some(tp => tp.tipo === filters.tipo_parceria);
+    const matchesBusca = !filters.busca || 
+      parceiro.nome.toLowerCase().includes(filters.busca.toLowerCase());
+    return matchesTipo && matchesBusca;
+  });
+
   return (
     <div className="px-2 sm:px-4">
+      <Breadcrumb />
+      
       <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4 text-center">Nossos Parceiros</h2>
       <p className="text-gray-600 mb-6 sm:mb-8 text-center text-sm sm:text-base max-w-3xl mx-auto">
         Conheça as empresas e instituições que são parceiras estratégicas de nossas pós-graduações.
       </p>
 
+      <AdvancedFilters
+        pageName="ParceirosPage"
+        filterOptions={filterOptions}
+        currentFilters={filters}
+        onFiltersChange={setFilters}
+      />
+
       {isLoading ? (
         <p className="text-gray-600 text-center">Carregando parceiros...</p>
-      ) : parceiros.length === 0 ? (
+      ) : filteredParceiros.length === 0 ? (
         <div className="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200 text-center">
           <p className="text-gray-700 italic text-sm sm:text-base">
             Os dados dos parceiros serão adicionados em breve pelo administrador.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {parceiros.map((parceiro) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8 mt-6">
+          {filteredParceiros.map((parceiro) => (
             <div key={parceiro.id} className="bg-white rounded-xl shadow-md p-4 border border-gray-200 hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col items-center">
               {parceiro.logo_url && (
                 <img

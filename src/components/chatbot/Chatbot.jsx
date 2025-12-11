@@ -197,6 +197,43 @@ Formato da resposta esperado:
         }
       });
 
+      // Atualizar lead com categoria de interesse e última interação
+      try {
+        const leadExistente = await base44.entities.Lead.filter({ whatsapp: leadInfo.whatsapp });
+        
+        if (leadExistente && leadExistente.length > 0) {
+          const lead = leadExistente[0];
+          const historico = lead.historico_interacoes || [];
+          
+          // Adicionar nova interação ao histórico
+          historico.push({
+            data: new Date().toISOString(),
+            tipo: 'Mensagem Chatbot',
+            conteudo: `Usuário: ${inputValue}\nAssistente: ${response.resposta}`,
+            usuario: 'Chatbot'
+          });
+
+          // Categorizar automaticamente baseado na especialização relevante
+          let categorias = lead.categoria_interesse || [];
+          if (response.especializacao_relevante) {
+            const categoria = response.especializacao_relevante;
+            if (!categorias.includes(categoria)) {
+              categorias.push(categoria);
+            }
+          }
+
+          await base44.entities.Lead.update(lead.id, {
+            ultima_interacao: new Date().toISOString(),
+            historico_interacoes: historico,
+            categoria_interesse: categorias,
+            interesse: response.especializacao_relevante || lead.interesse,
+            dias_sem_resposta: 0
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar lead:', error);
+      }
+
       // Salvar pergunta sem resposta adequada se a IA sugerir contato
       const respostaLower = response.resposta.toLowerCase();
       if (respostaLower.includes('instagram') || respostaLower.includes('entre em contato') || 

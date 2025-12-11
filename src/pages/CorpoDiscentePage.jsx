@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { Instagram, Linkedin, Globe, BookOpen } from 'lucide-react';
+import { Instagram, Linkedin, Globe, BookOpen, User } from 'lucide-react';
 
 export default function CorpoDiscentePage() {
   const { data: discentes = [], isLoading } = useQuery({
@@ -80,43 +80,51 @@ export default function CorpoDiscentePage() {
                       <span className="text-sm text-gray-500">({alunos.length} aluno{alunos.length !== 1 ? 's' : ''})</span>
                     </h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                       {alunos.map((discente) => (
-                        <Card key={discente.id} className="hover:shadow-xl transition-shadow border-2 border-gray-200">
-                          <CardContent className="p-6 text-center">
-                            {discente.foto_url && (
+                        <Card key={discente.id} className="hover:shadow-lg transition-shadow">
+                          <CardContent className="p-3 text-center">
+                            {discente.foto_url ? (
                               <img
                                 src={discente.foto_url}
                                 alt={discente.nome}
-                                className="w-32 h-32 rounded-full object-cover border-4 border-purple-600 shadow-lg mx-auto mb-4"
+                                className="w-16 h-16 rounded-full object-cover border-2 border-purple-600 mx-auto mb-2"
                               />
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-gray-300 mx-auto mb-2 flex items-center justify-center">
+                                <User className="w-8 h-8 text-gray-500" />
+                              </div>
                             )}
-                            <h4 className="font-bold text-gray-800 mb-1 text-lg">{discente.nome}</h4>
-                            <p className="text-sm text-gray-600 mb-4">{discente.titulo}</p>
+                            <h4 className="font-bold text-gray-800 mb-1 text-xs line-clamp-2">{discente.nome}</h4>
+                            <p className="text-[10px] text-gray-600 mb-2 line-clamp-2">{discente.titulo}</p>
                             
-                            <div className="flex justify-center gap-2 flex-wrap">
+                            <div className="flex justify-center gap-1 flex-wrap">
                               {discente.instagram && (
-                                <a href={discente.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-full hover:opacity-90">
-                                  <Instagram className="w-4 h-4" />
-                                  Instagram
+                                <a href={discente.instagram} target="_blank" rel="noopener noreferrer">
+                                  <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-pink-50">
+                                    <Instagram className="w-3 h-3 text-pink-600" />
+                                  </Button>
                                 </a>
                               )}
                               {discente.linkedin && (
-                                <a href={discente.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-full hover:bg-blue-700">
-                                  <Linkedin className="w-4 h-4" />
-                                  LinkedIn
+                                <a href={discente.linkedin} target="_blank" rel="noopener noreferrer">
+                                  <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-blue-50">
+                                    <Linkedin className="w-3 h-3 text-blue-600" />
+                                  </Button>
                                 </a>
                               )}
                               {discente.lattes && (
-                                <a href={discente.lattes} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-yellow-600 text-white px-3 py-1.5 rounded-full hover:bg-yellow-700">
-                                  <BookOpen className="w-4 h-4" />
-                                  Lattes
+                                <a href={discente.lattes} target="_blank" rel="noopener noreferrer">
+                                  <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-yellow-50">
+                                    <BookOpen className="w-3 h-3 text-yellow-600" />
+                                  </Button>
                                 </a>
                               )}
                               {discente.site && (
-                                <a href={discente.site} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs bg-green-600 text-white px-3 py-1.5 rounded-full hover:bg-green-700">
-                                  <Globe className="w-4 h-4" />
-                                  Site
+                                <a href={discente.site} target="_blank" rel="noopener noreferrer">
+                                  <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-green-50">
+                                    <Globe className="w-3 h-3 text-gray-600" />
+                                  </Button>
                                 </a>
                               )}
                             </div>

@@ -13,6 +13,30 @@ export default function CorpoDiscentePage() {
     queryFn: () => base44.entities.Discente.list('ordem')
   });
 
+  const { data: especializacoes = [] } = useQuery({
+    queryKey: ['especializacoes'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
+  });
+
+  // Agrupar discentes por especialização e turma
+  const discentesAgrupados = discentes.reduce((acc, discente) => {
+    if (!discente.especializacoes || discente.especializacoes.length === 0) {
+      if (!acc['sem_curso']) acc['sem_curso'] = {};
+      const turma = discente.numero_turma || 'Sem Turma';
+      if (!acc['sem_curso'][turma]) acc['sem_curso'][turma] = [];
+      acc['sem_curso'][turma].push(discente);
+      return acc;
+    }
+
+    discente.especializacoes.forEach(especId => {
+      if (!acc[especId]) acc[especId] = {};
+      const turma = discente.numero_turma || 'Sem Turma';
+      if (!acc[especId][turma]) acc[especId][turma] = [];
+      acc[especId][turma].push(discente);
+    });
+    return acc;
+  }, {});
+
   return (
     <div>
       <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
@@ -84,7 +108,13 @@ export default function CorpoDiscentePage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
         </div>
       )}
 

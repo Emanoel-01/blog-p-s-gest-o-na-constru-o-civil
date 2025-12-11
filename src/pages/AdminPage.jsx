@@ -120,6 +120,7 @@ export default function AdminPage() {
   const [discenteForm, setDiscenteForm] = useState({
     nome: '',
     titulo: '',
+    numero_turma: '',
     foto_url: '',
     instagram: '',
     linkedin: '',
@@ -1058,6 +1059,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     setDiscenteForm({
       nome: '',
       titulo: '',
+      numero_turma: '',
       foto_url: '',
       instagram: '',
       linkedin: '',
@@ -1104,6 +1106,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     const data = {
       nome: discenteForm.nome,
       titulo: discenteForm.titulo,
+      numero_turma: discenteForm.numero_turma,
       foto_url: discenteForm.foto_url,
       instagram: discenteForm.instagram,
       linkedin: discenteForm.linkedin,
@@ -1124,6 +1127,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     setDiscenteForm({
       nome: discente.nome,
       titulo: discente.titulo,
+      numero_turma: discente.numero_turma || '',
       foto_url: discente.foto_url || '',
       instagram: discente.instagram || '',
       linkedin: discente.linkedin || '',
@@ -3552,7 +3556,7 @@ Seja detalhado, prático e objetivo na análise.`;
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700">Nome Completo</label>
                 <Input
@@ -3567,6 +3571,14 @@ Seja detalhado, prático e objetivo na análise.`;
                   value={discenteForm.titulo}
                   onChange={(e) => setDiscenteForm({...discenteForm, titulo: e.target.value})}
                   placeholder="Ex: Arquiteta - Gestão de Projetos BIM"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Número da Turma</label>
+                <Input
+                  value={discenteForm.numero_turma}
+                  onChange={(e) => setDiscenteForm({...discenteForm, numero_turma: e.target.value})}
+                  placeholder="Ex: T01/2026"
                 />
               </div>
             </div>

@@ -88,6 +88,7 @@ export default function CorpoDiscentePage() {
                               <img
                                 src={discente.foto_url}
                                 alt={discente.nome}
+                                loading="lazy"
                                 className="w-16 h-16 rounded-full object-cover border-2 border-purple-600 mx-auto mb-2"
                               />
                             ) : (

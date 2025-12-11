@@ -36,6 +36,7 @@ export default function ParceirosPage() {
                   <img
                     src={parceiro.logo_url}
                     alt={parceiro.nome}
+                    loading="lazy"
                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover border-4 border-green-600 shadow-md mx-auto sm:mx-0"
                   />
                 )}

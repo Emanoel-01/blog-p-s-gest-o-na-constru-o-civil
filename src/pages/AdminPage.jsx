@@ -566,8 +566,22 @@ export default function AdminPage() {
     mutationFn: ({ id, data }) => base44.entities.Lead.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
-      setEditingLead(null);
       toast.success('Lead atualizado com sucesso!');
+    }
+  });
+
+  const updateComentarioMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Comentario.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comentarios-admin'] });
+    }
+  });
+
+  const deleteComentarioMutation = useMutation({
+    mutationFn: (id) => base44.entities.Comentario.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comentarios-admin'] });
+      toast.success('Comentário removido!');
     }
   });
 
@@ -2760,7 +2774,7 @@ Seja detalhado, prático e objetivo na análise.`;
               <label className="text-sm font-medium text-gray-700 block mb-2">Logo do Parceiro</label>
               {parceiroForm.logo_url && (
                 <div className="mb-2">
-                  <img src={parceiroForm.logo_url} alt="Logo" className="w-32 h-32 object-cover rounded-lg border" />
+                  <img src={parceiroForm.logo_url} alt="Logo" loading="lazy" className="w-32 h-32 object-cover rounded-lg border" />
                 </div>
               )}
               <div className="flex gap-2">
@@ -2862,7 +2876,7 @@ Seja detalhado, prático e objetivo na análise.`;
               <CardContent className="p-4">
                 <div className="flex gap-4 items-start">
                   {parceiro.logo_url && (
-                    <img src={parceiro.logo_url} alt={parceiro.nome} className="w-20 h-20 rounded-lg object-cover border" />
+                    <img src={parceiro.logo_url} alt={parceiro.nome} loading="lazy" className="w-20 h-20 rounded-lg object-cover border" />
                   )}
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-800 mb-2">{parceiro.nome}</h4>
@@ -3082,6 +3096,7 @@ Seja detalhado, prático e objetivo na análise.`;
                   <img
                     src={professorForm.foto_url}
                     alt="Foto"
+                    loading="lazy"
                     className="w-32 h-32 object-cover rounded-lg border"
                   />
                 </div>
@@ -3204,6 +3219,7 @@ Seja detalhado, prático e objetivo na análise.`;
                       <img
                         src={professor.foto_url}
                         alt={professor.nome}
+                        loading="lazy"
                         className="w-20 h-20 rounded-full object-cover border-3 border-indigo-500 shadow-lg flex-shrink-0"
                       />
                     )}
@@ -3822,7 +3838,7 @@ Seja detalhado, prático e objetivo na análise.`;
               <label className="text-sm font-medium text-gray-700 block mb-2">Foto do Aluno</label>
               {discenteForm.foto_url && (
                 <div className="mb-2">
-                  <img src={discenteForm.foto_url} alt="Foto" className="w-32 h-32 object-cover rounded-lg border" />
+                  <img src={discenteForm.foto_url} alt="Foto" loading="lazy" className="w-32 h-32 object-cover rounded-lg border" />
                 </div>
               )}
               <div className="flex gap-2">
@@ -3957,6 +3973,7 @@ Seja detalhado, prático e objetivo na análise.`;
                   <img
                     src={discente.foto_url}
                     alt={discente.nome}
+                    loading="lazy"
                     className="w-24 h-24 rounded-full object-cover border-4 border-teal-600 shadow-md mx-auto mb-3"
                   />
                 )}
@@ -4666,7 +4683,7 @@ Seja detalhado, prático e objetivo na análise.`;
               <label className="text-sm font-medium text-gray-700 block mb-2">Imagem de Destaque (Thumbnail)</label>
               {postForm.imagem_destaque && (
                 <div className="mb-2">
-                  <img src={postForm.imagem_destaque} alt="Destaque" className="w-full max-w-md h-48 object-cover rounded-lg border" />
+                  <img src={postForm.imagem_destaque} alt="Destaque" loading="lazy" className="w-full max-w-md h-48 object-cover rounded-lg border" />
                 </div>
               )}
               <div className="flex gap-2">
@@ -4806,7 +4823,7 @@ Seja detalhado, prático e objetivo na análise.`;
               <CardContent className="p-4">
                 <div className="flex gap-4 items-start">
                   {post.imagem_destaque && (
-                    <img src={post.imagem_destaque} alt={post.titulo} className="w-32 h-24 rounded-lg object-cover border" />
+                    <img src={post.imagem_destaque} alt={post.titulo} loading="lazy" className="w-32 h-24 rounded-lg object-cover border" />
                   )}
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-800 mb-1">{post.titulo}</h4>
@@ -4927,6 +4944,13 @@ Seja detalhado, prático e objetivo na análise.`;
           Blog "Em Ação"
         </Button>
         <Button
+          onClick={() => setActiveTab('comentarios')}
+          variant={activeTab === 'comentarios' ? 'default' : 'outline'}
+          className={activeTab === 'comentarios' ? 'bg-rose-600' : ''}
+        >
+          Comentários
+        </Button>
+        <Button
           onClick={() => setActiveTab('cronograma')}
           variant={activeTab === 'cronograma' ? 'default' : 'outline'}
           className={activeTab === 'cronograma' ? 'bg-cyan-600' : ''}
@@ -4967,6 +4991,18 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'analise' && renderAnaliseCursosTab()}
         {activeTab === 'relatorios' && renderRelatoriosTab()}
         {activeTab === 'posts' && renderPostsTab()}
+        {activeTab === 'comentarios' && (
+          <ComentariosManager
+            comentarios={comentarios}
+            posts={posts}
+            onApprove={(id) => updateComentarioMutation.mutate({ id, data: { aprovado: true } })}
+            onReject={(id) => deleteComentarioMutation.mutate(id)}
+            onReply={(id, resposta) => updateComentarioMutation.mutate({ 
+              id, 
+              data: { resposta_admin: resposta, aprovado: true } 
+            })}
+          />
+        )}
         {activeTab === 'cronograma' && renderCronogramaTab()}
         {activeTab === 'incubadora' && renderIncubadoraTab()}
         {activeTab === 'chatbot' && renderChatbotTab()}

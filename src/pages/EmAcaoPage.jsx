@@ -164,6 +164,7 @@ export default function EmAcaoPage() {
                     <img
                       src={post.imagem_destaque}
                       alt={post.titulo}
+                      loading="lazy"
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
                       onClick={() => {
                         const allImages = [

@@ -289,7 +289,8 @@ export default function Homepage() {
                           activity.aluno_foto ? (
                             <img 
                               src={activity.aluno_foto} 
-                              alt={activity.aluno_nome} 
+                              alt={activity.aluno_nome}
+                              loading="lazy"
                               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-teal-300"
                             />
                           ) : (

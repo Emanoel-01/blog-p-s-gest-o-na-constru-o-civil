@@ -42,23 +42,27 @@ export default function DepoimentosPage() {
       const uploadedUrls = {};
 
       if (foto_file) {
+        toast.info('Enviando foto...');
         const { file_url } = await base44.integrations.Core.UploadFile({ file: foto_file });
         uploadedUrls.foto_url = file_url;
       }
       if (video_file) {
+        toast.info('Enviando vídeo...');
         const { file_url } = await base44.integrations.Core.UploadFile({ file: video_file });
         uploadedUrls.depoimento_video_url = file_url;
       }
       if (audio_file) {
+        toast.info('Enviando áudio...');
         const { file_url } = await base44.integrations.Core.UploadFile({ file: audio_file });
         uploadedUrls.depoimento_audio_url = file_url;
       }
 
-      return base44.entities.Depoimento.create({ ...depoimentoData, ...uploadedUrls });
+      toast.info('Salvando depoimento...');
+      return base44.entities.Depoimento.create({ ...depoimentoData, ...uploadedUrls, status: 'Pendente' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['depoimentos']);
-      toast.success('Depoimento enviado! Será publicado após moderação.');
+      toast.success('✅ Depoimento enviado com sucesso! Será publicado após aprovação da coordenação.', { duration: 5000 });
       setFormData({
         nome: '',
         email: '',
@@ -74,7 +78,7 @@ export default function DepoimentosPage() {
       setIsSubmitting(false);
     },
     onError: (error) => {
-      toast.error(`Erro: ${error.message}`);
+      toast.error(`❌ Erro ao enviar depoimento: ${error.message}`);
       setIsSubmitting(false);
     },
   });
@@ -266,10 +270,24 @@ export default function DepoimentosPage() {
               * Email e telefone não serão divulgados publicamente.
             </p>
 
-            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={isSubmitting}>
-              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-              Enviar Depoimento
+            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Plus className="mr-2 h-5 w-5" />
+                  Enviar Depoimento
+                </>
+              )}
             </Button>
+            {isSubmitting && (
+              <p className="text-sm text-gray-600 text-center mt-2 animate-pulse">
+                Por favor, aguarde enquanto processamos seu depoimento...
+              </p>
+            )}
           </form>
         </CardContent>
       </Card>

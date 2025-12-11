@@ -55,9 +55,6 @@ export default function AtividadeList({ atividades, tipo, onEdit, onDelete }) {
             )}
             <p className="text-xs text-gray-500 mb-2">Data: {atividade.data}</p>
             <p className="text-sm text-gray-600">{atividade.empresa_parceira}</p>
-            {atividade.valor && (
-              <p className="text-sm font-semibold text-orange-600 mt-2">R$ {atividade.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            )}
           </>
         );
       case 'RelatorioTecnico':

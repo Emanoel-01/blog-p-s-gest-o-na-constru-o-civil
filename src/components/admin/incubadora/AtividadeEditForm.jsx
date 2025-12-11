@@ -17,6 +17,11 @@ export default function AtividadeEditForm({ tipo, atividade, projetos, onSuccess
     queryFn: () => base44.entities.Discente.list('nome')
   });
 
+  const { data: parceiros = [] } = useQuery({
+    queryKey: ['parceiros'],
+    queryFn: () => base44.entities.Parceiro.list('ordem')
+  });
+
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     setUploading(true);
@@ -159,8 +164,16 @@ export default function AtividadeEditForm({ tipo, atividade, projetos, onSuccess
                 ))}
               </SelectContent>
             </Select>
-            <Input placeholder="Empresa Parceira" value={formData.empresa_parceira || ''} 
-              onChange={(e) => setFormData({ ...formData, empresa_parceira: e.target.value })} />
+            <Select value={formData.empresa_parceira || ''} onValueChange={(value) => setFormData({ ...formData, empresa_parceira: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Empresa Parceira (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {parceiros.map((parceiro) => (
+                  <SelectItem key={parceiro.id} value={parceiro.nome}>{parceiro.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input type="number" step="0.01" placeholder="Valor (R$)" value={formData.valor || ''} 
               onChange={(e) => setFormData({ ...formData, valor: parseFloat(e.target.value) })} required />
             <Input type="date" value={formData.data || ''} 

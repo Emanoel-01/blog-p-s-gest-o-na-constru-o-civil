@@ -3030,56 +3030,92 @@ Seja detalhado, prático e objetivo na análise.`;
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {loadingProf ? (
           <p className="text-gray-600">Carregando professores...</p>
         ) : professores.length === 0 ? (
           <p className="text-gray-500 italic col-span-full">Nenhum professor cadastrado ainda.</p>
         ) : (
-          professores.map((professor) => (
-            <Card key={professor.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-4 text-center">
-                {professor.foto_url && (
-                  <img
-                    src={professor.foto_url}
-                    alt={professor.nome}
-                    className="w-24 h-24 rounded-full object-cover border-4 border-indigo-600 shadow-md mx-auto mb-3"
-                  />
-                )}
-                <h4 className="font-bold text-gray-800 mb-1">{professor.nome}</h4>
-                <p className="text-sm text-gray-600 mb-3">{professor.titulo}</p>
-                {professor.especializacoes && professor.especializacoes.length > 0 && (
-                  <div className="text-xs text-gray-500 mb-3">
-                    <strong>Especializações:</strong> {professor.especializacoes.length} vinculada(s)
+          professores.map((professor) => {
+            const especializacoesNomes = professor.especializacoes?.map(especId => {
+              const espec = especializacoes.find(e => e.id === especId);
+              return espec?.nome;
+            }).filter(Boolean) || [];
+
+            return (
+              <Card key={professor.id} className="hover:shadow-xl transition-shadow border-2 border-indigo-100">
+                <CardContent className="p-6">
+                  <div className="flex gap-4 items-start">
+                    {professor.foto_url && (
+                      <img
+                        src={professor.foto_url}
+                        alt={professor.nome}
+                        className="w-20 h-20 rounded-full object-cover border-3 border-indigo-500 shadow-lg flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-900 mb-1 text-lg">{professor.nome}</h4>
+                      <p className="text-sm text-indigo-700 mb-3">{professor.titulo}</p>
+                      
+                      {especializacoesNomes.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs font-semibold text-gray-600 mb-1">Leciona em:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {especializacoesNomes.map((nome, idx) => (
+                              <Badge key={idx} className="bg-indigo-100 text-indigo-800 text-xs">
+                                {nome}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {professor.instagram && (
+                          <Badge variant="outline" className="border-purple-300 text-purple-700">
+                            Instagram
+                          </Badge>
+                        )}
+                        {professor.linkedin && (
+                          <Badge variant="outline" className="border-blue-300 text-blue-700">
+                            LinkedIn
+                          </Badge>
+                        )}
+                        {professor.lattes && (
+                          <Badge variant="outline" className="border-yellow-300 text-yellow-700">
+                            Lattes
+                          </Badge>
+                        )}
+                        {professor.site && (
+                          <Badge variant="outline" className="border-green-300 text-green-700">
+                            Site
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleEditProfessor(professor)}
+                        className="text-blue-600 hover:text-blue-700 h-8 w-8"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDeleteProfessor(professor.id)}
+                        className="text-red-600 hover:text-red-700 h-8 w-8"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                )}
-                <div className="flex justify-center gap-2 mb-3">
-                  {professor.instagram && <span className="text-xs text-gray-500">Instagram ✓</span>}
-                  {professor.linkedin && <span className="text-xs text-gray-500">LinkedIn ✓</span>}
-                  {professor.lattes && <span className="text-xs text-gray-500">Lattes ✓</span>}
-                  {professor.site && <span>Site ✓</span>}
-                </div>
-                <div className="flex justify-center gap-2">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handleEditProfessor(professor)}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handleDeleteProfessor(professor.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
     </div>

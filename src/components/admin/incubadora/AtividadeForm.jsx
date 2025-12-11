@@ -19,6 +19,11 @@ export default function AtividadeForm({ tipo, projetos, onSuccess }) {
     queryFn: () => base44.entities.Discente.list('nome')
   });
 
+  const { data: parceiros = [] } = useQuery({
+    queryKey: ['parceiros'],
+    queryFn: () => base44.entities.Parceiro.list('ordem')
+  });
+
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     setUploading(true);

@@ -188,7 +188,7 @@ export default function Homepage() {
             Acompanhe as últimas atividades e produções do projeto de integração teórico-prática
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {incubadoraActivities.map((activity, idx) => {
               const title = activity.nome_evento || activity.titulo_artigo || activity.nome_canteiro || 
                            activity.nome_atividade || activity.titulo_relatorio || activity.titulo_producao;
@@ -198,7 +198,7 @@ export default function Homepage() {
               return (
                 <Link key={idx} to={createPageUrl('IncubadoraProfissionalPage')}>
                   <Card className="h-full bg-white border-2 border-teal-200 hover:border-teal-400 hover:shadow-xl transition-all">
-                    <CardContent className="p-5">
+                    <CardContent className="p-4">
                       <div className="flex items-start gap-3 mb-3">
                         {isFreelancer && activity.aluno_foto ? (
                           <img 
@@ -220,8 +220,8 @@ export default function Homepage() {
                           )}
                         </div>
                       </div>
-                      <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2">{title}</h3>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-3">{activity.resumo}</p>
+                      <h3 className="font-bold text-gray-900 text-base mb-2 line-clamp-2">{title}</h3>
+                      <p className="text-xs text-gray-600 mb-2 line-clamp-2">{activity.resumo}</p>
                       <p className="text-xs text-gray-500">{activity.date}</p>
                     </CardContent>
                   </Card>

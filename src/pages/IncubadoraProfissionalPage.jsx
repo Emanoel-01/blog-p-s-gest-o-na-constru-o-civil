@@ -282,7 +282,7 @@ export default function IncubadoraProfissionalPage() {
             </div>
             <div className="bg-orange-50 p-4 rounded-lg border-2 border-orange-200 text-center">
               <div className="text-3xl font-bold text-orange-600">{freelancers.length}</div>
-              <div className="text-sm text-gray-600 mt-1">Freelancers</div>
+              <div className="text-sm text-gray-600 mt-1">Network</div>
             </div>
             <div className="bg-cyan-50 p-4 rounded-lg border-2 border-cyan-200 text-center">
               <div className="text-3xl font-bold text-cyan-600">{relatorios.length}</div>
@@ -355,12 +355,6 @@ export default function IncubadoraProfissionalPage() {
                               <div>
                                 <h4 className="font-semibold text-gray-700 mb-1">Empresa Parceira</h4>
                                 <p className="text-gray-600 text-sm">{activity.empresa_parceira}</p>
-                              </div>
-                            )}
-                            {activity.valor && (
-                              <div>
-                                <h4 className="font-semibold text-gray-700 mb-1">Valor</h4>
-                                <p className="text-gray-600 text-sm font-bold">R$ {activity.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                               </div>
                             )}
                           </div>

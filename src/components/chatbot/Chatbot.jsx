@@ -14,11 +14,13 @@ export default function Chatbot() {
   const [messages, setMessages] = useState([
     {
       type: 'bot',
-      text: 'Olá! 👋 Sou o assistente virtual da ESUDA. Como posso ajudar você hoje?',
+      text: 'Olá! 👋 Sou o assistente virtual da ESUDA. Para iniciarmos, por favor me informe seu nome:',
       timestamp: new Date()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [leadInfo, setLeadInfo] = useState({ nome: '', whatsapp: '', collectingName: true, collectingWhatsApp: false });
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
   const messagesEndRef = useRef(null);
 
   const { data: faqs = [] } = useQuery({
@@ -54,7 +56,7 @@ export default function Chatbot() {
     return null;
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage = {
@@ -65,11 +67,54 @@ export default function Chatbot() {
 
     setMessages(prev => [...prev, userMessage]);
 
-    // Busca resposta nas FAQs
-    setTimeout(() => {
-      const match = findBestMatch(inputValue);
+    // Coleta de informações do lead
+    if (leadInfo.collectingName) {
+      setLeadInfo({ ...leadInfo, nome: inputValue, collectingName: false, collectingWhatsApp: true });
+      setTimeout(() => {
+        const botResponse = {
+          type: 'bot',
+          text: `Prazer em conhecê-lo, ${inputValue}! 😊 Agora, por favor, informe seu número de WhatsApp para que possamos enviar informações adicionais:`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, botResponse]);
+      }, 500);
+      setInputValue('');
+      return;
+    }
+
+    if (leadInfo.collectingWhatsApp) {
+      setLeadInfo({ ...leadInfo, whatsapp: inputValue, collectingWhatsApp: false });
       
-      if (match) {
+      // Salva o lead no banco de dados
+      try {
+        await base44.entities.Lead.create({
+          nome: leadInfo.nome,
+          whatsapp: inputValue,
+          origem: 'Chatbot',
+          mensagem_inicial: '',
+          status: 'Novo'
+        });
+      } catch (error) {
+        console.error('Erro ao salvar lead:', error);
+      }
+
+      setTimeout(() => {
+        const botResponse = {
+          type: 'bot',
+          text: `Perfeito, ${leadInfo.nome}! Obrigado pelas informações. 🎓 Agora me diga: como posso ajudar você hoje?`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, botResponse]);
+      }, 500);
+      setInputValue('');
+      return;
+    }
+
+    // Busca resposta nas FAQs primeiro
+    const match = findBestMatch(inputValue);
+    
+    if (match) {
+      setTimeout(() => {
         const botResponse = {
           type: 'bot',
           text: match.resposta,
@@ -77,16 +122,61 @@ export default function Chatbot() {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, botResponse]);
-      } else {
+      }, 500);
+      setInputValue('');
+      return;
+    }
+
+    // Se não encontrar nas FAQs, usa IA para responder
+    setIsLoadingAI(true);
+    try {
+      const conversationHistory = messages.map(m => `${m.type === 'user' ? 'Usuário' : 'Assistente'}: ${m.text}`).join('\n');
+      
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Você é o assistente virtual da ESUDA - Pós-Graduação em Gestão e Tecnologias na Construção Civil.
+
+Contexto da conversa:
+${conversationHistory}
+
+Pergunta atual do usuário: ${inputValue}
+
+Informações importantes sobre a ESUDA:
+- Especializações oferecidas: BIM, Gestão de Projetos e Obras (GPO 4.0), Manutenção Predial (Predial 4.0) e Engenharia Legal
+- Todas têm 360 horas mínimas de carga horária
+- Formato híbrido: matérias de gestão EAD, matérias técnicas 100% presenciais
+- Duração: 10 meses
+- Desconto para quem mora a mais de 70km: 50% na mensalidade
+- TCC é opcional e gratuito
+- Ex-alunos têm matrícula grátis (1ª parcela)
+- Programa "Quem Indica Amigo É": última mensalidade grátis se indicar alguém que se matricule
+- Aulas gravadas disponíveis na plataforma
+
+Responda de forma clara, objetiva e amigável. Se a pergunta for sobre informações específicas que você não tem certeza, sugira que o usuário entre em contato pelo Instagram @esuda.oficial ou visite a página de especializações.`,
+        add_context_from_internet: false
+      });
+
+      setTimeout(() => {
         const botResponse = {
           type: 'bot',
-          text: 'Desculpe, não encontrei uma resposta específica para sua pergunta. Entre em contato conosco através do Instagram @esuda.oficial ou visite nossa página de especializações para mais informações.',
+          text: response,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, botResponse]);
+        setIsLoadingAI(false);
+      }, 500);
+    } catch (error) {
+      console.error('Erro ao consultar IA:', error);
+      setTimeout(() => {
+        const botResponse = {
+          type: 'bot',
+          text: 'Desculpe, tive um problema ao processar sua pergunta. Entre em contato conosco através do Instagram @esuda.oficial ou visite nossa página de especializações para mais informações.',
           pagina_destino: 'EspecializacoesPage',
           timestamp: new Date()
         };
         setMessages(prev => [...prev, botResponse]);
-      }
-    }, 500);
+        setIsLoadingAI(false);
+      }, 500);
+    }
 
     setInputValue('');
   };
@@ -166,10 +256,20 @@ export default function Chatbot() {
             </div>
           </div>
         ))}
+        {isLoadingAI && (
+          <div className="flex justify-start">
+            <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                <p className="text-sm text-gray-600">Pensando...</p>
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </CardContent>
 
-      {messages.length === 1 && (
+      {messages.length > 4 && !leadInfo.collectingName && !leadInfo.collectingWhatsApp && (
         <div className="px-4 pb-2">
           <p className="text-xs text-gray-500 mb-2">Perguntas sugeridas:</p>
           <div className="flex flex-wrap gap-2">

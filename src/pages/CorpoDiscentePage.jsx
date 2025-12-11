@@ -119,18 +119,20 @@ export default function CorpoDiscentePage() {
                                   Site
                                 </a>
                               )}
-                              </div>
-                              </CardContent>
-                              </Card>
-                              ))}
-                              </div>
-                              </div>
-                              ))}
-                              </div>
-                              )}
-                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-                              <div className="flex justify-between gap-4 mt-8">
+      <div className="flex justify-between gap-4 mt-8">
         <Link to={createPageUrl('ProfessoresPage')}>
           <Button variant="outline" className="border-gray-300">
             ← Voltar

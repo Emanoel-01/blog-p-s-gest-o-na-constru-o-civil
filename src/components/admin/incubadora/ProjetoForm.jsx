@@ -41,6 +41,47 @@ export default function ProjetoForm({ formData, setFormData, onSubmit, especiali
         />
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-2">Data de Início</label>
+          <Input
+            type="date"
+            value={formData.data_inicio || ''}
+            onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">Data de Fim</label>
+          <Input
+            type="date"
+            value={formData.data_fim || ''}
+            onChange={(e) => setFormData({ ...formData, data_fim: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-2">Número de Alunos</label>
+          <Input
+            type="number"
+            value={formData.numero_alunos || ''}
+            onChange={(e) => setFormData({ ...formData, numero_alunos: parseInt(e.target.value) })}
+            placeholder="Ex: 30"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">Valor do Curso por Aluno (R$)</label>
+          <Input
+            type="number"
+            step="0.01"
+            value={formData.valor_curso || ''}
+            onChange={(e) => setFormData({ ...formData, valor_curso: parseFloat(e.target.value) })}
+            placeholder="Ex: 2490.00"
+          />
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium mb-2">Coordenador</label>
         <Input

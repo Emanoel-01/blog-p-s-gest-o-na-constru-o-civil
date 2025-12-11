@@ -114,6 +114,17 @@ export default function CiclosPage() {
             // Verificar se as disciplinas são objetos ou strings
             const isObjectDisciplinas = hasDisciplinas && typeof disciplinasArray[0] === 'object';
 
+            // Determinar se é ciclo comum ou específico
+            const isCicloComum = ciclo.nome.toLowerCase().includes('comum') || 
+                                 ciclo.nome.toLowerCase().includes('base') ||
+                                 ciclo.nome.toLowerCase().includes('estratégias') ||
+                                 ciclo.nome.toLowerCase().includes('liderança');
+
+            // Buscar especialização vinculada (se for ciclo específico)
+            const especializacaoVinculada = !isCicloComum 
+              ? especializacoes.find(e => e.ciclos?.includes(ciclo.id))
+              : null;
+
             return (
               <Card 
                 key={ciclo.id} 

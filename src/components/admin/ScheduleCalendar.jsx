@@ -70,8 +70,9 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
 
   for (let day = 1; day <= daysInMonth; day++) {
     const aulas = getAulasForDay(day);
+    const groupedAulas = groupCommonDisciplines(aulas);
     const isSat = isSaturday(day);
-    const hasAulas = aulas.length > 0;
+    const hasAulas = groupedAulas.length > 0;
 
     days.push(
       <div
@@ -79,14 +80,14 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
         className={`h-24 border border-gray-200 p-2 ${
           isSat && !hasAulas ? 'bg-gray-100' : 'bg-white'
         } ${hasAulas ? 'cursor-pointer' : ''} hover:bg-gray-50 transition-colors relative`}
-        onClick={() => hasAulas && onDayClick && onDayClick(day, aulas)}
+        onClick={() => hasAulas && onDayClick && onDayClick(day, groupedAulas)}
       >
         <div className={`text-sm font-semibold mb-1 ${isSat ? 'text-blue-600' : 'text-gray-700'}`}>
           {day}
         </div>
         {hasAulas && (
           <div className="space-y-1">
-            {aulas.slice(0, 3).map((aula, idx) => (
+            {groupedAulas.slice(0, 3).map((aula, idx) => (
               <div
                 key={idx}
                 className={`text-xs px-1 py-0.5 rounded text-white truncate ${getTipoColor(aula)}`}
@@ -95,8 +96,8 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
                 {aula.disciplina_nome || aula.tipo}
               </div>
             ))}
-            {aulas.length > 3 && (
-              <div className="text-xs text-gray-600 font-semibold">+{aulas.length - 3}</div>
+            {groupedAulas.length > 3 && (
+              <div className="text-xs text-gray-600 font-semibold">+{groupedAulas.length - 3}</div>
             )}
           </div>
         )}

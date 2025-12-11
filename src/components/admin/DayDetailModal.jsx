@@ -108,7 +108,7 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
                   )}
                 </div>
 
-                {aula.observacoes && (
+                {aula.observacoes && !aula.isCommon && (
                   <div className="mt-3 p-3 bg-blue-50 rounded-md border border-blue-200">
                     <p className="text-sm text-gray-700">
                       <strong>Observações:</strong> {aula.observacoes}

@@ -347,7 +347,7 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
               status = 'FERIADO';
             }
 
-            const isSelectable = status === 'LIVRE' && template.type !== 'FERIADO' && template.type !== '';
+            const isSelectable = (status === 'LIVRE' || status === 'AGENDADO') && template.type !== 'FERIADO' && template.type !== '';
             const isSelected = selectedDate === dateISO;
 
             const scheduledClasses = cronograma.filter(c => c.data === dateISO);
@@ -374,7 +374,7 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                 } ${
                   isSelected ? 'bg-teal-50 border-l-4 border-l-teal-600 pl-4' : ''
                 } ${
-                  status === 'AGENDADO' ? 'bg-green-50' : status === 'FERIADO' ? 'bg-red-50' : status === 'BLOQUEADO' ? 'bg-gray-100' : ''
+                  status === 'AGENDADO' ? 'bg-green-50 cursor-pointer border-dashed border-green-400 hover:bg-green-100' : status === 'FERIADO' ? 'bg-red-50' : status === 'BLOQUEADO' ? 'bg-gray-100' : ''
                 }`}
               >
                 <div className="font-semibold text-sm">{dateISO}</div>

@@ -55,78 +55,44 @@ export default function CoordenadorPage() {
 
       <div className="space-y-3 sm:space-y-4 text-gray-700 leading-relaxed mb-6 sm:mb-8">
         <p className="text-justify text-sm sm:text-base">
-          <strong>Como me apresentar?</strong> Vamos lá, pelo começo: Fui aluno da graduação em 
-          Arquitetura e Urbanismo da ESUDA, e fiz a Pós-Graduação em Gestão de Projetos e Obras 
-          logo após me formar. Hoje, minha carreira é construída na intersecção entre Arquitetura, 
-          Engenharia Civil e Gestão de Projetos. Sou Mestre em Engenharia Civil e especialista em 
-          transformar a forma como gerenciamos empreendimentos, unindo a visão estratégica de um 
-          PMO à realidade do canteiro de obras.
+          <strong>Mestre em Engenharia Civil</strong> com foco em Gestão de Projetos e Construção 4.0. 
+          Minha carreira une <strong>Arquitetura, Engenharia e Gestão de Projetos</strong>, transformando 
+          a forma como gerenciamos empreendimentos com visão estratégica e prática de canteiro.
         </p>
 
         <div className="bg-green-50 p-4 sm:p-5 rounded-lg border-l-4 border-green-600">
-          <h4 className="font-bold text-base sm:text-lg text-green-800 mb-2 sm:mb-3">Experiência Prática e Liderança</h4>
-          <p className="mb-2 text-justify text-sm sm:text-base">
-            Minha experiência é focada em liderar o ciclo completo de grandes projetos, da 
-            fiscalização à operação:
-          </p>
+          <h4 className="font-bold text-base sm:text-lg text-green-800 mb-2">Experiência Prática</h4>
           <ul className="space-y-2 ml-2 sm:ml-4">
             <li className="flex items-start gap-2">
-              <span className="text-green-600 mt-1">▸</span>
-              <span className="text-justify text-sm sm:text-base"><strong>Liderança de Empreendimentos:</strong> Atualmente, sou Gerente de 
-              Manutenção Predial no CRC/PE e Coordenador Técnico da fiscalização das obras de 
-              restauro do histórico Palácio Joaquim Nabuco (ALEPE).</span>
+              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-1" />
+              <span className="text-sm sm:text-base"><strong>Gerente de Manutenção Predial</strong> no CRC/PE</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-green-600 mt-1">▸</span>
-              <span className="text-justify text-sm sm:text-base"><strong>Empreendedorismo:</strong> Como Diretor da Amorim Arquitetura, atuo 
-              com consultoria, especialmente em Pernambuco, com foco em patrimônios históricos e 
-              empreendimentos comerciais.</span>
+              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-1" />
+              <span className="text-sm sm:text-base"><strong>Coordenador Técnico</strong> - Restauro Palácio Joaquim Nabuco (ALEPE)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-1" />
+              <span className="text-sm sm:text-base"><strong>Diretor da Amorim Arquitetura</strong> - Consultoria e projetos</span>
             </li>
           </ul>
         </div>
 
         <div className="bg-blue-50 p-4 sm:p-5 rounded-lg border-l-4 border-blue-600">
-          <h4 className="font-bold text-base sm:text-lg text-blue-800 mb-2 sm:mb-3">Domínio em Tecnologia e Inovação</h4>
-          <p className="mb-2 text-justify text-sm sm:text-base">
-            Meu diferencial é o domínio e a aplicação da Construção 4.0. Para mim, tecnologia 
-            não é apenas ferramenta, é estratégia:
+          <h4 className="font-bold text-base sm:text-lg text-blue-800 mb-2">Construção 4.0 e Inovação</h4>
+          <p className="text-sm sm:text-base mb-2">
+            Domínio em <strong>BIM, Drones, Sensores IoT, Termografia e IA</strong>. 
+            Atuo como Arquiteto de Soluções, otimizando processos em construtoras.
           </p>
-          <ul className="space-y-2 ml-2 sm:ml-4">
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">▸</span>
-              <span className="text-justify text-sm sm:text-base"><strong>Tecnologias-Chave:</strong> Implemento e domino tecnologias como BIM, 
-              Drones, Sensores Inteligentes, Termografia e, claro, Inteligência Artificial.</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-1">▸</span>
-              <span className="text-justify text-sm sm:text-base"><strong>Analista de Soluções:</strong> Criei um novo braço de consultoria para 
-              atuar como Analista de Processos e Arquiteto de Soluções, ajudando construtoras a 
-              otimizar fluxos de trabalho e a implementar essas tecnologias de forma personalizada 
-              para impulsionar seus resultados.</span>
-            </li>
-          </ul>
         </div>
 
-        <div className="bg-orange-50 p-4 sm:p-5 rounded-lg border-l-4 border-orange-500">
-          <h4 className="font-bold text-base sm:text-lg text-orange-800 mb-2 sm:mb-3">Visão Acadêmica e Missão</h4>
-          <p className="mb-2 text-justify text-sm sm:text-base">
-            Na Faculdade Esuda, estou à frente das especializações de Gestão e Tecnologias na Construção Civil. Minha missão é ir além da teoria:
+        <div className="bg-green-50 p-4 sm:p-5 rounded-lg border-l-4 border-green-600">
+          <h4 className="font-bold text-base sm:text-lg text-green-800 mb-2">Missão Acadêmica</h4>
+          <p className="text-sm sm:text-base">
+            Coordeno as especializações ESUDA com foco em <strong>ensino prático e projetos reais</strong>. 
+            Criador da <strong>Incubadora Profissional</strong> que conecta alunos ao mercado.
           </p>
-          <ul className="space-y-2 ml-2 sm:ml-4">
-            <li className="flex items-start gap-2">
-              <span className="text-orange-600 mt-1">▸</span>
-              <span className="text-justify text-sm sm:text-base"><strong>Ensino Prático:</strong> Criei a "Incubadora Profissional" (um programa 
-              de pesquisa e extensão) e utilizo canteiros didáticos, garantindo que os alunos 
-              participem de projetos reais e construam uma rede de talentos valiosa para o mercado.</span>
-            </li>
-          </ul>
         </div>
-
-        <p className="text-center text-base sm:text-lg font-semibold text-orange-600 mt-4 sm:mt-6 text-justify">
-          Estou aqui para transferir essa experiência de campo e esse domínio tecnológico, 
-          garantindo que vocês se tornem não apenas formados, mas sim verdadeiros especialistas 
-          prontos para o futuro da Construção Civil.
-        </p>
       </div>
 
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 sm:p-6 rounded-lg border border-blue-200 mb-6 sm:mb-8">

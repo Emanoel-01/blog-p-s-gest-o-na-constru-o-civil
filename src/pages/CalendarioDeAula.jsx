@@ -49,14 +49,14 @@ export default function CalendarioDeAula() {
             />
           )}
 
-          <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl">
+          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 sm:p-6 rounded-xl shadow-lg">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
               <div>
-                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold mb-2 flex items-center gap-2 sm:gap-3">
-                  📅 Calendário de Aulas 2026
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+                  Calendário de Aulas 2026
                 </h1>
-                <p className="text-green-50 text-sm sm:text-base md:text-lg max-w-3xl">
-                  Acompanhe o cronograma completo das aulas. Clique nos dias com aula para ver mais detalhes sobre horários, professores e disciplinas.
+                <p className="text-green-50 text-sm sm:text-base max-w-3xl">
+                  Clique nos dias com aula para ver detalhes sobre horários, professores e disciplinas.
                 </p>
               </div>
               <Link to={createPageUrl('EmAcaoPage')} className="w-full sm:w-auto">

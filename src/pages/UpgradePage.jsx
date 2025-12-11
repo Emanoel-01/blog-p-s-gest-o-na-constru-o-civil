@@ -52,7 +52,7 @@ export default function UpgradePage() {
       <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
         <div className="bg-white p-4 sm:p-6 rounded-xl border-l-4 border-green-600 shadow-md">
           <h4 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
-            1. A Base do "Engenheiro-Empresário" (Ciclo Comum)
+            1. A Base do Profissional Empreendedor (Ciclo Comum)
           </h4>
           <p className="text-gray-700 mb-2 sm:mb-3 leading-relaxed text-justify text-sm sm:text-base">
             Enquanto outras escolas ensinam apenas teoria básica, nós entregamos <strong>ferramentas para você 
@@ -85,38 +85,38 @@ export default function UpgradePage() {
             Não formamos "faz-tudo". Nossos cursos têm <strong>foco total no resultado final esperado pelo mercado</strong>:
           </p>
           <div className="space-y-2 sm:space-y-3 ml-0 sm:ml-4">
-            <div className="bg-orange-50 p-3 sm:p-4 rounded-lg">
-              <p className="font-bold text-orange-800 mb-1 text-sm sm:text-base">🏗️ Gestão de Projetos e Obras (O Perfil Business)</p>
+            <div className="bg-green-50 p-3 sm:p-4 rounded-lg border-l-4 border-green-600">
+              <p className="font-bold text-green-800 mb-1 text-sm sm:text-base">🏗️ Gestão de Projetos e Obras (O Perfil Business)</p>
               <p className="text-gray-700 text-xs sm:text-sm">
                 Focado em <strong>Dinheiro e Prazo</strong>. Você será o gestor que protege a margem de lucro, 
                 domina Claims (pleitos) e garante o equilíbrio financeiro da obra.
               </p>
             </div>
-            <div className="bg-purple-50 p-3 sm:p-4 rounded-lg">
-              <p className="font-bold text-purple-800 mb-1 text-sm sm:text-base">💻 Tecnologia BIM (O Perfil Tech)</p>
+            <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border-l-4 border-blue-600">
+              <p className="font-bold text-blue-800 mb-1 text-sm sm:text-base">💻 Tecnologia BIM (O Perfil Tech)</p>
               <p className="text-gray-700 text-xs sm:text-sm">
                 Focado em <strong>Método Virtual</strong>. Você não será apenas um desenhista 3D, mas um BIM Manager 
                 estrategista que coordena dados, interoperabilidade e processos construtivos digitais.
               </p>
             </div>
-            <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
+            <div className="bg-green-50 p-3 sm:p-4 rounded-lg border-l-4 border-green-600">
               <p className="font-bold text-green-800 mb-1 text-sm sm:text-base">⚙️ Manutenção Predial (O Perfil Operations)</p>
               <p className="text-gray-700 text-xs sm:text-sm">
-                Focado em <strong>Vida Útil</strong>. Saia da manutenção corretiva e lidere a era da Gestão de Ativos, 
+                Focado em <strong>Vida Útil e Gestão de Ativos</strong>. Saia da manutenção corretiva e lidere a era da Gestão de Facilities, 
                 usando IoT, Drones e BIM FM para valorizar o patrimônio.
               </p>
             </div>
-            <div className="bg-red-50 p-3 sm:p-4 rounded-lg">
-              <p className="font-bold text-red-800 mb-1 text-sm sm:text-base">⚖️ Engenharia Legal (O Perfil Legal/Finance)</p>
+            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border-l-4 border-gray-600">
+              <p className="font-bold text-gray-800 mb-1 text-sm sm:text-base">⚖️ Engenharia Legal (O Perfil Legal/Finance)</p>
               <p className="text-gray-700 text-xs sm:text-sm">
                 Focado em <strong>Valor e Prova</strong>. Torne-se a autoridade que o judiciário e os bancos respeitam. 
-                Domine a regularização de imóveis, a auditoria de risco e a avaliação de ativos.
+                Domine a <strong>regularização de imóveis</strong>, a auditoria de risco e a avaliação de ativos.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-xl border-l-4 border-indigo-600 shadow-md">
+        <div className="bg-white p-4 sm:p-6 rounded-xl border-l-4 border-green-600 shadow-md">
           <h4 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
             3. Inteligência de Carreira "Lifelong Learning"
           </h4>
@@ -308,50 +308,50 @@ export default function UpgradePage() {
                 <p className="text-xs text-gray-600">Espaços práticos de aprendizado</p>
               </div>
             </div>
-            <div className="flex items-start gap-2 bg-blue-50 p-3 rounded-lg border border-blue-200">
-              <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Workshops</p>
                 <p className="text-xs text-gray-600">Eventos técnicos especializados</p>
               </div>
             </div>
-            <div className="flex items-start gap-2 bg-purple-50 p-3 rounded-lg border border-purple-200">
-              <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Masterclasses</p>
                 <p className="text-xs text-gray-600">Aulas com especialistas renomados</p>
               </div>
             </div>
-            <div className="flex items-start gap-2 bg-orange-50 p-3 rounded-lg border border-orange-200">
-              <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Contratação de Alunos</p>
                 <p className="text-xs text-gray-600">Acesso ao nosso talento qualificado</p>
               </div>
             </div>
-            <div className="flex items-start gap-2 bg-teal-50 p-3 rounded-lg border border-teal-200">
-              <CheckCircle className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Incubadora Profissional</p>
                 <p className="text-xs text-gray-600">Projetos práticos com alunos</p>
               </div>
             </div>
-            <div className="flex items-start gap-2 bg-indigo-50 p-3 rounded-lg border border-indigo-200">
-              <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Licença Educacional</p>
                 <p className="text-xs text-gray-600">Softwares e ferramentas</p>
               </div>
             </div>
-            <div className="flex items-start gap-2 bg-pink-50 p-3 rounded-lg border border-pink-200">
-              <CheckCircle className="w-5 h-5 text-pink-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Convênios Corporativos</p>
                 <p className="text-xs text-gray-600">Descontos para colaboradores</p>
               </div>
             </div>
-            <div className="flex items-start gap-2 bg-amber-50 p-3 rounded-lg border border-amber-200">
-              <CheckCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Seja Professor</p>
                 <p className="text-xs text-gray-600">Compartilhe seu conhecimento</p>

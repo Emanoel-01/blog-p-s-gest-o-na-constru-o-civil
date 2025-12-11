@@ -120,6 +120,7 @@ export default function ProfessoresPage() {
           </Button>
         </Link>
       </div>
-    </div>
-  );
-}
+      </div>
+      </>
+      );
+      }

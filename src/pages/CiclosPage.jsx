@@ -36,13 +36,13 @@ export default function CiclosPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
           Ciclos de Conhecimento
         </h1>
-        <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+        <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-3xl mx-auto">
           Nossa arquitetura curricular modular permite que você construa sua especialização de forma inteligente e estratégica
         </p>
       </div>
@@ -77,22 +77,22 @@ export default function CiclosPage() {
                 key={ciclo.id} 
                 className="overflow-hidden border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300"
               >
-                <div className={`bg-gradient-to-r ${gradientClass} p-6 text-white`}>
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="bg-white/20 backdrop-blur-sm p-2 rounded-lg">
-                          <BookOpen className="w-6 h-6" />
+                <div className={`bg-gradient-to-r ${gradientClass} p-4 sm:p-6 text-white`}>
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
+                    <div className="flex-1 w-full">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                        <div className="bg-white/20 backdrop-blur-sm p-1.5 sm:p-2 rounded-lg">
+                          <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
-                        <div>
-                          <h2 className="text-2xl md:text-3xl font-bold">{ciclo.nome}</h2>
-                          <div className="flex items-center gap-3 mt-2">
-                            <Badge className="bg-white/90 text-gray-900 hover:bg-white">
+                        <div className="flex-1">
+                          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight">{ciclo.nome}</h2>
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
+                            <Badge className="bg-white/90 text-gray-900 hover:bg-white text-xs sm:text-sm">
                               <Clock className="w-3 h-3 mr-1" />
                               {ciclo.carga_horaria}h
                             </Badge>
                             {hasDisciplinas && (
-                              <Badge className="bg-white/90 text-gray-900 hover:bg-white">
+                              <Badge className="bg-white/90 text-gray-900 hover:bg-white text-xs sm:text-sm">
                                 <GraduationCap className="w-3 h-3 mr-1" />
                                 {disciplinasArray.length} disciplina{disciplinasArray.length !== 1 ? 's' : ''}
                               </Badge>
@@ -104,7 +104,7 @@ export default function CiclosPage() {
                     <Button
                       onClick={() => toggleCiclo(ciclo.id)}
                       variant="ghost"
-                      className="text-white hover:bg-white/20 border-2 border-white/50"
+                      className="text-white hover:bg-white/20 border-2 border-white/50 w-full sm:w-auto text-sm sm:text-base"
                     >
                       {isExpanded ? (
                         <>
@@ -120,13 +120,13 @@ export default function CiclosPage() {
                 </div>
 
                 {isExpanded && (
-                  <CardContent className="p-6 bg-gradient-to-br from-gray-50 to-white">
+                  <CardContent className="p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-white">
                     {!hasDisciplinas ? (
-                      <p className="text-center text-gray-500 italic py-8">
+                      <p className="text-center text-gray-500 italic py-6 sm:py-8 text-sm sm:text-base">
                         Nenhuma disciplina cadastrada para este ciclo ainda.
                       </p>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4">
                         {disciplinasArray.map((disciplina, discIndex) => {
                           const isDiscExpanded = expandedDisciplina === `${ciclo.id}-${discIndex}`;
                           const discKey = `${ciclo.id}-${discIndex}`;
@@ -134,8 +134,8 @@ export default function CiclosPage() {
                           // Se for string (formato antigo), mostrar apenas o nome
                           if (typeof disciplina === 'string') {
                             return (
-                              <div key={discIndex} className="bg-white p-4 rounded-lg border-l-4 border-blue-500 shadow-sm">
-                                <p className="font-semibold text-gray-800">{disciplina}</p>
+                              <div key={discIndex} className="bg-white p-3 sm:p-4 rounded-lg border-l-4 border-blue-500 shadow-sm">
+                                <p className="font-semibold text-gray-800 text-sm sm:text-base">{disciplina}</p>
                               </div>
                             );
                           }
@@ -146,35 +146,35 @@ export default function CiclosPage() {
                               key={discIndex} 
                               className="bg-white rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-all shadow-md"
                             >
-                              <div className="p-4">
-                                <div className="flex justify-between items-start gap-4">
-                                  <div className="flex-1">
-                                    <div className="flex items-start gap-3 mb-2">
-                                      <div className="bg-blue-100 text-blue-700 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                              <div className="p-3 sm:p-4">
+                                <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
+                                  <div className="flex-1 w-full">
+                                    <div className="flex items-start gap-2 sm:gap-3 mb-2">
+                                      <div className="bg-blue-100 text-blue-700 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0">
                                         {discIndex + 1}
                                       </div>
                                       <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-1">
+                                        <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 leading-tight">
                                           {disciplina.nome}
                                         </h3>
-                                        <div className="flex flex-wrap gap-2 mb-3">
+                                        <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3">
                                           {disciplina.modalidade && (
-                                            <Badge variant="outline" className={
+                                            <Badge variant="outline" className={`text-xs sm:text-sm ${
                                               disciplina.modalidade === 'Presencial' 
                                                 ? 'border-green-500 text-green-700 bg-green-50' 
                                                 : 'border-blue-500 text-blue-700 bg-blue-50'
-                                            }>
+                                            }`}>
                                               {disciplina.modalidade}
                                             </Badge>
                                           )}
                                           {disciplina.carga_horaria && (
-                                            <Badge variant="outline" className="border-gray-400 text-gray-700">
+                                            <Badge variant="outline" className="border-gray-400 text-gray-700 text-xs sm:text-sm">
                                               {disciplina.carga_horaria}h
                                             </Badge>
                                           )}
                                         </div>
                                         {disciplina.ementa_sintetica && (
-                                          <p className="text-gray-700 leading-relaxed text-justify">
+                                          <p className="text-gray-700 leading-relaxed text-justify text-xs sm:text-sm md:text-base">
                                             {disciplina.ementa_sintetica}
                                           </p>
                                         )}
@@ -186,7 +186,7 @@ export default function CiclosPage() {
                                       onClick={() => toggleDisciplina(discKey)}
                                       variant="outline"
                                       size="sm"
-                                      className="flex-shrink-0"
+                                      className="flex-shrink-0 w-full sm:w-auto text-xs sm:text-sm"
                                     >
                                       {isDiscExpanded ? (
                                         <>
@@ -202,46 +202,46 @@ export default function CiclosPage() {
                                 </div>
 
                                 {isDiscExpanded && (
-                                  <div className="mt-4 pt-4 border-t border-gray-200 space-y-4">
+                                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 space-y-3 sm:space-y-4">
                                     {disciplina.ementa_detalhada && (
-                                      <div className="bg-blue-50 p-4 rounded-lg">
-                                        <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
+                                      <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
+                                        <h4 className="text-xs sm:text-sm font-bold text-blue-900 mb-1 sm:mb-2 flex items-center gap-2">
                                           📖 Ementa Detalhada
                                         </h4>
-                                        <p className="text-sm text-gray-800 text-justify leading-relaxed">
+                                        <p className="text-xs sm:text-sm text-gray-800 text-justify leading-relaxed">
                                           {disciplina.ementa_detalhada}
                                         </p>
                                       </div>
                                     )}
 
                                     {disciplina.conhecimento_adquirido && (
-                                      <div className="bg-green-50 p-4 rounded-lg">
-                                        <h4 className="text-sm font-bold text-green-900 mb-2 flex items-center gap-2">
+                                      <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
+                                        <h4 className="text-xs sm:text-sm font-bold text-green-900 mb-1 sm:mb-2 flex items-center gap-2">
                                           🎓 Conhecimento Adquirido
                                         </h4>
-                                        <p className="text-sm text-gray-800 text-justify leading-relaxed">
+                                        <p className="text-xs sm:text-sm text-gray-800 text-justify leading-relaxed">
                                           {disciplina.conhecimento_adquirido}
                                         </p>
                                       </div>
                                     )}
 
                                     {disciplina.habilidade_tecnica && (
-                                      <div className="bg-purple-50 p-4 rounded-lg">
-                                        <h4 className="text-sm font-bold text-purple-900 mb-2 flex items-center gap-2">
+                                      <div className="bg-purple-50 p-3 sm:p-4 rounded-lg">
+                                        <h4 className="text-xs sm:text-sm font-bold text-purple-900 mb-1 sm:mb-2 flex items-center gap-2">
                                           🔧 Habilidade Técnica (Entregável)
                                         </h4>
-                                        <p className="text-sm text-gray-800 text-justify leading-relaxed">
+                                        <p className="text-xs sm:text-sm text-gray-800 text-justify leading-relaxed">
                                           {disciplina.habilidade_tecnica}
                                         </p>
                                       </div>
                                     )}
 
                                     {disciplina.habilidade_comportamental && (
-                                      <div className="bg-amber-50 p-4 rounded-lg">
-                                        <h4 className="text-sm font-bold text-amber-900 mb-2 flex items-center gap-2">
+                                      <div className="bg-amber-50 p-3 sm:p-4 rounded-lg">
+                                        <h4 className="text-xs sm:text-sm font-bold text-amber-900 mb-1 sm:mb-2 flex items-center gap-2">
                                           💡 Habilidade Comportamental
                                         </h4>
-                                        <p className="text-sm text-gray-800">
+                                        <p className="text-xs sm:text-sm text-gray-800">
                                           {disciplina.habilidade_comportamental}
                                         </p>
                                       </div>
@@ -263,14 +263,14 @@ export default function CiclosPage() {
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between gap-4 pt-8">
-        <Link to={createPageUrl('DiferenciaisPage')}>
-          <Button variant="outline" className="border-gray-300">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 pt-6 sm:pt-8">
+        <Link to={createPageUrl('DiferenciaisPage')} className="w-full sm:w-auto">
+          <Button variant="outline" className="border-gray-300 w-full sm:w-auto">
             ← Voltar
           </Button>
         </Link>
-        <Link to={createPageUrl('EspecializacoesPage')}>
-          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
+        <Link to={createPageUrl('EspecializacoesPage')} className="w-full sm:w-auto">
+          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white w-full sm:w-auto">
             Ver Especializações
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>

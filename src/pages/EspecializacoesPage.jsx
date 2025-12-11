@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -73,8 +74,48 @@ export default function EspecializacoesPage() {
   };
 
   return (
-    <div className="px-2 sm:px-0">
-      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4">Nossas Especializações</h2>
+    <>
+      <Helmet>
+        <title>Especializações em Construção Civil | Pós-Graduação ESUDA - BIM, Gestão de Obras, Manutenção</title>
+        <meta name="description" content="Conheça as especializações da ESUDA: BIM, Gestão de Projetos e Obras, Manutenção Predial, Engenharia Legal e Tecnologias 4.0. Cursos com ciclos modulares de 360h. Inscrições abertas!" />
+        <meta name="keywords" content="especialização BIM, pós-graduação gestão de obras, curso manutenção predial, engenharia legal, especialização construção civil, ESUDA Recife" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/EspecializacoesPage" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Especializações em Construção Civil | ESUDA" />
+        <meta property="og:description" content="Especializações com ciclos modulares: BIM, Gestão de Obras, Manutenção Predial, Engenharia Legal e Tecnologias 4.0. 360h de conhecimento aplicado." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/EspecializacoesPage" />
+        
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": "Especializações ESUDA em Construção Civil",
+            "description": "Lista de especializações oferecidas pela ESUDA",
+            "itemListElement": especializacoes.map((espec, index) => ({
+              "@type": "Course",
+              "position": index + 1,
+              "name": `Especialização em ${espec.nome}`,
+              "description": espec.resumo || `Especialização em ${espec.nome}`,
+              "provider": {
+                "@type": "Organization",
+                "name": "ESUDA",
+                "sameAs": "https://esuda.edu.br"
+              },
+              "courseMode": espec.formato_aulas?.join(", "),
+              "timeRequired": `P${espec.duracao_meses || 12}M`,
+              "educationalCredentialAwarded": "Especialização",
+              "hasCourseInstance": {
+                "@type": "CourseInstance",
+                "courseWorkload": `PT${espec.carga_horaria_total}H`
+              }
+            }))
+          })}
+        </script>
+      </Helmet>
+      
+      <div className="px-2 sm:px-0">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3 sm:mb-4">Nossas Especializações em Construção Civil</h1>
       <p className="text-gray-600 mb-4 sm:mb-6 text-justify text-sm sm:text-base">
         Uma especialização completa é formada pela combinação de ciclos que somam, no mínimo, 360 horas.
         Escolha os ciclos que mais interessam a você!

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,12 +37,48 @@ export default function CiclosPage() {
   ];
 
   return (
-    <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
-          Ciclos de Conhecimento
-        </h1>
+    <>
+      <Helmet>
+        <title>Ciclos de Conhecimento ESUDA | Arquitetura Curricular Modular em Construção Civil</title>
+        <meta name="description" content="Arquitetura curricular modular ESUDA: ciclos de conhecimento que você combina para formar sua especialização. BIM, Gestão, Manutenção, Legal e Tecnologias 4.0." />
+        <meta name="keywords" content="ciclos de conhecimento, currículo modular construção civil, disciplinas BIM, gestão de obras, ESUDA" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/CiclosPage" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Ciclos de Conhecimento ESUDA | Arquitetura Curricular Modular" />
+        <meta property="og:description" content="Sistema modular inovador: combine ciclos de conhecimento e construa sua especialização sob medida." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/CiclosPage" />
+        
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": "Ciclos de Conhecimento ESUDA",
+            "description": "Ciclos modulares de conhecimento em Construção Civil",
+            "itemListElement": ciclos.map((ciclo, index) => ({
+              "@type": "Course",
+              "position": index + 1,
+              "name": ciclo.nome,
+              "description": `Ciclo de ${ciclo.carga_horaria} horas`,
+              "provider": {
+                "@type": "Organization",
+                "name": "ESUDA"
+              },
+              "hasCourseInstance": {
+                "@type": "CourseInstance",
+                "courseWorkload": `PT${ciclo.carga_horaria}H`
+              }
+            }))
+          })}
+        </script>
+      </Helmet>
+      
+      <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
+            Ciclos de Conhecimento
+          </h1>
         <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-3xl mx-auto">
           Nossa arquitetura curricular modular permite que você construa sua especialização de forma inteligente e estratégica
         </p>

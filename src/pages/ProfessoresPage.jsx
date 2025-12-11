@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
@@ -14,8 +15,21 @@ export default function ProfessoresPage() {
   });
 
   return (
-    <div>
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">Nosso Corpo Docente</h2>
+    <>
+      <Helmet>
+        <title>Corpo Docente ESUDA | Professores Especialistas em Construção Civil e BIM</title>
+        <meta name="description" content="Conheça os professores especialistas da ESUDA: profissionais com ampla experiência em BIM, Gestão de Obras, Manutenção Predial, Engenharia Legal e Tecnologias 4.0." />
+        <meta name="keywords" content="professores construção civil, docentes BIM, mestres engenharia civil, corpo docente ESUDA, especialistas gestão obras" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/ProfessoresPage" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Corpo Docente ESUDA | Professores Especialistas" />
+        <meta property="og:description" content="Time de professores com ampla experiência prática e acadêmica em Construção Civil." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/ProfessoresPage" />
+      </Helmet>
+      
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">Nosso Corpo Docente</h1>
       <p className="text-gray-600 mb-8 text-justify">
         Conheça o time de professores especialistas que compõem o corpo docente de nossas pós-graduações.
       </p>

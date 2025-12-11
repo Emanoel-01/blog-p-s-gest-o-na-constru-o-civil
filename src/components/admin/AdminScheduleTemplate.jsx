@@ -395,6 +395,61 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
         <p className="text-slate-300 mt-1 text-sm">Status de agendamento por sábado, baseado na tipologia de aula (Presencial, EAD ou Específica).</p>
       </div>
 
+      {/* Agendamento Livre (Texto Livre) */}
+      <div className="bg-amber-50 p-6 rounded-xl border-2 border-amber-300">
+        <h2 className="text-xl font-bold text-amber-800 mb-4">📝 Agendamento Livre (Texto Livre)</h2>
+        <p className="text-sm text-amber-700 mb-4">Use este formulário para agendar aulas especiais sem seguir a lógica de disciplinas comuns/específicas.</p>
+        
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = formData.get('data_livre');
+          const texto = formData.get('texto_livre');
+          
+          if (!data || !texto) {
+            toast.error('Preencha a data e o texto da aula.');
+            return;
+          }
+
+          createAulaMutation.mutateAsync({
+            data: data,
+            tipo: 'Presencial',
+            disciplina_nome: 'Aula Especial',
+            observacoes: texto,
+            ordem: 0
+          }).then(() => {
+            toast.success('Aula especial agendada com sucesso!');
+            e.target.reset();
+          });
+        }} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Data (DD/MM/AAAA)</label>
+              <Input
+                name="data_livre"
+                type="text"
+                placeholder="Ex: 10/01/2026"
+                required
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Descrição da Aula (Texto Livre)</label>
+            <textarea
+              name="texto_livre"
+              className="w-full border border-gray-300 rounded-md p-3 text-sm min-h-[100px]"
+              placeholder="Digite livremente o conteúdo da aula, horários, observações, etc."
+              required
+            />
+          </div>
+
+          <Button type="submit" className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold">
+            Agendar Aula Especial
+          </Button>
+        </form>
+      </div>
+
       <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-teal-600">
         {/* Cabeçalho */}
         <div className="grid grid-cols-[120px_100px_100px_1fr] gap-4 font-bold text-sm text-slate-700 border-b-2 border-gray-300 pb-3 mb-2">

@@ -106,7 +106,8 @@ export default function DepoimentosPage() {
       };
       audioRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        setFormData((prev) => ({ ...prev, audio_file: audioBlob }));
+        const audioFile = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+        setFormData((prev) => ({ ...prev, audio_file: audioFile }));
         stream.getTracks().forEach(track => track.stop());
       };
       audioRecorderRef.current.start();
@@ -257,12 +258,28 @@ export default function DepoimentosPage() {
                   <Mic className="w-4 h-4" /> Áudio
                 </Label>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={isRecording ? stopRecording : startRecording} variant="outline" size="sm">
-                    {isRecording ? 'Parar' : 'Gravar'}
+                  <Button 
+                    type="button" 
+                    onClick={isRecording ? stopRecording : startRecording} 
+                    variant={isRecording ? "destructive" : "outline"} 
+                    size="sm"
+                    className="flex-1"
+                  >
+                    {isRecording ? (
+                      <>
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        Parar
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-3 h-3 mr-1" />
+                        Gravar
+                      </>
+                    )}
                   </Button>
-                  <Input type="file" id="audio_file" onChange={(e) => handleFileChange(e, 'audio_file')} accept="audio/*" />
+                  <Input type="file" id="audio_file" onChange={(e) => handleFileChange(e, 'audio_file')} accept="audio/*" className="flex-1" />
                 </div>
-                {formData.audio_file && <span className="text-xs text-gray-500">Áudio gravado</span>}
+                {formData.audio_file && <span className="text-xs text-green-600 font-semibold">✓ Áudio pronto para envio</span>}
               </div>
             </div>
             

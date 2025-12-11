@@ -126,15 +126,20 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
         </div>
         {hasAulas && (
           <div className="space-y-1">
-            {groupedAulas.slice(0, 3).map((aula, idx) => (
-              <div
-                key={idx}
-                className={`text-xs px-1 py-0.5 rounded text-white truncate ${getTipoColor(aula)}`}
-                title={aula.disciplina_nome}
-              >
-                {aula.disciplina_nome || aula.tipo}
-              </div>
-            ))}
+            {groupedAulas.slice(0, 3).map((aula, idx) => {
+              const isFeriado = ['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo);
+              const displayText = isFeriado ? 'FERIADO' : (aula.disciplina_nome || aula.tipo);
+              
+              return (
+                <div
+                  key={idx}
+                  className={`text-xs px-1 py-0.5 rounded text-white truncate ${getTipoColor(aula)}`}
+                  title={aula.disciplina_nome || aula.tipo}
+                >
+                  {displayText}
+                </div>
+              );
+            })}
             {groupedAulas.length > 3 && (
               <div className="text-xs text-gray-600 font-semibold">+{groupedAulas.length - 3}</div>
             )}

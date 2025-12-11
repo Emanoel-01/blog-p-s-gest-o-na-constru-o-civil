@@ -81,7 +81,7 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
   const getTipoColor = (aula) => {
     // Se for feriado ou sem aula
     if (['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo)) {
-      return 'bg-red-500 hover:bg-red-600';
+      return 'bg-red-600 hover:bg-red-700';
     }
 
     // Lista de disciplinas EAD
@@ -99,30 +99,30 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
 
     // Verificar se a disciplina está na lista EAD
     if (eadDisciplines.includes(aula.disciplina_nome)) {
-      return 'bg-green-500 hover:bg-green-600';
+      return 'bg-green-600 hover:bg-green-700';
     }
 
     // Para disciplinas comuns, usar cor baseada na modalidade
     if (aula.isCommon || aula.tipo === 'Presencial') {
-      return 'bg-blue-500 hover:bg-blue-600';
+      return 'bg-blue-600 hover:bg-blue-700';
     }
     if (aula.tipo === 'EAD') {
-      return 'bg-green-500 hover:bg-green-600';
+      return 'bg-green-600 hover:bg-green-700';
     }
 
-    // Para disciplinas específicas, usar cor do curso (tipo contém o courseId)
+    // Para disciplinas específicas, usar cores neutras
     switch(aula.tipo) {
-      case 'gestao': return 'bg-orange-500 hover:bg-orange-600';
-      case 'bim': return 'bg-cyan-500 hover:bg-cyan-600';
-      case 'manutencao': return 'bg-green-600 hover:bg-green-700';
-      case 'legal': return 'bg-purple-500 hover:bg-purple-600';
+      case 'gestao': return 'bg-gray-500 hover:bg-gray-600';
+      case 'bim': return 'bg-gray-600 hover:bg-gray-700';
+      case 'manutencao': return 'bg-gray-700 hover:bg-gray-800';
+      case 'legal': return 'bg-gray-800 hover:bg-gray-900';
       default: return 'bg-gray-400 hover:bg-gray-500';
     }
   };
 
   const days = [];
   for (let i = 0; i < startingDayOfWeek; i++) {
-    days.push(<div key={`empty-${i}`} className="h-24 bg-gray-50"></div>);
+    days.push(<div key={`empty-${i}`} className="h-20 sm:h-24 bg-gray-50"></div>);
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -134,12 +134,12 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
     days.push(
       <div
         key={day}
-        className={`h-24 border border-gray-200 p-2 ${
+        className={`h-20 sm:h-24 border border-gray-200 p-1 sm:p-2 ${
           isSat && !hasAulas ? 'bg-gray-100' : 'bg-white'
         } ${hasAulas ? 'cursor-pointer' : ''} hover:bg-gray-50 transition-colors relative`}
         onClick={() => hasAulas && onDayClick && onDayClick(day, groupedAulas)}
       >
-        <div className={`text-sm font-semibold mb-1 ${isSat ? 'text-blue-600' : 'text-gray-700'}`}>
+        <div className={`text-xs sm:text-sm font-semibold mb-1 ${isSat ? 'text-blue-600' : 'text-gray-700'}`}>
           {day}
         </div>
         {hasAulas && (
@@ -151,7 +151,7 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
               return (
                 <div
                   key={idx}
-                  className={`text-xs px-1 py-0.5 rounded text-white truncate ${getTipoColor(aula)}`}
+                  className={`text-[10px] sm:text-xs px-1 py-0.5 rounded text-white truncate ${getTipoColor(aula)}`}
                   title={aula.disciplina_nome || aula.tipo}
                 >
                   {displayText}
@@ -159,7 +159,7 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
               );
             })}
             {groupedAulas.length > 3 && (
-              <div className="text-xs text-gray-600 font-semibold">+{groupedAulas.length - 3}</div>
+              <div className="text-[10px] sm:text-xs text-gray-600 font-semibold">+{groupedAulas.length - 3}</div>
             )}
           </div>
         )}
@@ -173,22 +173,22 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <div className="flex justify-between items-center mb-6">
-        <Button onClick={previousMonth} variant="outline" size="icon">
-          <ChevronLeft className="w-5 h-5" />
+    <div className="bg-white rounded-xl shadow-lg p-2 sm:p-4 md:p-6">
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <Button onClick={previousMonth} variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
-        <h2 className="text-2xl font-bold text-gray-800">
+        <h2 className="text-base sm:text-xl md:text-2xl font-bold text-gray-800">
           {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h2>
-        <Button onClick={nextMonth} variant="outline" size="icon">
-          <ChevronRight className="w-5 h-5" />
+        <Button onClick={nextMonth} variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </div>
 
       <div className="grid grid-cols-7 gap-0 mb-2">
         {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
-          <div key={day} className="text-center font-bold text-gray-700 p-2 bg-gray-100">
+          <div key={day} className="text-center font-bold text-gray-700 p-1 sm:p-2 bg-gray-100 text-xs sm:text-sm">
             {day}
           </div>
         ))}
@@ -198,14 +198,14 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
         {days}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3 justify-center">
-        <Badge className="bg-blue-500">Presencial/Remoto</Badge>
-        <Badge className="bg-green-500">EAD</Badge>
-        <Badge className="bg-red-500">Sem Aula</Badge>
-        <Badge className="bg-orange-500">Gestão de Projetos</Badge>
-        <Badge className="bg-cyan-500">Tecnologia BIM</Badge>
-        <Badge className="bg-green-600">Manutenção</Badge>
-        <Badge className="bg-purple-500">Engenharia Legal</Badge>
+      <div className="mt-4 flex flex-wrap gap-2 sm:gap-3 justify-center text-xs sm:text-sm">
+        <Badge className="bg-blue-600 text-white">Presencial/Remoto</Badge>
+        <Badge className="bg-green-600 text-white">EAD</Badge>
+        <Badge className="bg-red-600 text-white">Sem Aula</Badge>
+        <Badge className="bg-gray-500 text-white">Gestão</Badge>
+        <Badge className="bg-gray-600 text-white">BIM</Badge>
+        <Badge className="bg-gray-700 text-white">Manutenção</Badge>
+        <Badge className="bg-gray-800 text-white">Engenharia Legal</Badge>
       </div>
     </div>
   );

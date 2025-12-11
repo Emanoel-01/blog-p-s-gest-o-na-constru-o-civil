@@ -136,7 +136,7 @@ export default function Homepage() {
         </div>
       </div>
 
-      {/* Incubadora Profissional */}
+      {/* Incubadora Profissional com ROI */}
       {incubadoraActivities.length > 0 && (
         <div className="bg-gradient-to-r from-teal-50 via-cyan-50 to-blue-50 rounded-2xl p-6 sm:p-8 md:p-10 border-2 border-teal-200">
           <div className="flex items-center justify-between mb-6">
@@ -148,11 +148,32 @@ export default function Homepage() {
             </div>
             <Link to={createPageUrl('IncubadoraProfissionalPage')}>
               <Button variant="outline" className="border-teal-300 text-teal-700 hover:bg-teal-100">
-                Ver Todos
+                Ver Dashboard ROI
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
           </div>
+          
+          {/* Destaque ROI */}
+          <div className="bg-white rounded-xl p-6 mb-6 border-2 border-teal-300 shadow-lg">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-3 rounded-full">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-extrabold text-gray-900">
+                Maior ROI do Brasil
+              </h3>
+            </div>
+            <p className="text-center text-gray-700 text-base max-w-2xl mx-auto leading-relaxed">
+              Nossos alunos já geraram <span className="font-bold text-green-700">mais de R$ 500 mil</span> em renda adicional através das atividades da Incubadora Profissional. <span className="font-bold text-teal-700">ROI médio comprovado de 120%.</span>
+            </p>
+            <p className="text-center text-sm text-gray-600 mt-2 italic">
+              *Dados rastreáveis apenas do Projeto de Incubadora. ROI real pode ser ainda maior.
+            </p>
+          </div>
+          
           <p className="text-center text-gray-700 mb-6 max-w-3xl mx-auto text-sm sm:text-base">
             Acompanhe as últimas atividades e produções do projeto de integração teórico-prática
           </p>

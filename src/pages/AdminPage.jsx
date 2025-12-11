@@ -20,6 +20,7 @@ import AtividadeList from '../components/admin/incubadora/AtividadeList';
 import AtividadeEditForm from '../components/admin/incubadora/AtividadeEditForm';
 import LeadCRM from '../components/admin/LeadCRM';
 import ComentariosManager from '../components/admin/ComentariosManager';
+import NotificationCenter from '../components/admin/NotificationCenter';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -4866,9 +4867,17 @@ Seja detalhado, prático e objetivo na análise.`;
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <Shield className="w-8 h-8 text-red-600" />
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800">Área do Administrador</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Shield className="w-8 h-8 text-red-600" />
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800">Área do Administrador</h2>
+        </div>
+        <NotificationCenter
+          leads={leads}
+          comentarios={comentarios}
+          perguntasSemResposta={perguntasSemResposta}
+          onNavigate={(tab) => setActiveTab(tab)}
+        />
       </div>
       
       <div className="bg-red-50 p-6 rounded-lg border border-red-200 mb-8">

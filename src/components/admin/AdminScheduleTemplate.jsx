@@ -102,6 +102,7 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
+  const [editingAulaId, setEditingAulaId] = useState(null);
   const [formData, setFormData] = useState({
     turma: '',
     courseId: '',
@@ -200,12 +201,37 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
     if (selectedDate === date) {
       setSelectedDate(null);
       setSelectedType(null);
+      setEditingAulaId(null);
       setFormData({ turma: '', courseId: '', cycleType: '', professorId: '', disciplina: '' });
     } else {
       setSelectedDate(date);
       setSelectedType(type);
+      setEditingAulaId(null);
       setFormData({ turma: '', courseId: '', cycleType: '', professorId: '', disciplina: '' });
     }
+  };
+
+  const handleEditAula = (aula, e) => {
+    e.stopPropagation();
+    
+    // Determinar o tipo de ciclo baseado no tipo da aula
+    const cycleType = ['Presencial', 'EAD'].includes(aula.tipo) ? 'comum' : 'especifica';
+    const courseId = ['gestao', 'bim', 'manutencao', 'legal'].includes(aula.tipo) ? aula.tipo : '';
+    
+    // Extrair turma das observações
+    const turmaMatch = aula.observacoes?.match(/Turma ([^\s-]+)/);
+    const turma = turmaMatch ? turmaMatch[1] : '';
+    
+    setEditingAulaId(aula.id);
+    setSelectedDate(aula.data);
+    setSelectedType(cycleType === 'comum' ? (aula.tipo === 'EAD' ? 'C-EAD' : 'C-P') : 'E');
+    setFormData({
+      turma: turma,
+      courseId: courseId,
+      cycleType: cycleType,
+      professorId: aula.professor_id || '',
+      disciplina: aula.disciplina_nome || ''
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -249,19 +275,18 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
 
       toast.success(`Disciplina comum "${formData.disciplina}" agendada para os 4 cursos em ${selectedDate} e ${nextDate}.`);
     } else if (formData.cycleType === 'especifica') {
-      if (!formData.courseId || !formData.disciplina || !formData.professorId) {
-        toast.error('Preencha o Curso, Disciplina e Professor.');
+      if (!formData.courseId || !formData.disciplina) {
+        toast.error('Preencha o Curso e a Disciplina.');
         return;
       }
 
       const course = COURSES.find(c => c.id === formData.courseId);
-      const professor = professores.find(p => p.id === formData.professorId);
 
       classesToSave.push({
         data: selectedDate,
         tipo: formData.courseId,
         disciplina_nome: formData.disciplina,
-        professor_id: professor.id,
+        professor_id: formData.professorId || null,
         observacoes: `Turma ${formData.turma} - ${course.title} - Específica (1º Dia)`,
         ordem: 0
       });
@@ -269,7 +294,7 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
         data: nextDate,
         tipo: formData.courseId,
         disciplina_nome: formData.disciplina,
-        professor_id: professor.id,
+        professor_id: formData.professorId || null,
         observacoes: `Turma ${formData.turma} - ${course.title} - Específica (2º Dia)`,
         ordem: 0
       });
@@ -277,12 +302,35 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
       toast.success(`Disciplina específica "${formData.disciplina}" agendada para ${course.title} em ${selectedDate} e ${nextDate}.`);
     }
 
-    // Salvar no banco de dados
+    // Salvar ou atualizar no banco de dados
     try {
-      for (const aula of classesToSave) {
-        await createAulaMutation.mutateAsync(aula);
+      if (editingAulaId) {
+        // Modo edição - atualizar apenas a aula selecionada
+        const aulaToUpdate = classesToSave[0]; // Pegar o primeiro item (1º dia)
+        await updateAulaMutation.mutateAsync({ id: editingAulaId, data: aulaToUpdate });
+        
+        // Encontrar e atualizar o 2º dia correspondente
+        const nextDayAula = cronograma.find(a => 
+          a.data === nextDate && 
+          a.disciplina_nome === aulaToUpdate.disciplina_nome &&
+          a.observacoes?.includes('2º Dia')
+        );
+        
+        if (nextDayAula) {
+          await updateAulaMutation.mutateAsync({ 
+            id: nextDayAula.id, 
+            data: classesToSave[1] 
+          });
+        }
+        
+        toast.success('Aula atualizada com sucesso!');
+      } else {
+        // Modo criação - criar novas aulas
+        for (const aula of classesToSave) {
+          await createAulaMutation.mutateAsync(aula);
+        }
+        toast.success('Aulas salvas com sucesso!');
       }
-      toast.success('Aulas salvas com sucesso!');
     } catch (error) {
       toast.error('Erro ao salvar aulas: ' + error.message);
       return;
@@ -290,6 +338,7 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
     
     setSelectedDate(null);
     setSelectedType(null);
+    setEditingAulaId(null);
     setFormData({ turma: '', courseId: '', cycleType: '', professorId: '', disciplina: '' });
     setSpecificDisciplines({
       gestao: { disciplina: '', professorId: '' },
@@ -461,22 +510,38 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                           <div className="flex-1 min-w-0">
                             <span className="text-sm font-semibold text-slate-800 block truncate">{aula.disciplina_nome}</span>
                             <span className="text-xs text-slate-500 block">
-                              Prof: {prof?.nome.split(' ')[0]} {isDia1 ? '(1º)' : '(2º)'}
+                              Prof: {prof?.nome.split(' ')[0] || 'Não definido'} {isDia1 ? '(1º)' : '(2º)'}
                             </span>
                           </div>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteAula(aula.id);
-                            }}
-                            className="h-6 w-6 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </Button>
+                          <div className="flex gap-1">
+                            {isDia1 && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={(e) => handleEditAula(aula, e)}
+                                className="h-6 w-6 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                                title="Editar"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </Button>
+                            )}
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAula(aula.id);
+                              }}
+                              className="h-6 w-6 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                              title="Excluir"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -494,7 +559,7 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
         {selectedDate && (
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mt-6 transition-all">
             <h2 className="text-xl font-bold text-teal-700 mb-4">
-              Agendar Disciplina de 2 Sábados em: <span className="text-teal-900">{selectedDate} e {getNextSaturday(selectedDate)}</span>
+              {editingAulaId ? 'Editar Disciplina' : 'Agendar Disciplina de 2 Sábados'} em: <span className="text-teal-900">{selectedDate} e {getNextSaturday(selectedDate)}</span>
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -632,16 +697,16 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">Professor Responsável</label>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">Professor Responsável (Opcional)</label>
                           <Select
                             value={formData.professorId}
                             onValueChange={(value) => setFormData({...formData, professorId: value})}
-                            required
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o professor" />
+                              <SelectValue placeholder="Selecione o professor (opcional)" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value={null}>Nenhum (definir depois)</SelectItem>
                               {professores.map(prof => (
                                 <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
                               ))}
@@ -662,7 +727,7 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                 type="submit"
                 className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3"
               >
-                CONFIRMAR AGENDAMENTO (2 SÁBADOS)
+                {editingAulaId ? 'SALVAR ALTERAÇÕES' : 'CONFIRMAR AGENDAMENTO (2 SÁBADOS)'}
               </Button>
             </form>
           </div>

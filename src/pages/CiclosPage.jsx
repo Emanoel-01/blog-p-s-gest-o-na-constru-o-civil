@@ -18,6 +18,11 @@ export default function CiclosPage() {
     queryFn: () => base44.entities.Ciclo.list('ordem')
   });
 
+  const { data: especializacoes = [] } = useQuery({
+    queryKey: ['especializacoes'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
+  });
+
   const toggleCiclo = (cicloId) => {
     setExpandedCiclo(expandedCiclo === cicloId ? null : cicloId);
     setExpandedDisciplina(null);

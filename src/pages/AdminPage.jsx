@@ -127,6 +127,7 @@ export default function AdminPage() {
     lattes: '',
     site: '',
     especializacoes: [],
+    parceiros: [],
     ordem: 0
   });
   const [uploadingFotoDiscente, setUploadingFotoDiscente] = useState(false);
@@ -1066,6 +1067,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       lattes: '',
       site: '',
       especializacoes: [],
+      parceiros: [],
       ordem: 0
     });
     setShowDiscenteForm(false);
@@ -1097,6 +1099,15 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     }));
   };
 
+  const handleDiscenteParceiroCheckboxChange = (parceiroId) => {
+    setDiscenteForm(prev => ({
+      ...prev,
+      parceiros: prev.parceiros.includes(parceiroId)
+        ? prev.parceiros.filter(id => id !== parceiroId)
+        : [...prev.parceiros, parceiroId]
+    }));
+  };
+
   const handleSaveDiscente = () => {
     if (!discenteForm.nome || !discenteForm.titulo) {
       toast.error('Nome e formação do aluno são obrigatórios!');
@@ -1113,6 +1124,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       lattes: discenteForm.lattes,
       site: discenteForm.site,
       especializacoes: discenteForm.especializacoes,
+      parceiros: discenteForm.parceiros,
       ordem: parseInt(discenteForm.ordem) || 0
     };
 
@@ -1134,6 +1146,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       lattes: discente.lattes || '',
       site: discente.site || '',
       especializacoes: discente.especializacoes || [],
+      parceiros: discente.parceiros || [],
       ordem: discente.ordem || 0
     });
     setEditingDiscente(discente);
@@ -3658,6 +3671,27 @@ Seja detalhado, prático e objetivo na análise.`;
                         onChange={() => handleDiscenteEspecCheckboxChange(espec.id)}
                       />
                       <span className="text-sm">{espec.nome}</span>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Parceiros Vinculados</label>
+              <div className="bg-white p-4 rounded-md border space-y-2 max-h-60 overflow-y-auto">
+                {parceiros.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">Nenhum parceiro cadastrado.</p>
+                ) : (
+                  parceiros.map((parceiro) => (
+                    <label key={parceiro.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={discenteForm.parceiros.includes(parceiro.id)}
+                        onChange={() => handleDiscenteParceiroCheckboxChange(parceiro.id)}
+                      />
+                      <span className="text-sm">{parceiro.nome}</span>
                     </label>
                   ))
                 )}

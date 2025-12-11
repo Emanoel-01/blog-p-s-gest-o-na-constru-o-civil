@@ -98,6 +98,22 @@ export default function ParceirosPage() {
         </div>
       )}
 
+      {/* Seção Quero ser Parceiro */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 sm:p-8 border-2 border-green-300 mt-8 sm:mt-12 text-center">
+        <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+          Quero ser Parceiro
+        </h3>
+        <p className="text-gray-700 text-sm sm:text-base mb-6 max-w-2xl mx-auto leading-relaxed">
+          Conecte-se com o Coordenador e a ESUDA. Descubra oportunidades de parceria, receba análises personalizadas e inicie colaborações estratégicas.
+        </p>
+        <a href="https://parcerias-esuda-amorimtech.base44.app" target="_blank" rel="noopener noreferrer">
+          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-8 text-lg">
+            <Handshake className="w-5 h-5 mr-2" />
+            Iniciar Parceria
+          </Button>
+        </a>
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
         <Link to={createPageUrl('ProfessoresPage')} className="w-full sm:w-auto">
           <Button variant="outline" className="border-gray-300 w-full sm:w-auto">

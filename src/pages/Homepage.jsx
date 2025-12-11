@@ -496,32 +496,6 @@ export default function Homepage() {
         </Card>
       </div>
 
-      {/* Dúvidas Frequentes */}
-      <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 border border-gray-200">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 text-center mb-6 sm:mb-8 px-2">
-          ❓ Dúvidas Frequentes
-        </h2>
-        
-        <div className="max-w-3xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-2 sm:space-y-3">
-            {faqs.map((faq, index) => (
-              <AccordionItem 
-                key={index} 
-                value={`item-${index}`}
-                className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden"
-              >
-                <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4 md:py-5">
-                  {faq.q}
-                </AccordionTrigger>
-                <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4 md:pb-5">
-                  {faq.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </div>
-
       {/* CTA Final */}
       <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl sm:rounded-2xl p-5 sm:p-6 md:p-8 lg:p-10 text-center text-white">
         <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 px-2">

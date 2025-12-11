@@ -23,8 +23,8 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
       return 'bg-red-100 text-red-800 border-red-300';
     }
     
-    // Disciplinas comuns por modalidade
-    if (aula.tipo === 'Presencial') {
+    // Disciplinas comuns por modalidade (agrupadas)
+    if (aula.isCommon || aula.tipo === 'Presencial') {
       return 'bg-blue-100 text-blue-800 border-blue-300';
     }
     if (aula.tipo === 'EAD') {
@@ -59,11 +59,11 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
                 <div className="flex items-start justify-between mb-3">
                   <Badge className={`${getTipoColor(aula)} border font-semibold`}>
                     {['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo) 
-                      ? 'Sem Aula' 
-                      : aula.tipo === 'Presencial' 
-                        ? 'Presencial/Remoto'
+                      ? 'Sem Aula'
+                      : aula.isCommon || aula.tipo === 'Presencial'
+                        ? 'Presencial/Remoto - Todos os Cursos'
                         : aula.tipo === 'EAD'
-                          ? 'EAD'
+                          ? 'EAD - Todos os Cursos'
                           : aula.tipo === 'gestao'
                             ? 'Gestão de Projetos'
                             : aula.tipo === 'bim'

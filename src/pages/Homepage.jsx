@@ -409,6 +409,30 @@ export default function Homepage() {
                 </Link>
                 </div>
 
+                {/* Vídeos do Instagram */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="bg-white rounded-lg overflow-hidden shadow-md">
+                  <iframe
+                    src="https://www.instagram.com/reel/DPkKSFJke6X/embed"
+                    className="w-full h-80 sm:h-96"
+                    frameBorder="0"
+                    scrolling="no"
+                    allowTransparency={true}
+                    allow="encrypted-media"
+                  />
+                </div>
+                <div className="bg-white rounded-lg overflow-hidden shadow-md">
+                  <iframe
+                    src="https://www.instagram.com/reel/DPMARgDDhM8/embed"
+                    className="w-full h-80 sm:h-96"
+                    frameBorder="0"
+                    scrolling="no"
+                    allowTransparency={true}
+                    allow="encrypted-media"
+                  />
+                </div>
+                </div>
+
                 {/* Vídeos do LinkedIn */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div className="bg-white rounded-lg overflow-hidden shadow-md">
@@ -427,28 +451,6 @@ export default function Homepage() {
                     frameBorder="0"
                     allowFullScreen={true}
                     title="Publicação incorporada"
-                  />
-                </div>
-                </div>
-
-                {/* Vídeos do LinkedIn */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                <div className="bg-white rounded-lg overflow-hidden shadow-md">
-                  <iframe
-                    src="https://www.linkedin.com/embed/feed/update/urn:li:share:7371274966136512512"
-                    className="w-full h-80 sm:h-96"
-                    frameBorder="0"
-                    allowFullScreen={true}
-                    title="Post do LinkedIn"
-                  />
-                </div>
-                <div className="bg-white rounded-lg overflow-hidden shadow-md">
-                  <iframe
-                    src="https://www.linkedin.com/embed/feed/update/urn:li:share:7386641218434351104"
-                    className="w-full h-80 sm:h-96"
-                    frameBorder="0"
-                    allowFullScreen={true}
-                    title="Post do LinkedIn"
                   />
                 </div>
                 </div>

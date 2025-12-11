@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings } from 'lucide-react';
+import Chatbot from '@/components/chatbot/Chatbot';
 
 export default function Layout({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -117,6 +118,8 @@ export default function Layout({ children }) {
           {children}
         </div>
       </main>
+      
+      <Chatbot />
       </div>
     </HelmetProvider>
   );

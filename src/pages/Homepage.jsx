@@ -14,7 +14,8 @@ import {
   ChevronUp,
   ExternalLink,
   Zap,
-  Building2
+  Building2,
+  Lightbulb
 } from 'lucide-react';
 
 export default function Homepage() {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,20 +8,18 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
 import { MessageCircle, X, Send, ChevronRight, ExternalLink } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 export default function Chatbot() {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      type: 'bot',
-      text: 'Olá! 👋 Sou o assistente virtual da ESUDA. Para iniciarmos, por favor me informe seu nome:',
-      timestamp: new Date()
-    }
-  ]);
+  const [conversationId, setConversationId] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [leadInfo, setLeadInfo] = useState({ nome: '', whatsapp: '', collectingName: true, collectingWhatsApp: false });
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const messagesEndRef = useRef(null);
+  const hasInitialized = useRef(false);
   const [userBehavior, setUserBehavior] = useState({
     currentPage: window.location.pathname,
     timeOnPage: 0,

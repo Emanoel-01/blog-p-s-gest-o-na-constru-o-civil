@@ -248,9 +248,16 @@ export default function ROIDashboard({
                       <div className="bg-gray-50 p-4 rounded-lg border">
                         <div className="flex items-center gap-1 mb-1">
                           <p className="text-xs text-gray-600">Investimento Total</p>
-                          <TooltipUI>
+                          <TooltipUI open={openTooltips[`${projeto.id}-inv`]} onOpenChange={(open) => setOpenTooltips({...openTooltips, [`${projeto.id}-inv`]: open})}>
                            <TooltipTrigger asChild>
-                             <button className="w-4 h-4 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors">
+                             <button 
+                               type="button"
+                               onClick={(e) => {
+                                 e.preventDefault();
+                                 setOpenTooltips({...openTooltips, [`${projeto.id}-inv`]: !openTooltips[`${projeto.id}-inv`]});
+                               }}
+                               className="w-4 h-4 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors"
+                             >
                                <Info className="w-3 h-3 text-white" />
                              </button>
                            </TooltipTrigger>
@@ -273,9 +280,16 @@ export default function ROIDashboard({
                       <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                         <div className="flex items-center gap-1 mb-1">
                           <p className="text-xs text-green-700">Ganho Total Agregado</p>
-                          <TooltipUI>
+                          <TooltipUI open={openTooltips[`${projeto.id}-ganho`]} onOpenChange={(open) => setOpenTooltips({...openTooltips, [`${projeto.id}-ganho`]: open})}>
                             <TooltipTrigger asChild>
-                              <button className="w-4 h-4 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors">
+                              <button 
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setOpenTooltips({...openTooltips, [`${projeto.id}-ganho`]: !openTooltips[`${projeto.id}-ganho`]});
+                                }}
+                                className="w-4 h-4 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors"
+                              >
                                 <Info className="w-3 h-3 text-white" />
                               </button>
                             </TooltipTrigger>
@@ -309,9 +323,16 @@ export default function ROIDashboard({
                           <p className={`text-xs ${roi.roiPercentual >= 0 ? 'text-emerald-700' : 'text-red-700'}`}>
                             ROI Financeiro
                           </p>
-                          <TooltipUI>
+                          <TooltipUI open={openTooltips[`${projeto.id}-roi`]} onOpenChange={(open) => setOpenTooltips({...openTooltips, [`${projeto.id}-roi`]: open})}>
                             <TooltipTrigger asChild>
-                              <button className="w-4 h-4 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors">
+                              <button 
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setOpenTooltips({...openTooltips, [`${projeto.id}-roi`]: !openTooltips[`${projeto.id}-roi`]});
+                                }}
+                                className="w-4 h-4 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors"
+                              >
                                 <Info className="w-3 h-3 text-white" />
                               </button>
                             </TooltipTrigger>

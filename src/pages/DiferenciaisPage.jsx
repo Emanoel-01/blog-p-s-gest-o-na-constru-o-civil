@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 import { CheckCircle, ArrowRight } from 'lucide-react';
@@ -27,10 +28,23 @@ export default function DiferenciaisPage() {
   ];
 
   return (
-    <div className="px-2 sm:px-4">
-      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">
-        PRINCIPAIS DIFERENCIAIS
-      </h2>
+    <>
+      <Helmet>
+        <title>Diferenciais ESUDA | Pós-Graduação com Tecnologia 4.0 e Incubadora Profissional</title>
+        <meta name="description" content="Conheça os diferenciais da pós-graduação ESUDA: estrutura modular, Construção 4.0, incubadora profissional, laboratório de tecnologia e corpo docente de mercado." />
+        <meta name="keywords" content="diferenciais ESUDA, construção 4.0, BIM, incubadora profissional, tecnologia construção civil, laboratório inovação" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/DiferenciaisPage" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Diferenciais ESUDA | Tecnologia 4.0 e Inovação" />
+        <meta property="og:description" content="Estrutura modular, incubadora profissional e foco em Construção 4.0. Conheça o que torna a ESUDA única." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/DiferenciaisPage" />
+      </Helmet>
+      
+      <div className="px-2 sm:px-4">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">
+          PRINCIPAIS DIFERENCIAIS
+        </h1>
       <p className="text-gray-600 mb-4 sm:mb-6 text-justify text-sm sm:text-base">
         Conheça o que torna nossas pós-graduações únicas e alinhadas com as demandas do mercado.
       </p>
@@ -86,5 +100,6 @@ export default function DiferenciaisPage() {
         </Link>
       </div>
     </div>
+    </>
   );
 }

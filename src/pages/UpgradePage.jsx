@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { createPageUrl } from '@/utils';
@@ -7,9 +8,22 @@ import { CheckCircle, ArrowRight, Handshake } from 'lucide-react';
 
 export default function UpgradePage() {
   return (
-    <div className="px-2 sm:px-4">
-      <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 text-center leading-tight">
-        O Futuro da Construção Civil não é dos Generalistas. <br className="hidden sm:block"/>É dos <span className="text-green-600">Líderes de Nicho</span>.
+    <>
+      <Helmet>
+        <title>O Upgrade Profissional ESUDA | Da Especialização Técnica à Liderança Estratégica</title>
+        <meta name="description" content="Pós-graduação ESUDA: formando líderes de nicho na Construção Civil. Arquitetura curricular inteligente que une técnica, gestão e tecnologia 4.0. Descubra o upgrade da sua carreira." />
+        <meta name="keywords" content="upgrade profissional engenharia, especialização construção civil, engenheiro empresário, BIM manager, líder construção civil, pós-graduação estratégica" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/UpgradePage" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="O Upgrade Profissional ESUDA | Especialização com Visão de Negócio" />
+        <meta property="og:description" content="O mercado mudou. Descubra como unir especialização técnica com visão estratégica de negócio." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/UpgradePage" />
+      </Helmet>
+      
+      <div className="px-2 sm:px-4">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 text-center leading-tight">
+          O Futuro da Construção Civil não é dos Generalistas. <br className="hidden sm:block"/>É dos <span className="text-green-600">Líderes de Nicho</span>.
       </h2>
 
       <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 sm:p-6 rounded-xl mb-4 sm:mb-6 border-2 border-orange-200">
@@ -370,5 +384,6 @@ export default function UpgradePage() {
         </Link>
       </div>
     </div>
+    </>
   );
 }

@@ -1,19 +1,55 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 import { Linkedin, BookOpen, GraduationCap, Instagram, Globe, ArrowRight } from 'lucide-react';
 
 export default function CoordenadorPage() {
   return (
-    <div className="px-2 sm:px-4">
-      <div className="text-center mb-6 sm:mb-8">
-        <img
-          src="https://i.ibb.co/TDC35Hqf/Emanoel-Silva-de-Amorim.jpg"
-          alt="Emanoel Amorim"
-          className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-green-600 shadow-lg mx-auto mb-3 sm:mb-4"
-        />
-        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 px-2">Meu Perfil: Gestão Estratégica e Tecnologia (Construção 4.0)</h2>
+    <>
+      <Helmet>
+        <title>Emanoel Amorim | Coordenador Pós-Graduação ESUDA em Gestão e Tecnologias na Construção Civil</title>
+        <meta name="description" content="Conheça Emanoel Amorim, Mestre em Engenharia Civil e coordenador das especializações ESUDA. Especialista em BIM, Gestão de Projetos, Construção 4.0 e Incubadora Profissional." />
+        <meta name="keywords" content="Emanoel Amorim, coordenador ESUDA, BIM expert, gestão construção civil, construção 4.0, mestre engenharia civil, Recife" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/CoordenadorPage" />
+        
+        <meta property="og:type" content="profile" />
+        <meta property="og:title" content="Emanoel Amorim | Coordenador ESUDA" />
+        <meta property="og:description" content="Mestre em Engenharia Civil, especialista em Gestão de Projetos e Construção 4.0. Coordenador das especializações ESUDA." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/CoordenadorPage" />
+        <meta property="og:image" content="https://i.ibb.co/TDC35Hqf/Emanoel-Silva-de-Amorim.jpg" />
+        
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            "name": "Emanoel Amorim",
+            "jobTitle": "Coordenador das Especializações em Gestão e Tecnologias na Construção Civil",
+            "affiliation": {
+              "@type": "Organization",
+              "name": "ESUDA"
+            },
+            "description": "Mestre em Engenharia Civil, especialista em BIM, Gestão de Projetos e Construção 4.0",
+            "sameAs": [
+              "https://www.linkedin.com/in/emanoel-amorim-43025b65",
+              "http://lattes.cnpq.br/8865037855941412",
+              "http://researchgate.net/profile/Emanoel-Amorim",
+              "https://www.instagram.com/arquitetura.amorim/",
+              "https://emanoel313.wixsite.com/my-site"
+            ]
+          })}
+        </script>
+      </Helmet>
+      
+      <div className="px-2 sm:px-4">
+        <div className="text-center mb-6 sm:mb-8">
+          <img
+            src="https://i.ibb.co/TDC35Hqf/Emanoel-Silva-de-Amorim.jpg"
+            alt="Emanoel Amorim - Coordenador ESUDA"
+            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-green-600 shadow-lg mx-auto mb-3 sm:mb-4"
+          />
+          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 px-2">Meu Perfil: Gestão Estratégica e Tecnologia (Construção 4.0)</h1>
         <p className="text-base sm:text-lg text-gray-600 mt-2">Emanoel Amorim - Coordenador das Especializações em Gestão e Tecnologias na Construção Civil</p>
       </div>
 
@@ -152,5 +188,6 @@ export default function CoordenadorPage() {
         </Link>
       </div>
     </div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -153,13 +154,39 @@ export default function IncubadoraProfissionalPage() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-8 sm:pb-12 px-2 sm:px-0">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl">
-        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-          <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10" />
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold">Incubadora Profissional</h1>
-        </div>
+    <>
+      <Helmet>
+        <title>Incubadora Profissional ESUDA | ROI de até 1000% em Projetos Práticos de Construção Civil</title>
+        <meta name="description" content="Projeto Incubadora Profissional ESUDA: alunos aplicam conhecimentos em projetos reais com ROI comprovado de até 1000%. Eventos, artigos, canteiros didáticos e rede de freelancers." />
+        <meta name="keywords" content="incubadora profissional ESUDA, ROI construção civil, projetos práticos engenharia, freelancer construção civil, network alunos ESUDA" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/IncubadoraProfissionalPage" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Incubadora Profissional ESUDA | ROI de até 1000%" />
+        <meta property="og:description" content="Projetos práticos que integram teoria e mercado, com retorno comprovado de investimento para alunos." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/IncubadoraProfissionalPage" />
+        
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "EducationalOrganization",
+            "name": "Incubadora Profissional ESUDA",
+            "description": "Programa de capacitação profissional que integra teoria e prática com ROI comprovado",
+            "parentOrganization": {
+              "@type": "Organization",
+              "name": "ESUDA"
+            }
+          })}
+        </script>
+      </Helmet>
+      
+      <div className="space-y-6 sm:space-y-8 pb-8 sm:pb-12 px-2 sm:px-0">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl">
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10" />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold">Incubadora Profissional</h1>
+          </div>
         <p className="text-teal-50 text-sm sm:text-base md:text-lg">
           Capacitando alunos a integrarem conhecimentos teóricos com a prática do mercado de trabalho
         </p>
@@ -399,5 +426,6 @@ export default function IncubadoraProfissionalPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -132,13 +133,53 @@ export default function DepoimentosPage() {
   };
 
   return (
-    <div className="px-2 sm:px-0">
-      <Breadcrumb />
+    <>
+      <Helmet>
+        <title>Depoimentos ESUDA | Avaliações de Alunos da Pós-Graduação em Construção Civil</title>
+        <meta name="description" content="Leia depoimentos reais de alunos e ex-alunos da pós-graduação ESUDA em Construção Civil. Compartilhe sua experiência e inspire futuros profissionais." />
+        <meta name="keywords" content="depoimentos ESUDA, avaliações pós-graduação, opinião alunos, reviews construção civil, testemunhos ESUDA" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/DepoimentosPage" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Depoimentos ESUDA | O que dizem nossos alunos" />
+        <meta property="og:description" content="Conheça as experiências reais de quem fez a pós-graduação ESUDA em Construção Civil." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/DepoimentosPage" />
+        
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": "Depoimentos de Alunos ESUDA",
+            "description": "Avaliações e depoimentos de alunos da pós-graduação ESUDA",
+            "itemListElement": depoimentos.slice(0, 5).map((dep, index) => ({
+              "@type": "Review",
+              "position": index + 1,
+              "author": {
+                "@type": "Person",
+                "name": dep.nome
+              },
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": dep.avaliacao_estrelas,
+                "bestRating": 5
+              },
+              "reviewBody": dep.depoimento_texto,
+              "itemReviewed": {
+                "@type": "EducationalOrganization",
+                "name": "ESUDA - Pós-Graduação em Construção Civil"
+              }
+            }))
+          })}
+        </script>
+      </Helmet>
       
-      <div className="text-center mb-6 sm:mb-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
-          Deixe seu Depoimento
-        </h1>
+      <div className="px-2 sm:px-0">
+        <Breadcrumb />
+        
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
+            Deixe seu Depoimento
+          </h1>
         <p className="text-gray-600 text-sm sm:text-base max-w-3xl mx-auto">
           Sua opinião é importante. Compartilhe sua experiência e inspire futuros alunos.
         </p>
@@ -298,5 +339,6 @@ export default function DepoimentosPage() {
         </Link>
       </div>
     </div>
+    </>
   );
 }

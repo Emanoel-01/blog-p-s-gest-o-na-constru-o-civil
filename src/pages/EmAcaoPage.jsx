@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -103,19 +104,32 @@ export default function EmAcaoPage() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
-      {selectedImages.length > 0 && (
-        <ImageViewer 
-          images={selectedImages} 
-          initialIndex={selectedImageIndex}
-          onClose={() => setSelectedImages([])} 
-        />
-      )}
+    <>
+      <Helmet>
+        <title>Blog Em Ação ESUDA | Eventos, Workshops e Novidades da Construção Civil</title>
+        <meta name="description" content="Acompanhe eventos, workshops, masterclasses e novidades da comunidade acadêmica ESUDA. Blog com conteúdo sobre Construção Civil, BIM, Gestão de Obras e Tecnologias 4.0." />
+        <meta name="keywords" content="blog construção civil, eventos ESUDA, workshops BIM, masterclasses engenharia, notícias construção civil, comunidade acadêmica" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/EmAcaoPage" />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Blog Em Ação ESUDA | Eventos e Novidades" />
+        <meta property="og:description" content="Fique por dentro dos eventos, workshops e novidades da comunidade ESUDA em Construção Civil." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/EmAcaoPage" />
+      </Helmet>
       
-      <div className="text-center">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
-          Blog Em Ação
-        </h1>
+      <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
+        {selectedImages.length > 0 && (
+          <ImageViewer 
+            images={selectedImages} 
+            initialIndex={selectedImageIndex}
+            onClose={() => setSelectedImages([])} 
+          />
+        )}
+        
+        <div className="text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
+            Blog Em Ação
+          </h1>
         <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-3xl mx-auto mb-4 sm:mb-6">
           Acompanhe eventos, workshops, masterclasses e novidades da nossa comunidade acadêmica
         </p>

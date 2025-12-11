@@ -530,11 +530,14 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                   )}
                   {status === 'AGENDADO' && Object.keys(grouped).map((key, idx) => {
                     const item = grouped[key];
-                    const tipoLabel = item.tipo === 'Presencial' ? 'PRESENCIAL/REMOTO' : 
+                    const isAulaEspecial = item.discipline === 'Aula Especial';
+                    const tipoLabel = isAulaEspecial ? 'AULA ESPECIAL' :
+                                     item.tipo === 'Presencial' ? 'PRESENCIAL/REMOTO' : 
                                      item.tipo === 'EAD' ? 'EAD' : 'ESPECÍFICA';
                     return (
                       <div key={idx} className="mb-1">
                         <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                          isAulaEspecial ? 'bg-amber-100 text-amber-800' :
                           item.tipo === 'Presencial' ? 'bg-blue-100 text-blue-800' :
                           item.tipo === 'EAD' ? 'bg-green-100 text-green-800' :
                           'bg-amber-100 text-amber-800'
@@ -559,14 +562,19 @@ export default function AdminScheduleTemplate({ professores, ciclos, onRefresh }
                     const obs = aula.observacoes || '';
                     const isDia1 = obs.includes('1º Dia');
                     const prof = professores.find(p => p.id === aula.professor_id);
+                    const isAulaEspecial = aula.disciplina_nome === 'Aula Especial';
                     return (
                       <div key={idx} className="mb-1 p-2 rounded-md bg-white border border-gray-200 group hover:shadow-sm transition-shadow">
                         <div className="flex justify-between items-start gap-2">
                           <div className="flex-1 min-w-0">
-                            <span className="text-sm font-semibold text-slate-800 block truncate">{aula.disciplina_nome}</span>
-                            <span className="text-xs text-slate-500 block">
-                              Prof: {prof?.nome.split(' ')[0] || 'Não definido'} {isDia1 ? '(1º)' : '(2º)'}
+                            <span className="text-sm font-semibold text-slate-800 block truncate">
+                              {isAulaEspecial ? (obs.length > 50 ? obs.substring(0, 50) + '...' : obs) : aula.disciplina_nome}
                             </span>
+                            {!isAulaEspecial && (
+                              <span className="text-xs text-slate-500 block">
+                                Prof: {prof?.nome.split(' ')[0] || 'Não definido'} {isDia1 ? '(1º)' : '(2º)'}
+                              </span>
+                            )}
                           </div>
                           <div className="flex gap-1">
                             {isDia1 && (

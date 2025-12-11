@@ -30,6 +30,11 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
   ];
 
   const getTipoColor = (aula) => {
+    // Aula especial
+    if (aula.disciplina_nome === 'Aula Especial') {
+      return 'bg-amber-100 text-amber-800 border-amber-300';
+    }
+
     // Sem aula
     if (['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo)) {
       return 'bg-red-100 text-red-800 border-red-300';
@@ -75,23 +80,25 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <Badge className={`${getTipoColor(aula)} border font-semibold`}>
-                    {['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo) 
-                      ? 'FERIADO'
-                      : eadDisciplines.includes(aula.disciplina_nome)
-                        ? 'EAD - Todos os Cursos'
-                        : aula.isCommon || aula.tipo === 'Presencial'
-                          ? 'Presencial/Remoto - Todos os Cursos'
-                          : aula.tipo === 'EAD'
-                            ? 'EAD - Todos os Cursos'
-                            : aula.tipo === 'gestao'
-                              ? 'Gestão de Projetos'
-                              : aula.tipo === 'bim'
-                                ? 'Tecnologia BIM'
-                                : aula.tipo === 'manutencao'
-                                  ? 'Manutenção'
-                                  : aula.tipo === 'legal'
-                                    ? 'Engenharia Legal'
-                                    : aula.tipo
+                    {aula.disciplina_nome === 'Aula Especial'
+                      ? 'AULA ESPECIAL'
+                      : ['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo) 
+                        ? 'FERIADO'
+                        : eadDisciplines.includes(aula.disciplina_nome)
+                          ? 'EAD - Todos os Cursos'
+                          : aula.isCommon || aula.tipo === 'Presencial'
+                            ? 'Presencial/Remoto - Todos os Cursos'
+                            : aula.tipo === 'EAD'
+                              ? 'EAD - Todos os Cursos'
+                              : aula.tipo === 'gestao'
+                                ? 'Gestão de Projetos'
+                                : aula.tipo === 'bim'
+                                  ? 'Tecnologia BIM'
+                                  : aula.tipo === 'manutencao'
+                                    ? 'Manutenção'
+                                    : aula.tipo === 'legal'
+                                      ? 'Engenharia Legal'
+                                      : aula.tipo
                     }
                   </Badge>
                   {aula.horario_inicio && aula.horario_fim && (
@@ -106,7 +113,7 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
                   <div className="mb-3">
                     <h4 className="font-bold text-gray-900 text-lg flex items-center gap-2">
                       <BookOpen className="w-5 h-5 text-blue-600" />
-                      {aula.disciplina_nome}
+                      {aula.disciplina_nome === 'Aula Especial' ? 'Aula Especial' : aula.disciplina_nome}
                     </h4>
                   </div>
                 )}

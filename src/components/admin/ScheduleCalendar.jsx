@@ -46,6 +46,13 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
     aulas.forEach((aula, index) => {
       if (processed.has(index)) return;
       
+      // Aulas especiais não devem ser agrupadas
+      if (aula.disciplina_nome === 'Aula Especial') {
+        processed.add(index);
+        grouped.push(aula);
+        return;
+      }
+      
       // Verificar se é disciplina comum (Presencial ou EAD)
       if (aula.tipo === 'Presencial' || aula.tipo === 'EAD') {
         // Encontrar todas as aulas iguais (mesma disciplina, professor, data e tipo)
@@ -79,6 +86,11 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
   };
 
   const getTipoColor = (aula) => {
+    // Aula especial
+    if (aula.disciplina_nome === 'Aula Especial') {
+      return 'bg-amber-600 hover:bg-amber-700';
+    }
+
     // Se for feriado ou sem aula
     if (['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo)) {
       return 'bg-red-600 hover:bg-red-700';
@@ -146,13 +158,16 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
           <div className="space-y-1">
             {groupedAulas.slice(0, 3).map((aula, idx) => {
               const isFeriado = ['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo);
-              const displayText = isFeriado ? 'FERIADO' : (aula.disciplina_nome || aula.tipo);
+              const isAulaEspecial = aula.disciplina_nome === 'Aula Especial';
+              const displayText = isFeriado ? 'FERIADO' : 
+                                 isAulaEspecial ? (aula.observacoes?.substring(0, 20) || 'Aula Especial') :
+                                 (aula.disciplina_nome || aula.tipo);
               
               return (
                 <div
                   key={idx}
                   className={`text-[10px] sm:text-xs px-1 py-0.5 rounded text-white truncate ${getTipoColor(aula)}`}
-                  title={aula.disciplina_nome || aula.tipo}
+                  title={isAulaEspecial ? aula.observacoes : (aula.disciplina_nome || aula.tipo)}
                 >
                   {displayText}
                 </div>
@@ -201,6 +216,7 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
       <div className="mt-4 flex flex-wrap gap-2 sm:gap-3 justify-center text-xs sm:text-sm">
         <Badge className="bg-blue-600 text-white">Presencial/Remoto</Badge>
         <Badge className="bg-green-600 text-white">EAD</Badge>
+        <Badge className="bg-amber-600 text-white">Aula Especial</Badge>
         <Badge className="bg-red-600 text-white">Sem Aula</Badge>
         <Badge className="bg-orange-500 text-white">Gestão</Badge>
         <Badge className="bg-cyan-500 text-white">BIM</Badge>

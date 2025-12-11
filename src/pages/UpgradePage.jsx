@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { createPageUrl } from '@/utils';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, Handshake } from 'lucide-react';
 
 export default function UpgradePage() {
   return (
@@ -156,6 +157,193 @@ export default function UpgradePage() {
         <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
           <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
           <span className="text-xs sm:text-sm">Termografia e Drones</span>
+        </div>
+      </div>
+
+      {/* Dúvidas Frequentes */}
+      <div className="bg-gray-50 rounded-xl p-4 sm:p-6 md:p-8 border border-gray-200 mt-8 sm:mt-12">
+        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 text-center mb-6 sm:mb-8">
+          ❓ Dúvidas Frequentes
+        </h3>
+        
+        <div className="max-w-3xl mx-auto">
+          <Accordion type="single" collapsible className="space-y-2 sm:space-y-3">
+            <AccordionItem value="item-1" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                Estou em dúvida entre dois cursos. Qual escolher?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                Não precisa escolher um só. Faça o primeiro e ganhe 50% de desconto no segundo. Além disso, você elimina todas as matérias comuns e termina a segunda especialização na metade do tempo.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-2" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                Qual a diferença entre Manutenção Predial e Engenharia Legal?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                O foco de atuação. Escolha Manutenção Predial se quer trabalhar com gestão de facilities, reparos, drones e condomínios. Escolha Engenharia Legal se quer ser Perito Judicial, avaliar imóveis para bancos ou trabalhar com regularização e usucapião.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-3" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                O curso é online ou presencial?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                É Híbrido Inteligente. As matérias de Gestão são EAD (flexibilidade). As matérias Técnicas são 100% Presenciais (prática real e networking).
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-4" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                Moro em outra cidade. Consigo fazer?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                Sim. A transmissão é ao vivo com qualidade garantida. E o melhor: se você mora a mais de 70km de distância, tem 50% DE DESCONTO na mensalidade.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-5" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                E se eu perder uma aula no sábado?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                Sem problemas. Todas as aulas são gravadas. Se faltar, você assiste ao vídeo na plataforma e não perde nenhum conteúdo.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-6" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                O TCC é obrigatório?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                Não. O TCC é OPCIONAL e GRATUITO. Se quiser fazer, terá orientação para publicar um artigo. Se não quiser, recebe o título de especialista da mesma forma.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-7" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                Sou ex-aluno da ESUDA. Tenho desconto?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                Sim. Se parcelar em 10x, a sua matrícula (1ª parcela) é GRÁTIS.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-8" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                Se eu indicar um amigo, ganho algo?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                Ganha dinheiro no bolso. Pelo programa "Quem Indica Amigo É", se ele se matricular, a sua última mensalidade é GRÁTIS.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-9" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                Vou aprender softwares de verdade?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                Sim, foco total na prática. Você vai operar ferramentas como Sienge, Power BI, MS Project, Navisworks, Solibri e Sensores IoT, dependendo do curso escolhido.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-10" className="bg-white rounded-lg border-2 border-gray-200 px-3 sm:px-4 md:px-5 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-xs sm:text-sm md:text-base hover:no-underline py-3 sm:py-4">
+                Qual a duração do curso?
+              </AccordionTrigger>
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm md:text-base leading-relaxed pb-3 sm:pb-4">
+                São apenas 10 meses. É um formato intensivo para acelerar sua carreira.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      </div>
+
+      {/* Seção Quero ser Parceiro */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 sm:p-8 border-2 border-green-300 mt-8 sm:mt-12">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-2">
+            <Handshake className="w-7 h-7 text-green-600" />
+            Quero ser Parceiro
+          </h3>
+          <p className="text-gray-700 text-sm sm:text-base mb-6 max-w-2xl mx-auto leading-relaxed">
+            Conecte-se com o Coordenador e a ESUDA. Descubra oportunidades de parceria, receba análises personalizadas e inicie colaborações estratégicas.
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl p-4 sm:p-6 border border-green-200 mb-6">
+          <h4 className="font-bold text-gray-800 mb-4 text-center text-base sm:text-lg">
+            Tipos de Parceria Disponíveis:
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Canteiros Didáticos</p>
+                <p className="text-xs text-gray-600">Espaços práticos de aprendizado</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Workshops</p>
+                <p className="text-xs text-gray-600">Eventos técnicos especializados</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 bg-purple-50 p-3 rounded-lg border border-purple-200">
+              <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Masterclasses</p>
+                <p className="text-xs text-gray-600">Aulas com especialistas renomados</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 bg-orange-50 p-3 rounded-lg border border-orange-200">
+              <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Contratação de Alunos</p>
+                <p className="text-xs text-gray-600">Acesso ao nosso talento qualificado</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 bg-teal-50 p-3 rounded-lg border border-teal-200">
+              <CheckCircle className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Incubadora Profissional</p>
+                <p className="text-xs text-gray-600">Projetos práticos com alunos</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 bg-indigo-50 p-3 rounded-lg border border-indigo-200">
+              <CheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Licença Educacional</p>
+                <p className="text-xs text-gray-600">Softwares e ferramentas</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 bg-pink-50 p-3 rounded-lg border border-pink-200">
+              <CheckCircle className="w-5 h-5 text-pink-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Convênios Corporativos</p>
+                <p className="text-xs text-gray-600">Descontos para colaboradores</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 bg-amber-50 p-3 rounded-lg border border-amber-200">
+              <CheckCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">Seja Professor</p>
+                <p className="text-xs text-gray-600">Compartilhe seu conhecimento</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <a href="https://parcerias-esuda-amorimtech.base44.app" target="_blank" rel="noopener noreferrer">
+            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-8 text-base sm:text-lg">
+              <Handshake className="w-5 h-5 mr-2" />
+              Iniciar Parceria
+            </Button>
+          </a>
         </div>
       </div>
 

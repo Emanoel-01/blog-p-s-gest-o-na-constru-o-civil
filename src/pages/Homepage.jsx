@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
@@ -64,51 +63,6 @@ export default function Homepage() {
       return networkActivities;
     }
   });
-
-
-
-  const faqs = [
-    {
-      q: "Estou em dúvida entre dois cursos. Qual escolher?",
-      a: "Não precisa escolher um só. Faça o primeiro e ganhe 50% de desconto no segundo. Além disso, você elimina todas as matérias comuns e termina a segunda especialização na metade do tempo."
-    },
-    {
-      q: "Qual a diferença entre Manutenção Predial e Engenharia Legal?",
-      a: "O foco de atuação. Escolha Manutenção Predial se quer trabalhar com gestão de facilities, reparos, drones e condomínios. Escolha Engenharia Legal se quer ser Perito Judicial, avaliar imóveis para bancos ou trabalhar com regularização e usucapião."
-    },
-    {
-      q: "O curso é online ou presencial?",
-      a: "É Híbrido Inteligente. As matérias de Gestão são EAD (flexibilidade). As matérias Técnicas são 100% Presenciais (prática real e networking)."
-    },
-    {
-      q: "Moro em outra cidade. Consigo fazer?",
-      a: "Sim. A transmissão é ao vivo com qualidade garantida. E o melhor: se você mora a mais de 70km de distância, tem 50% DE DESCONTO na mensalidade."
-    },
-    {
-      q: "E se eu perder uma aula no sábado?",
-      a: "Sem problemas. Todas as aulas são gravadas. Se faltar, você assiste ao vídeo na plataforma e não perde nenhum conteúdo."
-    },
-    {
-      q: "O TCC é obrigatório?",
-      a: "Não. O TCC é OPCIONAL e GRATUITO. Se quiser fazer, terá orientação para publicar um artigo. Se não quiser, recebe o título de especialista da mesma forma."
-    },
-    {
-      q: "Sou ex-aluno da ESUDA. Tenho desconto?",
-      a: "Sim. Se parcelar em 10x, a sua matrícula (1ª parcela) é GRÁTIS."
-    },
-    {
-      q: "Se eu indicar um amigo, ganho algo?",
-      a: "Ganha dinheiro no bolso. Pelo programa 'Quem Indica Amigo É', se ele se matricular, a sua última mensalidade é GRÁTIS."
-    },
-    {
-      q: "Vou aprender softwares de verdade?",
-      a: "Sim, foco total na prática. Você vai operar ferramentas como Sienge, Power BI, MS Project, Navisworks, Solibri e Sensores IoT, dependendo do curso escolhido."
-    },
-    {
-      q: "Qual a duração do curso?",
-      a: "São apenas 10 meses. É um formato intensivo para acelerar sua carreira."
-    }
-  ];
 
 
 

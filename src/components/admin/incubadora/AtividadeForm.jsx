@@ -140,8 +140,18 @@ export default function AtividadeForm({ tipo, projetos, onSuccess }) {
       case 'FreelancerNetwork':
         return (
           <>
-            <Input placeholder="Nome da Atividade" value={formData.nome_atividade || ''} 
+            <Input placeholder="Nome da Atividade / Cargo" value={formData.nome_atividade || ''} 
               onChange={(e) => setFormData({ ...formData, nome_atividade: e.target.value })} required />
+            <Select value={formData.tipo || 'Freelancer'} onValueChange={(value) => setFormData({ ...formData, tipo: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de Vínculo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Freelancer">Freelancer</SelectItem>
+                <SelectItem value="Empregado">Empregado</SelectItem>
+                <SelectItem value="Contratado">Contratado</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={formData.aluno_id || ''} onValueChange={(value) => setFormData({ ...formData, aluno_id: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Aluno Responsável" />

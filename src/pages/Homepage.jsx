@@ -34,27 +34,37 @@ export default function Homepage() {
       
       const projetoIds = incubadoraProjetos.map(p => p.id);
       
-      const [eventos, artigos, canteiros, freelancers, relatorios, producoes] = await Promise.all([
+      const [eventos, artigos, canteiros, freelancers, relatorios, producoes, discentes] = await Promise.all([
         base44.entities.Evento.list('-data'),
         base44.entities.ArtigoCientifico.list('-data_publicacao'),
         base44.entities.CanteiroDidatico.list('-data'),
         base44.entities.FreelancerNetwork.list('-data'),
         base44.entities.RelatorioTecnico.list('-data'),
-        base44.entities.ProducaoTecnologica.list('-data')
+        base44.entities.ProducaoTecnologica.list('-data'),
+        base44.entities.Discente.list('nome')
       ]);
       
       const allActivities = [
         ...eventos.filter(e => projetoIds.includes(e.projeto_id)).map(e => ({ ...e, type: 'Evento', date: e.data })),
         ...artigos.filter(a => projetoIds.includes(a.projeto_id)).map(a => ({ ...a, type: 'Artigo', date: a.data_publicacao })),
         ...canteiros.filter(c => projetoIds.includes(c.projeto_id)).map(c => ({ ...c, type: 'Canteiro', date: c.data })),
-        ...freelancers.filter(f => projetoIds.includes(f.projeto_id)).map(f => ({ ...f, type: 'Freelancer', date: f.data })),
+        ...freelancers.filter(f => projetoIds.includes(f.projeto_id)).map(f => {
+          const aluno = discentes.find(d => d.id === f.aluno_id);
+          return { 
+            ...f, 
+            type: f.tipo || 'Freelancer', 
+            date: f.data,
+            aluno_foto: aluno?.foto_url,
+            aluno_nome: aluno?.nome
+          };
+        }),
         ...relatorios.filter(r => projetoIds.includes(r.projeto_id)).map(r => ({ ...r, type: 'Relatório', date: r.data })),
         ...producoes.filter(p => projetoIds.includes(p.projeto_id)).map(p => ({ ...p, type: 'Produção', date: p.data }))
       ];
       
       return allActivities
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 2);
+        .slice(0, 4);
     }
   });
 
@@ -163,14 +173,14 @@ export default function Homepage() {
                 </svg>
               </div>
               <h3 className="text-2xl font-extrabold text-gray-900">
-                Maior ROI do Brasil
+                Curso com Maior Retorno ao Aluno
               </h3>
             </div>
             <p className="text-center text-gray-700 text-base max-w-2xl mx-auto leading-relaxed">
-              Nossos alunos já geraram <span className="font-bold text-green-700">mais de R$ 500 mil</span> em renda adicional através das atividades da Incubadora Profissional. <span className="font-bold text-teal-700">ROI médio comprovado de 120%.</span>
+              O programa que mais gera retorno financeiro e de conhecimento aos alunos. <span className="font-bold text-green-700">Antes do final do curso, nossos alunos já recuperam o valor investido</span> através de oportunidades reais de trabalho e projetos práticos.
             </p>
             <p className="text-center text-sm text-gray-600 mt-2 italic">
-              *Dados rastreáveis apenas do Projeto de Incubadora. ROI real pode ser ainda maior.
+              *Dados rastreáveis comprovam retorno em atividades práticas, freelancing e contratações.
             </p>
           </div>
           
@@ -183,11 +193,33 @@ export default function Homepage() {
               const title = activity.nome_evento || activity.titulo_artigo || activity.nome_canteiro || 
                            activity.nome_atividade || activity.titulo_relatorio || activity.titulo_producao;
               
+              const isFreelancer = ['Freelancer', 'Empregado', 'Contratado'].includes(activity.type);
+              
               return (
                 <Link key={idx} to={createPageUrl('IncubadoraProfissionalPage')}>
                   <Card className="h-full bg-white border-2 border-teal-200 hover:border-teal-400 hover:shadow-xl transition-all">
                     <CardContent className="p-5">
-                      <Badge className="bg-teal-100 text-teal-800 mb-3">{activity.type}</Badge>
+                      <div className="flex items-start gap-3 mb-3">
+                        {isFreelancer && activity.aluno_foto ? (
+                          <img 
+                            src={activity.aluno_foto} 
+                            alt={activity.aluno_nome} 
+                            className="w-12 h-12 rounded-full object-cover border-2 border-teal-300"
+                          />
+                        ) : null}
+                        <div className="flex-1">
+                          <Badge className={`mb-2 ${
+                            activity.type === 'Empregado' ? 'bg-green-100 text-green-800' :
+                            activity.type === 'Contratado' ? 'bg-blue-100 text-blue-800' :
+                            'bg-teal-100 text-teal-800'
+                          }`}>
+                            {activity.type}
+                          </Badge>
+                          {isFreelancer && activity.aluno_nome && (
+                            <p className="text-xs text-gray-600 font-semibold mb-1">{activity.aluno_nome}</p>
+                          )}
+                        </div>
+                      </div>
                       <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2">{title}</h3>
                       <p className="text-sm text-gray-600 mb-3 line-clamp-3">{activity.resumo}</p>
                       <p className="text-xs text-gray-500">{activity.date}</p>

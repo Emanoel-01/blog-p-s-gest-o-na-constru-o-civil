@@ -297,7 +297,7 @@ export default function ROIDashboard({
                     <div className="bg-orange-50 p-3 rounded-lg border border-orange-200 text-center">
                       <Briefcase className="w-6 h-6 text-orange-600 mx-auto mb-1" />
                       <p className="text-2xl font-bold text-orange-700">{roi.totalFreelancers}</p>
-                      <p className="text-xs text-gray-600">Freelancers</p>
+                      <p className="text-xs text-gray-600">Network</p>
                     </div>
                     <div className="bg-cyan-50 p-3 rounded-lg border border-cyan-200 text-center">
                       <FileText className="w-6 h-6 text-cyan-600 mx-auto mb-1" />

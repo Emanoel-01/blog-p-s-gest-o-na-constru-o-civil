@@ -282,6 +282,11 @@ export default function AdminPage() {
     queryFn: () => base44.entities.PerguntaSemResposta.list('-created_date')
   });
 
+  const { data: depoimentos = [] } = useQuery({
+    queryKey: ['admin-depoimentos'],
+    queryFn: () => base44.entities.Depoimento.list('-created_date')
+  });
+
   // Auto-calcular carga horária quando ciclos mudam
   useEffect(() => {
     if (especForm.ciclos.length > 0 && ciclos.length > 0) {
@@ -4877,6 +4882,7 @@ Seja detalhado, prático e objetivo na análise.`;
           leads={leads}
           comentarios={comentarios}
           perguntasSemResposta={perguntasSemResposta}
+          depoimentos={depoimentos}
           onNavigate={(tab) => setActiveTab(tab)}
         />
       </div>
@@ -4995,6 +5001,11 @@ Seja detalhado, prático e objetivo na análise.`;
           className={activeTab === 'depoimentos' ? 'bg-yellow-600' : ''}
         >
           Depoimentos
+          {depoimentos.filter(d => d.status === 'Pendente').length > 0 && (
+            <Badge className="ml-2 bg-red-500 text-white">
+              {depoimentos.filter(d => d.status === 'Pendente').length}
+            </Badge>
+          )}
         </Button>
       </div>
 

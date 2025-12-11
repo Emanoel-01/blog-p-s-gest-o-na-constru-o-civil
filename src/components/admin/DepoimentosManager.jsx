@@ -29,6 +29,14 @@ export default function DepoimentosManager() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Depoimento.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-depoimentos']);
+      toast.success('Depoimento deletado!');
+    },
+  });
+
   const handleApprove = (dep) => {
     updateMutation.mutate({ id: dep.id, data: { status: 'Aprovado' } });
   };
@@ -50,6 +58,12 @@ export default function DepoimentosManager() {
 
   const handleSaveEdit = () => {
     updateMutation.mutate({ id: editingDep.id, data: editForm });
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('Tem certeza que deseja deletar este depoimento?')) {
+      deleteMutation.mutate(id);
+    }
   };
 
   const pendentes = depoimentos.filter(d => d.status === 'Pendente');
@@ -135,7 +149,7 @@ export default function DepoimentosManager() {
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {dep.status !== 'Aprovado' && (
                 <Button onClick={() => handleApprove(dep)} size="sm" className="bg-green-600 hover:bg-green-700">
                   <Check className="w-4 h-4 mr-1" /> Aprovar
@@ -148,6 +162,9 @@ export default function DepoimentosManager() {
               )}
               <Button onClick={() => handleEdit(dep)} size="sm" variant="outline">
                 <Edit className="w-4 h-4 mr-1" /> Editar
+              </Button>
+              <Button onClick={() => handleDelete(dep.id)} size="sm" variant="destructive">
+                <Trash2 className="w-4 h-4 mr-1" /> Deletar
               </Button>
             </div>
           </CardContent>

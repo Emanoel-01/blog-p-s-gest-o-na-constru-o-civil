@@ -110,12 +110,12 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
       return 'bg-green-600 hover:bg-green-700';
     }
 
-    // Para disciplinas específicas, usar cores neutras
+    // Para disciplinas específicas, usar cores distintas
     switch(aula.tipo) {
-      case 'gestao': return 'bg-gray-500 hover:bg-gray-600';
-      case 'bim': return 'bg-gray-600 hover:bg-gray-700';
-      case 'manutencao': return 'bg-gray-700 hover:bg-gray-800';
-      case 'legal': return 'bg-gray-800 hover:bg-gray-900';
+      case 'gestao': return 'bg-orange-500 hover:bg-orange-600';
+      case 'bim': return 'bg-cyan-500 hover:bg-cyan-600';
+      case 'manutencao': return 'bg-teal-600 hover:bg-teal-700';
+      case 'legal': return 'bg-purple-600 hover:bg-purple-700';
       default: return 'bg-gray-400 hover:bg-gray-500';
     }
   };
@@ -202,10 +202,10 @@ export default function ScheduleCalendar({ cronograma, professores, ciclos, onDa
         <Badge className="bg-blue-600 text-white">Presencial/Remoto</Badge>
         <Badge className="bg-green-600 text-white">EAD</Badge>
         <Badge className="bg-red-600 text-white">Sem Aula</Badge>
-        <Badge className="bg-gray-500 text-white">Gestão</Badge>
-        <Badge className="bg-gray-600 text-white">BIM</Badge>
-        <Badge className="bg-gray-700 text-white">Manutenção</Badge>
-        <Badge className="bg-gray-800 text-white">Engenharia Legal</Badge>
+        <Badge className="bg-orange-500 text-white">Gestão</Badge>
+        <Badge className="bg-cyan-500 text-white">BIM</Badge>
+        <Badge className="bg-teal-600 text-white">Manutenção</Badge>
+        <Badge className="bg-purple-600 text-white">Engenharia Legal</Badge>
       </div>
     </div>
   );

@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ROIDashboard from '../components/incubadora/ROIDashboard';
 import { 
   Target, 
   Lightbulb, 
@@ -163,8 +165,37 @@ export default function IncubadoraProfissionalPage() {
         </p>
       </div>
 
-      {/* Conteúdo Fixo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Tabs para ROI e Atividades */}
+      <Tabs defaultValue="roi" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+          <TabsTrigger value="roi" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            ROI e Métricas
+          </TabsTrigger>
+          <TabsTrigger value="atividades" className="flex items-center gap-2">
+            <Award className="w-4 h-4" />
+            Atividades
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Aba de ROI */}
+        <TabsContent value="roi" className="mt-6">
+          <ROIDashboard
+            projetos={projetos}
+            eventos={eventos}
+            artigos={artigos}
+            canteiros={canteiros}
+            freelancers={freelancers}
+            relatorios={relatorios}
+            producoes={producoes}
+          />
+        </TabsContent>
+
+        {/* Aba de Atividades */}
+        <TabsContent value="atividades" className="mt-6">
+
+          {/* Conteúdo Fixo */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-blue-800">
@@ -227,8 +258,8 @@ export default function IncubadoraProfissionalPage() {
         </Card>
       </div>
 
-      {/* Dashboard de Métricas */}
-      <Card className="bg-white border-2 border-gray-200">
+          {/* Dashboard de Métricas */}
+          <Card className="bg-white border-2 border-gray-200">
         <CardHeader>
           <CardTitle className="text-2xl flex items-center gap-2">
             <Users className="w-7 h-7 text-teal-600" />
@@ -265,8 +296,8 @@ export default function IncubadoraProfissionalPage() {
         </CardContent>
       </Card>
 
-      {/* Listagem de Atividades */}
-      <div className="space-y-4">
+          {/* Listagem de Atividades */}
+          <div className="space-y-4">
         <h2 className="text-2xl font-bold text-gray-900">Publicações e Atividades</h2>
         
         {allActivities.length === 0 ? (

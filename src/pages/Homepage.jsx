@@ -238,14 +238,14 @@ export default function Homepage() {
                 <Link key={idx} to={createPageUrl('IncubadoraProfissionalPage')}>
                   <Card className="h-full bg-white border-2 border-teal-200 hover:border-teal-400 hover:shadow-xl transition-all">
                     <CardContent className="p-3 sm:p-4">
-                      <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="flex items-start gap-2 mb-2">
                         {isFreelancer && (
                           activity.aluno_foto ? (
                             <img 
                               src={activity.aluno_foto} 
                               alt={activity.aluno_nome}
                               loading="lazy"
-                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-teal-300"
+                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-teal-300 flex-shrink-0"
                             />
                           ) : (
                             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center border-2 border-teal-300 flex-shrink-0">
@@ -254,7 +254,7 @@ export default function Homepage() {
                           )
                         )}
                         <div className="flex-1 min-w-0">
-                          <Badge className={`mb-1 sm:mb-2 text-xs ${
+                          <Badge className={`mb-1 text-[10px] px-1.5 py-0.5 ${
                             activity.type === 'Empregado' ? 'bg-green-100 text-green-800' :
                             activity.type === 'Contratado' ? 'bg-blue-100 text-blue-800' :
                             'bg-teal-100 text-teal-800'
@@ -262,13 +262,13 @@ export default function Homepage() {
                             {activity.type}
                           </Badge>
                           {isFreelancer && activity.aluno_nome && (
-                            <p className="text-[10px] sm:text-xs text-gray-600 font-semibold mb-1 line-clamp-1">{activity.aluno_nome}</p>
+                            <p className="text-[10px] sm:text-xs text-gray-800 font-bold leading-tight">{activity.aluno_nome}</p>
                           )}
                         </div>
                       </div>
-                      <h3 className="font-bold text-gray-900 text-xs sm:text-sm md:text-base mb-1 sm:mb-2 line-clamp-2">{title}</h3>
-                      <p className="text-[10px] sm:text-xs text-gray-600 mb-1 sm:mb-2 line-clamp-2">{activity.resumo}</p>
-                      <p className="text-[10px] sm:text-xs text-gray-500">{activity.date}</p>
+                      <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2">{title}</h3>
+                      <p className="text-[10px] sm:text-xs text-gray-600 mb-1 line-clamp-2">{activity.resumo}</p>
+                      <p className="text-[10px] text-gray-500">{activity.date}</p>
                     </CardContent>
                   </Card>
                 </Link>

@@ -139,16 +139,28 @@ export default function CiclosPage() {
                         </div>
                         <div className="flex-1">
                           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight">{ciclo.nome}</h2>
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
-                            <Badge className="bg-white border-green-600 text-gray-900 text-xs sm:text-sm">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {ciclo.carga_horaria}h • Pós-Graduação em Gestão e Tecnologias na Construção Civil
-                            </Badge>
-                            {hasDisciplinas && (
-                              <Badge className="bg-white border-green-600 text-gray-900 text-xs sm:text-sm">
-                                <GraduationCap className="w-3 h-3 mr-1" />
-                                {disciplinasArray.length} disciplina{disciplinasArray.length !== 1 ? 's' : ''} • {ciclo.nome.toLowerCase().includes('comum') ? 'Ciclo Comum' : 'Ciclo Específico'}
+                          <div className="flex flex-col gap-2 mt-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge className="bg-white border-green-600 text-gray-900 text-xs sm:text-sm font-semibold">
+                                {ciclo.carga_horaria}h
                               </Badge>
+                              {hasDisciplinas && (
+                                <Badge className="bg-white border-green-600 text-gray-900 text-xs sm:text-sm font-semibold">
+                                  {disciplinasArray.length} Disciplinas
+                                </Badge>
+                              )}
+                              <Badge className={`text-xs sm:text-sm font-bold ${
+                                isCicloComum 
+                                  ? 'bg-blue-600 text-white border-blue-700' 
+                                  : 'bg-orange-600 text-white border-orange-700'
+                              }`}>
+                                {isCicloComum ? 'Ciclo Comum' : 'Ciclo Específico'}
+                              </Badge>
+                            </div>
+                            {!isCicloComum && especializacaoVinculada && (
+                              <div className="text-xs sm:text-sm text-gray-700 font-semibold bg-white/60 px-3 py-1.5 rounded-md border border-gray-300">
+                                Especialização em {especializacaoVinculada.nome}
+                              </div>
                             )}
                           </div>
                         </div>

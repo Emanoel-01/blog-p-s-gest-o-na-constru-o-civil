@@ -4,7 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X } from 'lucide-react';
+import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star } from 'lucide-react';
 import Chatbot from '@/components/chatbot/Chatbot';
 
 export default function Layout({ children }) {
@@ -40,8 +40,9 @@ export default function Layout({ children }) {
     { name: 'Parceiros', path: 'ParceirosPage' },
     { name: 'Incubadora Profissional', path: 'IncubadoraProfissionalPage' },
     { name: 'Blog', path: 'EmAcaoPage' },
-    { name: 'Calendário de Aulas', path: 'CalendarioDeAula' }
-  ];
+    { name: 'Calendário de Aulas', path: 'CalendarioDeAula' },
+    { name: 'Depoimentos', path: 'DepoimentosPage' }
+    ];
 
   const icons = {
     'Home': Home,
@@ -55,7 +56,8 @@ export default function Layout({ children }) {
     'Parceiros': Handshake,
     'Incubadora Profissional': Lightbulb,
     'Blog': Rss,
-    'Calendário de Aulas': CalendarDays
+    'Calendário de Aulas': CalendarDays,
+    'Depoimentos': Star
   };
 
   if (loadingUser) {

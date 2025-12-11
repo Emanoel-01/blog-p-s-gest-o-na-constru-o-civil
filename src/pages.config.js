@@ -13,6 +13,7 @@ import CorpoDiscentePage from './pages/CorpoDiscentePage';
 import CalendarioDeAula from './pages/CalendarioDeAula';
 import IncubadoraProfissionalPage from './pages/IncubadoraProfissionalPage';
 import GerenciadorDeMidiaPage from './pages/GerenciadorDeMidiaPage';
+import DepoimentosPage from './pages/DepoimentosPage';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "CalendarioDeAula": CalendarioDeAula,
     "IncubadoraProfissionalPage": IncubadoraProfissionalPage,
     "GerenciadorDeMidiaPage": GerenciadorDeMidiaPage,
+    "DepoimentosPage": DepoimentosPage,
 }
 
 export const pagesConfig = {

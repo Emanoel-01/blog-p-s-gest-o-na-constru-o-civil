@@ -34,7 +34,6 @@ export default function Layout({ children }) {
   const navItems = [
     { name: 'Home', path: 'Homepage' },
     { name: 'O Upgrade', path: 'UpgradePage' },
-    { name: 'Diferenciais', path: 'DiferenciaisPage' },
     { name: 'Ciclos', path: 'CiclosPage' },
     { name: 'Especializações', path: 'EspecializacoesPage' },
     { name: 'Coordenação', path: 'CoordenadorPage' },
@@ -50,7 +49,6 @@ export default function Layout({ children }) {
   const icons = {
     'Home': Home,
     'O Upgrade': Award,
-    'Diferenciais': Lightbulb,
     'Ciclos': GitMerge,
     'Especializações': GraduationCap,
     'Coordenação': User,

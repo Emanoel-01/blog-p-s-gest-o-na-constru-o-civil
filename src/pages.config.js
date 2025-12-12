@@ -1,6 +1,5 @@
 import Homepage from './pages/Homepage';
 import UpgradePage from './pages/UpgradePage';
-import DiferenciaisPage from './pages/DiferenciaisPage';
 import CiclosPage from './pages/CiclosPage';
 import EspecializacoesPage from './pages/EspecializacoesPage';
 import CoordenadorPage from './pages/CoordenadorPage';
@@ -21,7 +20,6 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "Homepage": Homepage,
     "UpgradePage": UpgradePage,
-    "DiferenciaisPage": DiferenciaisPage,
     "CiclosPage": CiclosPage,
     "EspecializacoesPage": EspecializacoesPage,
     "CoordenadorPage": CoordenadorPage,

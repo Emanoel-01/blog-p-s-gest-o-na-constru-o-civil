@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { createPageUrl } from '@/utils';
 import { CheckCircle, ArrowRight, Handshake } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 
 export default function UpgradePage() {
   return (

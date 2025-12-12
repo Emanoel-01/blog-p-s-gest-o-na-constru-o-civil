@@ -22,6 +22,7 @@ import LeadCRM from '../components/admin/LeadCRM';
 import ComentariosManager from '../components/admin/ComentariosManager';
 import NotificationCenter from '../components/admin/NotificationCenter';
 import DepoimentosManager from '../components/admin/DepoimentosManager';
+import BulkEnrollStudents from '../components/admin/BulkEnrollStudents';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -125,6 +126,7 @@ export default function AdminPage() {
   const [showDiscenteForm, setShowDiscenteForm] = useState(false);
   const [discenteForm, setDiscenteForm] = useState({
     nome: '',
+    email: '',
     titulo: '',
     numero_turma: '',
     foto_url: '',
@@ -1196,6 +1198,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const resetDiscenteForm = () => {
     setDiscenteForm({
       nome: '',
+      email: '',
       titulo: '',
       numero_turma: '',
       foto_url: '',
@@ -1246,13 +1249,14 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   };
 
   const handleSaveDiscente = () => {
-    if (!discenteForm.nome || !discenteForm.titulo) {
-      toast.error('Nome e formação do aluno são obrigatórios!');
+    if (!discenteForm.nome || !discenteForm.email) {
+      toast.error('Nome e email do aluno são obrigatórios!');
       return;
     }
 
     const data = {
       nome: discenteForm.nome,
+      email: discenteForm.email,
       titulo: discenteForm.titulo,
       numero_turma: discenteForm.numero_turma,
       foto_url: discenteForm.foto_url,
@@ -1275,6 +1279,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const handleEditDiscente = (discente) => {
     setDiscenteForm({
       nome: discente.nome,
+      email: discente.email || '',
       titulo: discente.titulo,
       numero_turma: discente.numero_turma || '',
       foto_url: discente.foto_url || '',
@@ -3806,6 +3811,11 @@ Seja detalhado, prático e objetivo na análise.`;
         </Button>
       </div>
 
+      {/* Cadastro em Massa */}
+      <div className="mb-6">
+        <BulkEnrollStudents />
+      </div>
+
       {showDiscenteForm && (
         <Card className="mb-6 bg-teal-50 border-teal-200">
           <CardHeader>
@@ -3814,7 +3824,7 @@ Seja detalhado, prático e objetivo na análise.`;
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700">Nome Completo</label>
                 <Input
@@ -3823,6 +3833,18 @@ Seja detalhado, prático e objetivo na análise.`;
                   placeholder="Ex: Maria Silva"
                 />
               </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Email (para login)</label>
+                <Input
+                  type="email"
+                  value={discenteForm.email}
+                  onChange={(e) => setDiscenteForm({...discenteForm, email: e.target.value})}
+                  placeholder="Ex: maria@esuda.edu.br"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700">Formação/Especialização</label>
                 <Input

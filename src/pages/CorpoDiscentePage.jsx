@@ -300,12 +300,6 @@ export default function CorpoDiscentePage() {
                                       {/* Detalhes Expandidos */}
                                       {isDiscenteExpanded && (
                                         <div className="mt-3 pt-3 border-t border-gray-200 space-y-2" onClick={(e) => e.stopPropagation()}>
-                                          {discente.email && (
-                                            <p className="text-[10px] sm:text-xs text-gray-700 break-all">
-                                              📧 {discente.email}
-                                            </p>
-                                          )}
-                                          
                                           <div className="flex justify-center gap-1 flex-wrap">
                                             {discente.instagram && (
                                               <a href={discente.instagram} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>

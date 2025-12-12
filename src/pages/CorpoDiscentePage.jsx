@@ -99,23 +99,23 @@ export default function CorpoDiscentePage() {
     setCurrentPage(1);
   };
 
-  // Cores por especialização (baseado em padrão de manutenção)
+  // Cores por especialização (baseado em padrão das 4 especializações)
   const getEspecializacaoColor = (nomeEspec) => {
     const nome = nomeEspec?.toLowerCase() || '';
-    if (nome.includes('bim')) return 'from-cyan-500 to-blue-600';
-    if (nome.includes('gestão') || nome.includes('projetos')) return 'from-orange-500 to-red-600';
-    if (nome.includes('manutenção')) return 'from-green-500 to-emerald-600';
-    if (nome.includes('legal') || nome.includes('perícia')) return 'from-purple-500 to-indigo-600';
-    return 'from-gray-500 to-slate-600';
+    if (nome.includes('bim')) return 'from-blue-600 to-indigo-700';
+    if (nome.includes('gestão') || nome.includes('projetos')) return 'from-red-600 to-rose-700';
+    if (nome.includes('manutenção')) return 'from-amber-600 to-yellow-700';
+    if (nome.includes('legal') || nome.includes('perícia')) return 'from-purple-600 to-fuchsia-700';
+    return 'from-blue-600 to-indigo-700';
   };
 
   const getTurmaColor = (nomeEspec) => {
     const nome = nomeEspec?.toLowerCase() || '';
-    if (nome.includes('bim')) return 'bg-cyan-100 text-cyan-800 border-cyan-300';
-    if (nome.includes('gestão') || nome.includes('projetos')) return 'bg-orange-100 text-orange-800 border-orange-300';
-    if (nome.includes('manutenção')) return 'bg-green-100 text-green-800 border-green-300';
+    if (nome.includes('bim')) return 'bg-blue-100 text-blue-800 border-blue-300';
+    if (nome.includes('gestão') || nome.includes('projetos')) return 'bg-red-100 text-red-800 border-red-300';
+    if (nome.includes('manutenção')) return 'bg-amber-100 text-amber-800 border-amber-300';
     if (nome.includes('legal') || nome.includes('perícia')) return 'bg-purple-100 text-purple-800 border-purple-300';
-    return 'bg-gray-100 text-gray-800 border-gray-300';
+    return 'bg-blue-100 text-blue-800 border-blue-300';
   };
 
   return (

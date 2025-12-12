@@ -99,14 +99,9 @@ export default function CorpoDiscentePage() {
     setCurrentPage(1);
   };
 
-  // Cores por especialização (baseado em padrão das 4 especializações)
+  // Cores por especialização (verde clarinho para todos)
   const getEspecializacaoColor = (nomeEspec) => {
-    const nome = nomeEspec?.toLowerCase() || '';
-    if (nome.includes('bim')) return 'from-blue-600 to-indigo-700';
-    if (nome.includes('gestão') || nome.includes('projetos')) return 'from-red-600 to-rose-700';
-    if (nome.includes('manutenção')) return 'from-amber-600 to-yellow-700';
-    if (nome.includes('legal') || nome.includes('perícia')) return 'from-purple-600 to-fuchsia-700';
-    return 'from-blue-600 to-indigo-700';
+    return 'from-green-100 to-emerald-200';
   };
 
   const getTurmaColor = (nomeEspec) => {
@@ -225,11 +220,11 @@ export default function CorpoDiscentePage() {
               return (
                 <div key={especId}>
                   {/* Header da Especialização */}
-                  <div className={`bg-gradient-to-r ${colorClass} text-white rounded-xl p-4 sm:p-6 shadow-lg mb-4`}>
+                  <div className={`bg-gradient-to-r ${colorClass} text-gray-800 rounded-xl p-4 sm:p-6 shadow-lg mb-4 border-2 border-green-300`}>
                     <h2 className="text-xl sm:text-2xl font-bold">
                       {nomeEspec}
                     </h2>
-                    <p className="text-sm text-white/90 mt-1">
+                    <p className="text-sm text-gray-700 mt-1">
                       {Object.values(turmas).flat().length} aluno(s)
                     </p>
                   </div>

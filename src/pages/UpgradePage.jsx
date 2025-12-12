@@ -149,49 +149,60 @@ export default function UpgradePage() {
         </div>
       </div>
 
-      <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">
-        Tecnologias abordadas no curso:
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-gray-700 mb-4 sm:mb-6">
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">Autodesk Navisworks</span>
+      {/* Seção de Diferenciais */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 sm:p-8 border-2 border-green-300 mt-8 sm:mt-12 mb-8 sm:mb-12">
+        <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
+          🏆 PRINCIPAIS DIFERENCIAIS
+        </h3>
+        <p className="text-gray-700 mb-6 text-center text-sm sm:text-base max-w-3xl mx-auto">
+          Conheça o que torna nossas pós-graduações únicas e alinhadas com as demandas do mercado.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {diferenciais.map((item, index) => (
+            <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
+              <div className="flex items-start">
+                <CheckCircle className="w-5 h-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{item.title}</h4>
+                  <p className="text-xs sm:text-sm text-gray-600 text-justify">{item.desc}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">Autodesk Revit</span>
-        </div>
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">BIM Collab</span>
-        </div>
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">Orçafascio</span>
-        </div>
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">Obra na Mão</span>
-        </div>
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">Power BI</span>
-        </div>
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">Inteligência Artificial</span>
-        </div>
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">QGIS</span>
-        </div>
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">Sisdea</span>
-        </div>
-        <div className="flex items-center bg-gray-50 p-2 sm:p-3 rounded">
-          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-          <span className="text-xs sm:text-sm">Termografia e Drones</span>
+
+        {/* Tecnologias e Parceiros */}
+        <div className="bg-white p-6 rounded-xl border border-green-200">
+          <h4 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">💻 Tecnologias e Parceiros</h4>
+          <p className="text-gray-700 mb-4 text-sm sm:text-base">
+            Nossas especializações utilizam as mais avançadas ferramentas do mercado:
+          </p>
+          {tecnologias.length > 0 ? (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {tecnologias.map((tec) => (
+                <span key={tec.id} className="bg-gradient-to-r from-green-50 to-blue-50 px-3 py-1.5 rounded-full border border-green-300 text-sm font-bold text-gray-800">
+                  {tec.nome}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">Autodesk Navisworks</span>
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">Autodesk Revit</span>
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">BIM Collab</span>
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">Orçafascio</span>
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">Obra na Mão</span>
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">Power BI</span>
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">Inteligência Artificial</span>
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">QGIS</span>
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">Sisdea</span>
+              <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">Termografia e Drones</span>
+            </div>
+          )}
+          <p className="text-gray-700 text-sm sm:text-base">
+            <strong>Parceiros:</strong> Amorim TECH (Laboratório de Inovação), CREA/PE, CAU/PE.
+          </p>
         </div>
       </div>
 

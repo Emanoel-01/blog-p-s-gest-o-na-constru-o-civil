@@ -7,7 +7,7 @@ import { createPageUrl } from '@/utils';
 import { CheckCircle, ArrowRight, Handshake, Sparkles, Target, TrendingUp, Award, Users, Zap, Briefcase, GraduationCap, Rocket } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import InteractiveVideo from '@/components/video/InteractiveVideo';
+import InteractiveVideo from '@/components/video/InteractiveVideo.jsx';
 
 export default function UpgradePage() {
   const { data: tecnologias = [] } = useQuery({

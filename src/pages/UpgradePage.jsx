@@ -49,23 +49,22 @@ export default function UpgradePage() {
             <Sparkles className="w-5 h-5 text-green-600" />
             <span className="text-sm font-bold text-gray-800">Formando Líderes de Nicho</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-8 leading-[1.1] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
             O Futuro da Construção Civil não é dos Generalistas.<br className="hidden sm:block"/>
-            É dos <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">Líderes de Nicho</span>.
+            É dos <span className="text-green-600">Líderes de Nicho</span>.
           </h1>
         </div>
 
       {/* Alert Blocks */}
-      <div className="space-y-8 mb-16 sm:mb-24">
-        <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-red-50 to-orange-50 p-8 sm:p-10 rounded-3xl border border-orange-200 shadow-xl hover:shadow-2xl transition-shadow duration-500">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-orange-200 rounded-full blur-3xl opacity-20"></div>
-          <div className="relative flex items-start gap-5">
-            <div className="flex-shrink-0 bg-gradient-to-br from-orange-500 to-red-500 p-4 rounded-2xl shadow-lg">
-              <Target className="w-7 h-7 text-white" />
+      <div className="space-y-6 mb-10 sm:mb-16">
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-xl border border-orange-200">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 bg-orange-500 p-2 rounded-lg">
+              <Target className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 tracking-tight">O Mercado Mudou</h3>
-              <p className="text-gray-700 leading-[1.8] text-justify text-base sm:text-lg">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">O Mercado Mudou</h3>
+              <p className="text-gray-800 leading-relaxed text-justify text-sm sm:text-base">
                 Saber "um pouco de tudo" não garante mais os melhores contratos nem os maiores salários. 
                 A Construção 4.0 exige um novo perfil profissional: <strong>o especialista que domina a técnica profunda, 
                 mas que também sabe gerir, vender e liderar</strong>.
@@ -74,15 +73,14 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-50 p-8 sm:p-10 rounded-3xl border border-blue-200 shadow-xl hover:shadow-2xl transition-shadow duration-500">
-          <div className="absolute top-0 left-0 w-40 h-40 bg-blue-200 rounded-full blur-3xl opacity-20"></div>
-          <div className="relative flex items-start gap-5">
-            <div className="flex-shrink-0 bg-gradient-to-br from-blue-500 to-cyan-500 p-4 rounded-2xl shadow-lg">
-              <Zap className="w-7 h-7 text-white" />
+        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-xl border border-blue-200">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 bg-blue-500 p-2 rounded-lg">
+              <Zap className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 tracking-tight">Arquitetura Curricular Inteligente</h3>
-              <p className="text-gray-700 leading-[1.8] text-justify text-base sm:text-lg">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Arquitetura Curricular Inteligente</h3>
+              <p className="text-gray-800 leading-relaxed text-justify text-sm sm:text-base">
                 A Pós-Graduação ESUDA foi desenhada para resolver a maior dor do engenheiro e arquiteto atual: 
                 <strong className="text-red-600"> o abismo entre a técnica e o negócio</strong>. 
                 Nossa metodologia integra conhecimento profundo com visão estratégica.
@@ -93,101 +91,87 @@ export default function UpgradePage() {
       </div>
 
       {/* Section Title */}
-      <div className="text-center mb-16 sm:mb-20">
-        <div className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-50 to-orange-50 px-8 py-4 rounded-full mb-6 border border-yellow-200 shadow-md">
-          <Award className="w-6 h-6 text-orange-600" />
-          <span className="text-base sm:text-lg font-semibold text-gray-800">Por que Somos os Melhores?</span>
-        </div>
-        <h3 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight leading-tight">
+      <div className="text-center mb-10">
+        <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
           3 Pilares que Tornam Esta Formação Imbatível
         </h3>
-        <p className="text-gray-600 text-base sm:text-lg max-w-3xl mx-auto leading-[1.8]">
+        <p className="text-gray-600 text-sm sm:text-base max-w-3xl mx-auto leading-relaxed">
           Baseado em nossa metodologia de <strong>Sinergia Curricular</strong>, integramos o desenvolvimento humano 
           e estratégico com a tecnologia de ponta.
         </p>
       </div>
 
       {/* 3 Pilares Cards */}
-      <div className="space-y-10 sm:space-y-12 mb-16 sm:mb-24">
-        <div className="group relative bg-white p-8 sm:p-12 rounded-3xl border border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.01]">
-          <div className="absolute -top-5 -left-5 bg-gradient-to-br from-green-600 to-emerald-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shadow-2xl group-hover:scale-110 transition-transform duration-300">
-            1
-          </div>
-          <div className="flex items-start gap-5 mb-6">
-            <div className="flex-shrink-0 bg-gradient-to-br from-green-600 to-emerald-600 p-4 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <Briefcase className="w-7 h-7 text-white" />
+      <div className="space-y-6 mb-12">
+        <div className="bg-white p-6 rounded-xl border-l-4 border-green-600 shadow-md">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="flex-shrink-0 bg-green-600 p-2 rounded-lg">
+              <Briefcase className="w-5 h-5 text-white" />
             </div>
-            <h4 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight tracking-tight">
-              A Base do Profissional Empreendedor
-              <span className="block text-base sm:text-lg font-medium text-green-700 mt-2">(Ciclo Comum)</span>
+            <h4 className="text-lg sm:text-xl font-bold text-gray-900">
+              1. A Base do Profissional Empreendedor (Ciclo Comum)
             </h4>
           </div>
-          <p className="text-gray-700 mb-4 leading-[1.8] text-justify text-base sm:text-lg">
+          <p className="text-gray-700 mb-3 leading-relaxed text-justify text-sm sm:text-base">
             Enquanto outras escolas ensinam apenas teoria básica, nós entregamos <strong>ferramentas para você 
             monetizar seu conhecimento</strong>. Antes de entrar no nicho técnico, você domina:
           </p>
-          <ul className="space-y-4 ml-2 sm:ml-4">
+          <ul className="space-y-2 ml-4">
             <li className="flex items-start">
-              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-3 flex-shrink-0 mt-1" />
-              <span className="text-gray-700 text-base sm:text-lg leading-[1.8]">
+              <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
+              <span className="text-gray-700 text-sm sm:text-base">
                 <strong>Gestão de Negócios:</strong> Branding, Precificação e Estrutura Legal para blindar seu CPF e CNPJ.
               </span>
             </li>
             <li className="flex items-start">
-              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-3 flex-shrink-0 mt-1" />
-              <span className="text-gray-700 text-base sm:text-lg leading-[1.8]">
+              <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
+              <span className="text-gray-700 text-sm sm:text-base">
                 <strong>Liderança 4.0:</strong> Inteligência Artificial Aplicada, Negociação Harvard e Marketing Pessoal.
               </span>
             </li>
           </ul>
-          <div className="mt-6 p-4 bg-green-50 rounded-xl border-l-4 border-green-600">
-            <p className="text-gray-900 font-bold text-base sm:text-lg leading-[1.8]">
-              ✅ Resultado: Você deixa de ser apenas um executor de projetos e passa a pensar como dono do negócio.
-            </p>
-          </div>
+          <p className="text-gray-800 font-semibold mt-3 text-sm sm:text-base">
+            ✅ Resultado: Você deixa de ser apenas um executor de projetos e passa a pensar como dono do negócio.
+          </p>
         </div>
 
-        <div className="group relative bg-white p-8 sm:p-12 rounded-3xl border border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.01]">
-          <div className="absolute -top-5 -left-5 bg-gradient-to-br from-blue-600 to-cyan-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shadow-2xl group-hover:scale-110 transition-transform duration-300">
-            2
-          </div>
-          <div className="flex items-start gap-5 mb-6">
-            <div className="flex-shrink-0 bg-gradient-to-br from-blue-600 to-cyan-600 p-4 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <Target className="w-7 h-7 text-white" />
+        <div className="bg-white p-6 rounded-xl border-l-4 border-blue-600 shadow-md">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="flex-shrink-0 bg-blue-600 p-2 rounded-lg">
+              <Target className="w-5 h-5 text-white" />
             </div>
-            <h4 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight tracking-tight">
-              Especialização Cirúrgica
-              <span className="block text-base sm:text-lg font-medium text-blue-700 mt-2">4 Perfis, 4 Caminhos Claros</span>
+            <h4 className="text-lg sm:text-xl font-bold text-gray-900">
+              2. Especialização Cirúrgica: 4 Perfis, 4 Caminhos Claros
             </h4>
           </div>
-          <p className="text-gray-700 mb-4 leading-[1.8] text-justify text-base sm:text-lg">
+          <p className="text-gray-700 mb-3 leading-relaxed text-justify text-sm sm:text-base">
             Não formamos "faz-tudo". Nossos cursos têm <strong>foco total no resultado final esperado pelo mercado</strong>:
           </p>
-          <div className="space-y-4 ml-0 sm:ml-4">
-            <div className="bg-green-50 p-5 sm:p-6 rounded-2xl border-l-4 border-green-600 hover:bg-green-100 transition-colors duration-300">
-              <p className="font-bold text-green-900 mb-2 text-base sm:text-lg">🏗️ Gestão de Projetos e Obras (O Perfil Business)</p>
-              <p className="text-gray-700 text-sm sm:text-base leading-[1.8]">
+          <div className="space-y-3 ml-4">
+            <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
+              <p className="font-bold text-green-800 mb-1 text-sm sm:text-base">🏗️ Gestão de Projetos e Obras (O Perfil Business)</p>
+              <p className="text-gray-700 text-xs sm:text-sm">
                 Focado em <strong>Dinheiro e Prazo</strong>. Você será o gestor que protege a margem de lucro, 
                 domina Claims (pleitos) e garante o equilíbrio financeiro da obra.
               </p>
             </div>
-            <div className="bg-blue-50 p-5 sm:p-6 rounded-2xl border-l-4 border-blue-600 hover:bg-blue-100 transition-colors duration-300">
-              <p className="font-bold text-blue-900 mb-2 text-base sm:text-lg">💻 Tecnologia BIM (O Perfil Tech)</p>
-              <p className="text-gray-700 text-sm sm:text-base leading-[1.8]">
+            <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
+              <p className="font-bold text-blue-800 mb-1 text-sm sm:text-base">💻 Tecnologia BIM (O Perfil Tech)</p>
+              <p className="text-gray-700 text-xs sm:text-sm">
                 Focado em <strong>Método Virtual</strong>. Você não será apenas um desenhista 3D, mas um BIM Manager 
                 estrategista que coordena dados, interoperabilidade e processos construtivos digitais.
               </p>
             </div>
-            <div className="bg-green-50 p-5 sm:p-6 rounded-2xl border-l-4 border-green-600 hover:bg-green-100 transition-colors duration-300">
-              <p className="font-bold text-green-900 mb-2 text-base sm:text-lg">⚙️ Manutenção Predial (O Perfil Operations)</p>
-              <p className="text-gray-700 text-sm sm:text-base leading-[1.8]">
+            <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
+              <p className="font-bold text-green-800 mb-1 text-sm sm:text-base">⚙️ Manutenção Predial (O Perfil Operations)</p>
+              <p className="text-gray-700 text-xs sm:text-sm">
                 Focado em <strong>Vida Útil e Gestão de Ativos</strong>. Saia da manutenção corretiva e lidere a era da Gestão de Facilities, 
                 usando IoT, Drones e BIM FM para valorizar o patrimônio.
               </p>
             </div>
-            <div className="bg-gray-50 p-5 sm:p-6 rounded-2xl border-l-4 border-gray-600 hover:bg-gray-100 transition-colors duration-300">
-              <p className="font-bold text-gray-900 mb-2 text-base sm:text-lg">⚖️ Engenharia Legal (O Perfil Legal/Finance)</p>
-              <p className="text-gray-700 text-sm sm:text-base leading-[1.8]">
+            <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-gray-600">
+              <p className="font-bold text-gray-800 mb-1 text-sm sm:text-base">⚖️ Engenharia Legal (O Perfil Legal/Finance)</p>
+              <p className="text-gray-700 text-xs sm:text-sm">
                 Focado em <strong>Valor e Prova</strong>. Torne-se a autoridade que o judiciário e os bancos respeitam. 
                 Domine a <strong>regularização de imóveis</strong>, a auditoria de risco e a avaliação de ativos.
               </p>
@@ -195,20 +179,16 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        <div className="group relative bg-white p-8 sm:p-12 rounded-3xl border border-gray-200 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.01]">
-          <div className="absolute -top-5 -left-5 bg-gradient-to-br from-purple-600 to-pink-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shadow-2xl group-hover:scale-110 transition-transform duration-300">
-            3
-          </div>
-          <div className="flex items-start gap-5 mb-6">
-            <div className="flex-shrink-0 bg-gradient-to-br from-purple-600 to-pink-600 p-4 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <TrendingUp className="w-7 h-7 text-white" />
+        <div className="bg-white p-6 rounded-xl border-l-4 border-green-600 shadow-md">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="flex-shrink-0 bg-green-600 p-2 rounded-lg">
+              <TrendingUp className="w-5 h-5 text-white" />
             </div>
-            <h4 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight tracking-tight">
-              Inteligência de Carreira
-              <span className="block text-base sm:text-lg font-medium text-purple-700 mt-2">"Lifelong Learning"</span>
+            <h4 className="text-lg sm:text-xl font-bold text-gray-900">
+              3. Inteligência de Carreira "Lifelong Learning"
             </h4>
           </div>
-          <p className="text-gray-700 leading-[1.8] text-justify text-base sm:text-lg">
+          <p className="text-gray-700 leading-relaxed text-justify text-sm sm:text-base">
             Nosso modelo respeita seu tempo e investimento. Ao concluir uma especialização, você já eliminou todo o 
             <strong> Ciclo Comum (360h)</strong>. Isso permite que você obtenha uma <strong className="text-green-600">segunda 
             certificação com 50% do caminho andado</strong>, incentivando sua formação contínua.
@@ -234,16 +214,16 @@ export default function UpgradePage() {
           </p>
         </div>
 
-        <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div className="relative grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {diferenciais.map((item, index) => (
-            <div key={index} className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-green-500 hover:shadow-xl transition-all duration-500 hover:scale-[1.02] cursor-default">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 bg-gradient-to-br from-green-500 to-emerald-500 p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <CheckCircle className="w-6 h-6 text-white" />
+            <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 mb-2 text-base sm:text-lg group-hover:text-green-700 transition-colors duration-300">{item.title}</h4>
-                  <p className="text-sm sm:text-base text-gray-600 text-justify leading-[1.7]">{item.desc}</p>
+                  <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{item.title}</h4>
+                  <p className="text-xs sm:text-sm text-gray-600 text-justify">{item.desc}</p>
                 </div>
               </div>
             </div>
@@ -251,14 +231,9 @@ export default function UpgradePage() {
         </div>
 
         {/* Tecnologias e Parceiros */}
-        <div className="relative bg-white p-6 sm:p-8 rounded-2xl border-2 border-green-300 shadow-lg">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-gradient-to-br from-green-600 to-emerald-600 p-3 rounded-xl shadow-md">
-              <Rocket className="w-6 h-6 text-white" />
-            </div>
-            <h4 className="text-xl sm:text-2xl font-extrabold text-gray-900">Tecnologias e Parceiros</h4>
-          </div>
-          <p className="text-gray-700 mb-6 text-base sm:text-lg leading-[1.8]">
+        <div className="bg-white p-6 rounded-xl border border-green-200">
+          <h4 className="text-lg font-bold text-gray-800 mb-4">💻 Tecnologias e Parceiros</h4>
+          <p className="text-gray-700 mb-4 text-sm sm:text-base">
             Nossas especializações utilizam as mais avançadas ferramentas do mercado:
           </p>
           {tecnologias.length > 0 ? (
@@ -283,33 +258,25 @@ export default function UpgradePage() {
               <span className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-300 text-sm text-gray-700">Termografia e Drones</span>
             </div>
           )}
-          <p className="text-gray-700 text-base sm:text-lg leading-[1.8] mt-6 pt-6 border-t border-gray-200">
+          <p className="text-gray-700 text-sm sm:text-base">
             <strong>Parceiros:</strong> Amorim TECH (Laboratório de Inovação), CREA/PE, CAU/PE.
           </p>
         </div>
       </div>
 
       {/* Dúvidas Frequentes */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-slate-100 rounded-3xl p-6 sm:p-10 md:p-12 border-2 border-gray-300 mt-12 sm:mt-20 shadow-xl">
-        <div className="absolute top-0 left-0 w-40 h-40 bg-blue-200 rounded-full blur-3xl opacity-20"></div>
-        
-        <div className="relative text-center mb-10">
-          <div className="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-full mb-4 border-2 border-gray-300 shadow-md">
-            <GraduationCap className="w-6 h-6 text-gray-700" />
-            <span className="text-base font-bold text-gray-900">Tire Suas Dúvidas</span>
-          </div>
-          <h3 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
-            Perguntas Frequentes
-          </h3>
-        </div>
+      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-8">
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-6">
+          ❓ Dúvidas Frequentes
+        </h3>
         
         <div className="max-w-3xl mx-auto">
           <Accordion type="single" collapsible className="space-y-2 sm:space-y-3">
-            <AccordionItem value="item-1" className="bg-white rounded-2xl border border-gray-200 px-5 sm:px-6 md:px-8 overflow-hidden hover:border-green-500 transition-all duration-300 shadow-md hover:shadow-xl">
-              <AccordionTrigger className="text-left font-bold text-gray-900 text-sm sm:text-base md:text-lg hover:no-underline py-5 sm:py-6 hover:text-green-700 transition-colors duration-300">
+            <AccordionItem value="item-1" className="bg-white rounded-lg border border-gray-200 px-4 overflow-hidden">
+              <AccordionTrigger className="text-left font-semibold text-gray-900 text-sm sm:text-base hover:no-underline py-4">
                 Estou em dúvida entre dois cursos. Qual escolher?
               </AccordionTrigger>
-              <AccordionContent className="text-gray-700 text-justify text-sm sm:text-base md:text-lg leading-[1.8] pb-5 sm:pb-6">
+              <AccordionContent className="text-gray-700 text-justify text-xs sm:text-sm leading-relaxed pb-4">
                 Não precisa escolher um só. Faça o primeiro e ganhe 50% de desconto no segundo. Além disso, você elimina todas as matérias comuns e termina a segunda especialização na metade do tempo.
               </AccordionContent>
             </AccordionItem>
@@ -408,112 +375,87 @@ export default function UpgradePage() {
       </div>
 
       {/* Seção Quero ser Parceiro */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-green-100 via-emerald-50 to-blue-100 rounded-3xl p-8 sm:p-12 border-2 border-green-400 mt-12 sm:mt-20 shadow-2xl">
-        <div className="absolute top-0 right-0 w-56 h-56 bg-green-300 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-0 left-0 w-56 h-56 bg-blue-300 rounded-full blur-3xl opacity-30"></div>
-        
-        <div className="relative text-center mb-8">
-          <div className="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-full mb-4 border-2 border-green-400 shadow-lg">
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 border border-green-300 mt-8">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-2">
             <Handshake className="w-6 h-6 text-green-600" />
-            <span className="text-base font-bold text-gray-900">Oportunidades de Parceria</span>
-          </div>
-          <h3 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
-            Seja Nosso Parceiro
+            Quero ser Parceiro
           </h3>
           <p className="text-gray-700 text-sm sm:text-base mb-6 max-w-2xl mx-auto leading-relaxed">
             Conecte-se com o Coordenador e a ESUDA. Descubra oportunidades de parceria, receba análises personalizadas e inicie colaborações estratégicas.
           </p>
         </div>
 
-        <div className="relative bg-white rounded-2xl p-6 sm:p-8 border-2 border-green-300 mb-8 shadow-lg">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-gradient-to-br from-green-600 to-emerald-600 p-3 rounded-xl shadow-md">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <h4 className="font-extrabold text-gray-900 text-lg sm:text-xl">
-              Tipos de Parceria Disponíveis
-            </h4>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="group flex items-start gap-3 bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 hover:scale-[1.03]">
-              <div className="bg-green-600 p-2 rounded-lg shadow-md group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-5 h-5 text-white" />
+        <div className="bg-white rounded-xl p-6 border border-green-200 mb-6">
+          <h4 className="font-bold text-gray-800 mb-4 text-center text-base sm:text-lg">
+            Tipos de Parceria Disponíveis:
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               </div>
               <div>
-                <p className="font-bold text-gray-900 text-sm">Canteiros Didáticos</p>
+                <p className="font-semibold text-gray-800 text-sm">Canteiros Didáticos</p>
                 <p className="text-xs text-gray-600">Espaços práticos de aprendizado</p>
               </div>
             </div>
-            <div className="group flex items-start gap-3 bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 hover:scale-[1.03]">
-              <div className="bg-green-600 p-2 rounded-lg shadow-md group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-gray-900 text-sm">Workshops</p>
+                <p className="font-semibold text-gray-800 text-sm">Workshops</p>
                 <p className="text-xs text-gray-600">Eventos técnicos especializados</p>
               </div>
             </div>
-            <div className="group flex items-start gap-3 bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 hover:scale-[1.03]">
-              <div className="bg-green-600 p-2 rounded-lg shadow-md group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-gray-900 text-sm">Masterclasses</p>
+                <p className="font-semibold text-gray-800 text-sm">Masterclasses</p>
                 <p className="text-xs text-gray-600">Aulas com especialistas renomados</p>
               </div>
             </div>
-            <div className="group flex items-start gap-3 bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 hover:scale-[1.03]">
-              <div className="bg-green-600 p-2 rounded-lg shadow-md group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-gray-900 text-sm">Contratação de Alunos</p>
+                <p className="font-semibold text-gray-800 text-sm">Contratação de Alunos</p>
                 <p className="text-xs text-gray-600">Acesso ao nosso talento qualificado</p>
               </div>
             </div>
-            <div className="group flex items-start gap-3 bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 hover:scale-[1.03]">
-              <div className="bg-green-600 p-2 rounded-lg shadow-md group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-gray-900 text-sm">Incubadora Profissional</p>
+                <p className="font-semibold text-gray-800 text-sm">Incubadora Profissional</p>
                 <p className="text-xs text-gray-600">Projetos práticos com alunos</p>
               </div>
             </div>
-            <div className="group flex items-start gap-3 bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 hover:scale-[1.03]">
-              <div className="bg-green-600 p-2 rounded-lg shadow-md group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-gray-900 text-sm">Licença Educacional</p>
+                <p className="font-semibold text-gray-800 text-sm">Licença Educacional</p>
                 <p className="text-xs text-gray-600">Softwares e ferramentas</p>
               </div>
             </div>
-            <div className="group flex items-start gap-3 bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 hover:scale-[1.03]">
-              <div className="bg-green-600 p-2 rounded-lg shadow-md group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-gray-900 text-sm">Convênios Corporativos</p>
+                <p className="font-semibold text-gray-800 text-sm">Convênios Corporativos</p>
                 <p className="text-xs text-gray-600">Descontos para colaboradores</p>
               </div>
             </div>
-            <div className="group flex items-start gap-3 bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 hover:scale-[1.03]">
-              <div className="bg-green-600 p-2 rounded-lg shadow-md group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-5 h-5 text-white" />
+            <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               </div>
               <div>
-                <p className="font-bold text-gray-900 text-sm">Seja Professor</p>
+                <p className="font-semibold text-gray-800 text-sm">Seja Professor</p>
                 <p className="text-xs text-gray-600">Compartilhe seu conhecimento</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="relative text-center">
+        <div className="text-center">
           <a href="https://parcerias-esuda-amorimtech.base44.app" target="_blank" rel="noopener noreferrer">
-            <Button className="group bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-extrabold py-4 px-10 text-base sm:text-lg rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-              <Handshake className="w-6 h-6 mr-2 group-hover:rotate-12 transition-transform" />
+            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-8 text-base">
+              <Handshake className="w-5 h-5 mr-2" />
               Iniciar Parceria Agora
             </Button>
           </a>
@@ -521,16 +463,16 @@ export default function UpgradePage() {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4 mt-12 sm:mt-16">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 mt-8">
         <Link to={createPageUrl('Homepage')} className="w-full sm:w-auto">
-          <Button variant="outline" className="border-2 border-gray-300 hover:border-green-600 hover:bg-green-50 w-full sm:w-auto py-3 px-6 font-bold text-base transition-all duration-300">
-            ← Voltar para Home
+          <Button variant="outline" className="border-gray-300 w-full sm:w-auto">
+            ← Voltar
           </Button>
         </Link>
         <Link to={createPageUrl('CiclosPage')} className="w-full sm:w-auto">
-          <Button className="group bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white w-full sm:w-auto py-3 px-6 font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white w-full sm:w-auto">
             Ver Ciclos de Conhecimento
-            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
         </Link>
       </div>

@@ -133,6 +133,55 @@ export default function EmAcaoPage() {
         <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-3xl mx-auto mb-4 sm:mb-6">
           Acompanhe eventos, workshops, masterclasses e novidades da nossa comunidade acadêmica
         </p>
+
+        {/* Vídeos do Instagram e LinkedIn em Destaque */}
+        <div className="max-w-4xl mx-auto mb-8 space-y-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-4">
+            Últimas Postagens nas Redes Sociais
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg overflow-hidden shadow-md">
+              <iframe
+                src="https://www.instagram.com/reel/DPkKSFJke6X/embed"
+                className="w-full h-96 sm:h-[500px]"
+                frameBorder="0"
+                scrolling="no"
+                allowTransparency={true}
+                allow="encrypted-media"
+              />
+            </div>
+            <div className="bg-white rounded-lg overflow-hidden shadow-md">
+              <iframe
+                src="https://www.instagram.com/reel/DPMARgDDhM8/embed"
+                className="w-full h-96 sm:h-[500px]"
+                frameBorder="0"
+                scrolling="no"
+                allowTransparency={true}
+                allow="encrypted-media"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div className="bg-white rounded-lg overflow-hidden shadow-md">
+              <iframe
+                src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7386641164558360576?compact=1"
+                className="w-full h-96 sm:h-[500px]"
+                frameBorder="0"
+                allowFullScreen={true}
+                title="Publicação incorporada"
+              />
+            </div>
+            <div className="bg-white rounded-lg overflow-hidden shadow-md">
+              <iframe
+                src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7371274943013048321?compact=1"
+                className="w-full h-96 sm:h-[500px]"
+                frameBorder="0"
+                allowFullScreen={true}
+                title="Publicação incorporada"
+              />
+            </div>
+          </div>
+        </div>
         
         <div className="max-w-2xl mx-auto">
           <div className="relative">
@@ -167,14 +216,14 @@ export default function EmAcaoPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="space-y-6 max-w-5xl mx-auto">
           {filteredPosts.map((post) => {
             const isExpanded = expandedPost === post.id;
 
             return (
-              <Card key={post.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden flex flex-col">
+              <Card key={post.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
                 {post.imagem_destaque && (
-                  <div className="relative h-40 sm:h-48 md:h-56 overflow-hidden">
+                  <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
                     <img
                       src={post.imagem_destaque}
                       alt={post.titulo}
@@ -190,114 +239,173 @@ export default function EmAcaoPage() {
                         handleImageClick(post.imagem_destaque, allImages);
                       }}
                     />
-                    <div className="absolute top-2 right-2 bg-pink-600 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      <span className="hidden sm:inline">{post.data}</span>
-                      <span className="sm:hidden">{post.data.split('/')[0]}/{post.data.split('/')[1]}</span>
+                    <div className="absolute top-4 right-4 bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg">
+                      <Calendar className="w-4 h-4" />
+                      {post.data}
                     </div>
                   </div>
                 )}
-                <CardContent className="p-3 sm:p-4 md:p-5 flex-1 flex flex-col">
-                  <div className="flex-1">
-                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-2">{post.titulo}</h3>
-                    <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3 leading-relaxed">{post.descricao}</p>
+                <CardContent className="p-5 sm:p-6 md:p-8">
+                  <div className="mb-4">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3">{post.titulo}</h3>
+                    <p className="text-gray-600 text-sm sm:text-base md:text-lg leading-relaxed">{post.descricao}</p>
                     
                     {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {post.tags.slice(0, 3).map((tag, i) => (
-                          <Badge key={i} variant="outline" className="bg-pink-50 text-pink-700 border-pink-300 text-xs flex items-center gap-1">
-                            <Tag className="w-3 h-3" />
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        {post.tags.map((tag, i) => (
+                          <Badge key={i} variant="outline" className="bg-pink-50 text-pink-700 border-pink-300 text-sm flex items-center gap-1">
+                            <Tag className="w-4 h-4" />
                             {tag}
                           </Badge>
                         ))}
-                        {post.tags.length > 3 && (
-                          <Badge variant="outline" className="bg-gray-50 text-gray-600 text-xs">
-                            +{post.tags.length - 3}
-                          </Badge>
-                        )}
                       </div>
                     )}
                   </div>
 
                   <Button
                     onClick={() => togglePost(post.id)}
-                    className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold mt-2 text-xs sm:text-sm"
+                    className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 text-base"
                   >
                     {isExpanded ? (
                       <>
-                        Ver Menos <ChevronUp className="ml-2 w-4 h-4" />
+                        Ver Menos <ChevronUp className="ml-2 w-5 h-5" />
                       </>
                     ) : (
                       <>
-                        Ver Mais <ChevronDown className="ml-2 w-4 h-4" />
+                        Ver Mais <ChevronDown className="ml-2 w-5 h-5" />
                       </>
                     )}
                   </Button>
 
                   {isExpanded && (
-                    <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 mt-3 sm:mt-4 border-t-2 border-pink-200">
+                    <div className="space-y-6 pt-6 mt-6 border-t-2 border-pink-200">
                       {post.conteudo_completo && (
-                        <div className="prose prose-sm max-w-none text-justify bg-gray-50 p-3 sm:p-4 rounded-lg text-xs sm:text-sm">
+                        <div className="prose prose-base max-w-none text-justify bg-gray-50 p-6 rounded-lg">
                           <ReactMarkdown>{post.conteudo_completo}</ReactMarkdown>
                         </div>
                       )}
 
                       {post.midias && post.midias.length > 0 && (
-                        <div className="space-y-2 sm:space-y-3">
-                          <h4 className="font-bold text-gray-800 text-sm sm:text-base flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
+                        <div className="space-y-4">
+                          <h4 className="font-bold text-gray-800 text-xl flex items-center gap-2">
+                            <ImageIcon className="w-6 h-6 text-pink-600" />
                             Mídias Anexadas
                           </h4>
-                          <div className="space-y-2 sm:space-y-3">
-                            {post.midias.map((midia, idx) => (
-                              <div key={idx} className="bg-white p-4 rounded-lg border-2 border-gray-200 hover:border-pink-300 transition-all">
-                                <div className="flex items-center gap-2 mb-3">
-                                  {getMidiaIcon(midia.tipo)}
-                                  <span className="font-semibold text-sm text-gray-800 capitalize">
-                                    {midia.tipo}
-                                  </span>
+                          <div className="space-y-6">
+                            {post.midias.map((midia, idx) => {
+                              const isYouTube = midia.url?.includes('youtube.com') || midia.url?.includes('youtu.be');
+                              const isInstagram = midia.url?.includes('instagram.com');
+                              const isLinkedIn = midia.url?.includes('linkedin.com');
+                              
+                              let embedUrl = midia.url;
+                              if (isYouTube) {
+                                const videoId = midia.url.includes('youtu.be') 
+                                  ? midia.url.split('youtu.be/')[1]?.split('?')[0]
+                                  : midia.url.split('v=')[1]?.split('&')[0];
+                                embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                              } else if (isInstagram && midia.url.includes('/reel/')) {
+                                const reelId = midia.url.split('/reel/')[1]?.split('/')[0];
+                                embedUrl = `https://www.instagram.com/reel/${reelId}/embed`;
+                              } else if (isLinkedIn && midia.url.includes('/posts/')) {
+                                embedUrl = midia.url.replace('/posts/', '/embed/feed/update/urn:li:share:');
+                              }
+
+                              return (
+                                <div key={idx} className="bg-white p-6 rounded-xl border-2 border-gray-200 shadow-md">
+                                  {midia.titulo && (
+                                    <h5 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                      {getMidiaIcon(midia.tipo)}
+                                      {midia.titulo}
+                                    </h5>
+                                  )}
+                                  
+                                  {midia.tipo === 'imagem' && midia.url && (
+                                    <img 
+                                      src={midia.url} 
+                                      alt={midia.titulo || 'Imagem'}
+                                      loading="lazy"
+                                      className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-gray-300" 
+                                      onClick={() => {
+                                        const allImages = [
+                                          post.imagem_destaque,
+                                          ...(post.midias || [])
+                                            .filter(m => m.tipo === 'imagem' && m.url)
+                                            .map(m => m.url)
+                                        ].filter(Boolean);
+                                        handleImageClick(midia.url, allImages);
+                                      }}
+                                    />
+                                  )}
+                                  
+                                  {midia.tipo === 'video' && midia.url && (
+                                    <>
+                                      {isYouTube ? (
+                                        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                                          <iframe
+                                            src={embedUrl}
+                                            className="absolute top-0 left-0 w-full h-full rounded-lg"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                          />
+                                        </div>
+                                      ) : (
+                                        <video controls preload="metadata" className="w-full rounded-lg">
+                                          <source src={midia.url} />
+                                          Seu navegador não suporta o elemento de vídeo.
+                                        </video>
+                                      )}
+                                    </>
+                                  )}
+                                  
+                                  {midia.tipo === 'link' && midia.url && (
+                                    <>
+                                      {isInstagram ? (
+                                        <div className="w-full max-w-lg mx-auto">
+                                          <iframe
+                                            src={embedUrl}
+                                            className="w-full h-[600px] rounded-lg"
+                                            frameBorder="0"
+                                            scrolling="no"
+                                            allowTransparency={true}
+                                            allow="encrypted-media"
+                                          />
+                                        </div>
+                                      ) : isLinkedIn ? (
+                                        <div className="w-full">
+                                          <iframe
+                                            src={embedUrl}
+                                            className="w-full h-[500px] rounded-lg"
+                                            frameBorder="0"
+                                            allowFullScreen={true}
+                                          />
+                                        </div>
+                                      ) : (
+                                        <a
+                                          href={midia.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-semibold text-base"
+                                        >
+                                          Abrir Link <ExternalLink className="w-5 h-5" />
+                                        </a>
+                                      )}
+                                    </>
+                                  )}
+                                  
+                                  {midia.tipo === 'pdf' && midia.url && (
+                                    <a
+                                      href={midia.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all font-semibold text-base"
+                                    >
+                                      Abrir PDF <ExternalLink className="w-5 h-5" />
+                                    </a>
+                                  )}
                                 </div>
-                                {midia.titulo && (
-                                  <p className="text-sm text-gray-600 mb-3 font-semibold">{midia.titulo}</p>
-                                )}
-                                
-                                {midia.tipo === 'imagem' && midia.url && (
-                                  <img 
-                                    src={midia.url} 
-                                    alt={midia.titulo || 'Imagem'}
-                                    loading="lazy"
-                                    className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-gray-300" 
-                                    onClick={() => {
-                                      const allImages = [
-                                        post.imagem_destaque,
-                                        ...(post.midias || [])
-                                          .filter(m => m.tipo === 'imagem' && m.url)
-                                          .map(m => m.url)
-                                      ].filter(Boolean);
-                                      handleImageClick(midia.url, allImages);
-                                    }}
-                                  />
-                                )}
-                                
-                                {midia.tipo === 'video' && midia.url && (
-                                  <video controls preload="metadata" className="w-full rounded-lg">
-                                    <source src={midia.url} />
-                                    Seu navegador não suporta o elemento de vídeo.
-                                  </video>
-                                )}
-                                
-                                {(midia.tipo === 'pdf' || midia.tipo === 'link') && midia.url && (
-                                  <a
-                                    href={midia.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-semibold text-sm"
-                                  >
-                                    Abrir {midia.tipo === 'pdf' ? 'PDF' : 'Link'} <ExternalLink className="w-4 h-4" />
-                                  </a>
-                                )}
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}

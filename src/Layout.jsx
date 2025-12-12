@@ -4,11 +4,12 @@ import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star } from 'lucide-react';
+import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star, LogIn, LogOut, UserCircle } from 'lucide-react';
 import Chatbot from '@/components/chatbot/Chatbot';
 
 export default function Layout({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -16,10 +17,12 @@ export default function Layout({ children }) {
   useEffect(() => {
     async function checkAdminStatus() {
       try {
-        const user = await base44.auth.me();
-        setIsAdmin(user && user.role === 'admin');
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        setIsAdmin(currentUser && currentUser.role === 'admin');
       } catch (error) {
         console.error("Erro ao verificar status de admin:", error);
+        setUser(null);
         setIsAdmin(false);
       } finally {
         setLoadingUser(false);
@@ -129,6 +132,42 @@ export default function Layout({ children }) {
               </Button>
             </Link>
           )}
+
+          {/* Botão de Login/Perfil */}
+          <div className="border-t border-gray-300 pt-2 mt-2">
+            {user ? (
+              <>
+                <Link to={createPageUrl('MeuPerfilDiscente')}>
+                  <Button
+                    variant="ghost"
+                    className={`w-full justify-start text-sm lg:text-base transition-all duration-200
+                      ${location.pathname.includes('MeuPerfilDiscente') ? 'bg-blue-100 text-blue-800 shadow-md' : 'text-gray-700 hover:bg-gray-100'}
+                      ${location.pathname.includes('MeuPerfilDiscente') ? 'lg:pl-4' : 'lg:pl-2'}`}
+                  >
+                    <UserCircle className={`w-5 h-5 lg:mr-3 ${location.pathname.includes('MeuPerfilDiscente') ? 'text-blue-800' : 'text-gray-600'}`} />
+                    <span className="hidden lg:block">Meu Perfil</span>
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  onClick={() => base44.auth.logout()}
+                  className="w-full justify-start text-sm lg:text-base text-gray-700 hover:bg-gray-100 lg:pl-2"
+                >
+                  <LogOut className="w-5 h-5 lg:mr-3 text-gray-600" />
+                  <span className="hidden lg:block">Sair</span>
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
+                className="w-full justify-start text-sm lg:text-base text-gray-700 hover:bg-gray-100 lg:pl-2"
+              >
+                <LogIn className="w-5 h-5 lg:mr-3 text-gray-600" />
+                <span className="hidden lg:block">Entrar</span>
+              </Button>
+            )}
+          </div>
         </nav>
         </div>
 
@@ -172,6 +211,41 @@ export default function Layout({ children }) {
                   </Button>
                 </Link>
               )}
+
+              {/* Botão de Login/Perfil Mobile */}
+              <div className="border-t border-gray-300 pt-2 mt-2">
+                {user ? (
+                  <>
+                    <Link to={createPageUrl('MeuPerfilDiscente')} onClick={() => setMobileMenuOpen(false)}>
+                      <Button
+                        variant="ghost"
+                        className={`w-full justify-start text-base transition-all duration-200
+                          ${location.pathname.includes('MeuPerfilDiscente') ? 'bg-blue-100 text-blue-800 shadow-md' : 'text-gray-700 hover:bg-gray-100'}`}
+                      >
+                        <UserCircle className={`w-5 h-5 mr-3 ${location.pathname.includes('MeuPerfilDiscente') ? 'text-blue-800' : 'text-gray-600'}`} />
+                        <span>Meu Perfil</span>
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      onClick={() => base44.auth.logout()}
+                      className="w-full justify-start text-base text-gray-700 hover:bg-gray-100"
+                    >
+                      <LogOut className="w-5 h-5 mr-3 text-gray-600" />
+                      <span>Sair</span>
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
+                    className="w-full justify-start text-base text-gray-700 hover:bg-gray-100"
+                  >
+                    <LogIn className="w-5 h-5 mr-3 text-gray-600" />
+                    <span>Entrar</span>
+                  </Button>
+                )}
+              </div>
             </nav>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { createPageUrl } from '@/utils';
 import { CheckCircle, ArrowRight, Handshake, Sparkles, Target, TrendingUp, Award, Users, Zap, Briefcase, GraduationCap, Rocket } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import InteractiveVideo from '@/components/video/InteractiveVideo';
 
 export default function UpgradePage() {
   const { data: tecnologias = [] } = useQuery({
@@ -27,6 +28,125 @@ export default function UpgradePage() {
     { title: "Infraestrutura Completa", desc: "Instalações modernas e confortáveis, com biblioteca informatizada e espaços de estudo individuais ou em grupo." },
     { title: "Convênios Corporativos", desc: "Descontos especiais para ex-alunos e conveniados ao CREA/PE e CAU/PE." },
   ];
+
+  // Configuração do Vídeo Interativo
+  const videoHotspots = [
+    {
+      id: 'tech-bim',
+      startTime: 3,
+      endTime: 8,
+      position: { top: '20%', left: '15%' },
+      label: 'Tecnologia BIM',
+      icon: 'Building2',
+      contentId: 'details-bim'
+    },
+    {
+      id: 'gestao',
+      startTime: 10,
+      endTime: 15,
+      position: { top: '40%', right: '15%' },
+      label: 'Gestão 4.0',
+      icon: 'TrendingUp',
+      contentId: 'details-gestao'
+    },
+    {
+      id: 'docente',
+      startTime: 18,
+      endTime: 23,
+      position: { bottom: '30%', left: '20%' },
+      label: 'Corpo Docente',
+      icon: 'Users',
+      contentId: 'details-docente'
+    },
+    {
+      id: 'incubadora',
+      startTime: 26,
+      endTime: 31,
+      position: { top: '30%', right: '20%' },
+      label: 'Incubadora',
+      icon: 'Lightbulb',
+      contentId: 'details-incubadora'
+    },
+    {
+      id: 'depoimentos',
+      startTime: 34,
+      endTime: 40,
+      position: { bottom: '25%', right: '15%' },
+      label: 'Depoimentos',
+      icon: 'MessageSquare',
+      contentId: 'details-depoimentos'
+    }
+  ];
+
+  const videoAdditionalContent = {
+    'details-bim': {
+      title: 'Tecnologia BIM',
+      subtitle: 'Building Information Modeling',
+      icon: 'Building2',
+      description: 'Nossa especialização em BIM vai além do desenho 3D. Formamos BIM Managers estrategistas que dominam a coordenação de dados, interoperabilidade e processos construtivos digitais.',
+      items: [
+        'Autodesk Revit, Navisworks e BIM 360',
+        'Gestão de Projetos Colaborativos',
+        'Clash Detection e Coordenação',
+        'BIM 4D (Planejamento) e 5D (Orçamento)',
+        'Implementação BIM em Empresas'
+      ]
+    },
+    'details-gestao': {
+      title: 'Gestão de Projetos e Obras 4.0',
+      subtitle: 'O Perfil Business da Construção',
+      icon: 'TrendingUp',
+      description: 'Focado em Dinheiro e Prazo. Você será o gestor que protege a margem de lucro, domina Claims (pleitos) e garante o equilíbrio financeiro da obra.',
+      items: [
+        'Gestão de Custos e Orçamentos',
+        'Planejamento com MS Project e Primavera',
+        'Lean Construction e Last Planner',
+        'Negociação e Gestão de Contratos',
+        'Power BI para Dashboards Gerenciais',
+        'Claims e Aditivos Contratuais'
+      ]
+    },
+    'details-docente': {
+      title: 'Corpo Docente de Mercado',
+      subtitle: 'Professores Praticantes',
+      icon: 'Users',
+      description: 'Aprenda com professores que não apenas ensinam, mas vivem a construção civil. Profissionais atuantes em empresas líderes, com vasta experiência prática e casos reais.',
+      items: [
+        'Professores com atuação ativa no mercado',
+        'Experiência em grandes construtoras e projetos',
+        'Networking direto com o mercado',
+        'Casos práticos e situações reais',
+        'Mentoria e orientação de carreira'
+      ]
+    },
+    'details-incubadora': {
+      title: 'Incubadora Profissional ESUDA',
+      subtitle: 'Retorno Garantido Antes do Fim do Curso',
+      icon: 'Lightbulb',
+      description: 'O programa que mais gera retorno financeiro e de conhecimento aos alunos. Antes do final do curso, nossos alunos já recuperam o valor investido através de oportunidades reais de trabalho e projetos práticos.',
+      items: [
+        'Projetos práticos com empresas parceiras',
+        'Oportunidades de Freelancing e Contratos',
+        'Network profissional ativo',
+        'Publicações científicas',
+        'Eventos e Workshops',
+        'ROI comprovado e rastreável'
+      ]
+    },
+    'details-depoimentos': {
+      title: 'Depoimentos de Alunos',
+      subtitle: 'Histórias de Sucesso',
+      icon: 'MessageSquare',
+      description: 'Veja o que nossos alunos têm a dizer sobre a transformação em suas carreiras após a especialização ESUDA.',
+      items: [
+        'Promoções e aumentos salariais',
+        'Contratações em empresas de destaque',
+        'Abertura de empresas próprias',
+        'Novos projetos e oportunidades',
+        'Crescimento profissional acelerado'
+      ]
+    }
+  };
 
   return (
     <>
@@ -53,6 +173,28 @@ export default function UpgradePage() {
             O Futuro da Construção Civil não é dos Generalistas.<br className="hidden sm:block"/>
             É dos <span className="text-green-600">Líderes de Nicho</span>.
           </h1>
+        </div>
+
+        {/* Vídeo Interativo */}
+        <div className="mb-12 sm:mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+              Explore o Programa ESUDA de Forma Interativa
+            </h2>
+            <p className="text-gray-600 text-sm sm:text-base max-w-3xl mx-auto">
+              Assista ao vídeo e clique nos ícones interativos para descobrir mais sobre tecnologias, 
+              corpo docente, incubadora e depoimentos de alunos.
+            </p>
+          </div>
+          <InteractiveVideo
+            videoSrc="https://www.w3schools.com/html/mov_bbb.mp4"
+            posterSrc="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=675&fit=crop"
+            hotspots={videoHotspots}
+            additionalContent={videoAdditionalContent}
+          />
+          <p className="text-center text-xs text-gray-500 mt-4">
+            💡 Dica: Clique nos botões que aparecem durante o vídeo para explorar conteúdo adicional
+          </p>
         </div>
 
       {/* Alert Blocks */}

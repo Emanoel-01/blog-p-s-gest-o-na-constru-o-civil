@@ -14,6 +14,7 @@ import CalendarioDeAula from './pages/CalendarioDeAula';
 import IncubadoraProfissionalPage from './pages/IncubadoraProfissionalPage';
 import GerenciadorDeMidiaPage from './pages/GerenciadorDeMidiaPage';
 import DepoimentosPage from './pages/DepoimentosPage';
+import MapaDeCursosPage from './pages/MapaDeCursosPage';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "IncubadoraProfissionalPage": IncubadoraProfissionalPage,
     "GerenciadorDeMidiaPage": GerenciadorDeMidiaPage,
     "DepoimentosPage": DepoimentosPage,
+    "MapaDeCursosPage": MapaDeCursosPage,
 }
 
 export const pagesConfig = {

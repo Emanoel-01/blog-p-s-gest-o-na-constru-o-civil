@@ -393,7 +393,6 @@ export default function UpgradePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
               <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-              </div>
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Canteiros Didáticos</p>
                 <p className="text-xs text-gray-600">Espaços práticos de aprendizado</p>
@@ -443,7 +442,6 @@ export default function UpgradePage() {
             </div>
             <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg border border-green-200">
               <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-              </div>
               <div>
                 <p className="font-semibold text-gray-800 text-sm">Seja Professor</p>
                 <p className="text-xs text-gray-600">Compartilhe seu conhecimento</p>

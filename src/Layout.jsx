@@ -35,16 +35,15 @@ export default function Layout({ children }) {
     { name: 'Home', path: 'Homepage' },
     { name: 'O Upgrade', path: 'UpgradePage' },
     { name: 'Diferenciais', path: 'DiferenciaisPage' },
-    { name: 'Ciclos de Conhecimento', path: 'CiclosPage' },
+    { name: 'Ciclos', path: 'CiclosPage' },
     { name: 'Especializações', path: 'EspecializacoesPage' },
-    { name: 'Mapa de Cursos', path: 'MapaDeCursosPage' },
     { name: 'Coordenação', path: 'CoordenadorPage' },
     { name: 'Corpo Docente', path: 'ProfessoresPage' },
     { name: 'Corpo Discente', path: 'CorpoDiscentePage' },
     { name: 'Parceiros', path: 'ParceirosPage' },
-    { name: 'Incubadora Profissional', path: 'IncubadoraProfissionalPage' },
+    { name: 'Incubadora', path: 'IncubadoraProfissionalPage' },
     { name: 'Blog', path: 'EmAcaoPage' },
-    { name: 'Calendário de Aulas', path: 'CalendarioDeAula' },
+    { name: 'Calendário', path: 'CalendarioDeAula' },
     { name: 'Depoimentos', path: 'DepoimentosPage' }
     ];
 
@@ -52,16 +51,15 @@ export default function Layout({ children }) {
     'Home': Home,
     'O Upgrade': Award,
     'Diferenciais': Lightbulb,
-    'Ciclos de Conhecimento': GitMerge,
+    'Ciclos': GitMerge,
     'Especializações': GraduationCap,
-    'Mapa de Cursos': GitMerge,
     'Coordenação': User,
     'Corpo Docente': Users,
     'Corpo Discente': GraduationCap,
     'Parceiros': Handshake,
-    'Incubadora Profissional': Lightbulb,
+    'Incubadora': Lightbulb,
     'Blog': Rss,
-    'Calendário de Aulas': CalendarDays,
+    'Calendário': CalendarDays,
     'Depoimentos': Star
   };
 

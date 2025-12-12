@@ -408,9 +408,9 @@ export default function UpgradePage() {
             ← Voltar
           </Button>
         </Link>
-        <Link to={createPageUrl('DiferenciaisPage')} className="w-full sm:w-auto">
+        <Link to={createPageUrl('CiclosPage')} className="w-full sm:w-auto">
           <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white w-full sm:w-auto">
-            Ver Diferenciais
+            Ver Ciclos de Conhecimento
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
         </Link>

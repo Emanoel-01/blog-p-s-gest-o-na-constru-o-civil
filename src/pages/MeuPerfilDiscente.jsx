@@ -441,9 +441,10 @@ export default function MeuPerfilDiscente() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900">ESUDA - Escola Superior de Desenho e Animação</h3>
+                  <h3 className="font-bold text-gray-900">ESUDA</h3>
+                  <p className="text-gray-600">Faculdade ESUDA</p>
                   {minhasEspecializacoes.map(espec => (
-                    <p key={espec.id} className="text-gray-600">Pós-Graduação em {espec.nome}</p>
+                    <p key={espec.id} className="text-sm text-gray-700">Pós-Graduação em {espec.nome}</p>
                   ))}
                   {discente.numero_turma && (
                     <p className="text-sm text-gray-500 mt-1">Turma {discente.numero_turma}</p>

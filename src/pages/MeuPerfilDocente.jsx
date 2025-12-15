@@ -371,9 +371,9 @@ export default function MeuPerfilDocente() {
                 />
               </div>
               <div>
-                <h3 className="font-bold text-gray-900">ESUDA - Escola Superior de Desenho e Animação</h3>
-                <p className="text-gray-600">{professor.titulo}</p>
-                <p className="text-sm text-gray-500 mt-1">Corpo Docente</p>
+                <h3 className="font-bold text-gray-900">ESUDA</h3>
+                <p className="text-gray-600">Faculdade ESUDA</p>
+                <p className="text-sm text-gray-500 mt-1">{professor.titulo} • Corpo Docente</p>
               </div>
             </div>
           </CardContent>

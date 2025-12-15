@@ -15,6 +15,8 @@ import GerenciadorDeMidiaPage from './pages/GerenciadorDeMidiaPage';
 import DepoimentosPage from './pages/DepoimentosPage';
 import MeuPerfilDiscente from './pages/MeuPerfilDiscente';
 import MeuPerfilDocente from './pages/MeuPerfilDocente';
+import PerfilDocente from './pages/PerfilDocente';
+import PerfilDiscente from './pages/PerfilDiscente';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +38,8 @@ export const PAGES = {
     "DepoimentosPage": DepoimentosPage,
     "MeuPerfilDiscente": MeuPerfilDiscente,
     "MeuPerfilDocente": MeuPerfilDocente,
+    "PerfilDocente": PerfilDocente,
+    "PerfilDiscente": PerfilDiscente,
 }
 
 export const pagesConfig = {

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { createPageUrl } from '@/utils';
 import { Instagram, Linkedin, Globe, BookOpen, User, Search, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react';
 
 export default function CorpoDiscentePage() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTurma, setSelectedTurma] = useState('todas');
   const [selectedEspecializacao, setSelectedEspecializacao] = useState('todas');
@@ -306,25 +307,32 @@ export default function CorpoDiscentePage() {
                                 return (
                                   <Card 
                                     key={discente.id} 
-                                    className="hover:shadow-xl transition-all border-2 border-gray-200 hover:border-green-500 cursor-pointer"
-                                    onClick={() => toggleDiscente(discente.id)}
+                                    className="hover:shadow-xl transition-all border-2 border-gray-200 hover:border-green-500"
                                   >
                                     <CardContent className="p-3 sm:p-4 text-center">
                                       {/* Foto e Info Básica */}
-                                      {discente.foto_url ? (
-                                        <img
-                                          src={discente.foto_url}
-                                          alt={discente.nome}
-                                          loading="lazy"
-                                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-4 border-green-600 mx-auto mb-2"
-                                        />
-                                      ) : (
-                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 mx-auto mb-2 flex items-center justify-center">
-                                          <User className="w-8 h-8 text-white" />
-                                        </div>
-                                      )}
-                                      
-                                      <h4 className="font-bold text-gray-800 mb-1 text-xs sm:text-sm line-clamp-2 leading-tight">
+                                      <div 
+                                        className="cursor-pointer"
+                                        onClick={() => navigate(createPageUrl('PerfilDiscente') + '?id=' + discente.id)}
+                                      >
+                                        {discente.foto_url ? (
+                                          <img
+                                            src={discente.foto_url}
+                                            alt={discente.nome}
+                                            loading="lazy"
+                                            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-4 border-green-600 mx-auto mb-2 hover:border-green-700 transition-all"
+                                          />
+                                        ) : (
+                                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 mx-auto mb-2 flex items-center justify-center hover:from-gray-400 hover:to-gray-500 transition-all">
+                                            <User className="w-8 h-8 text-white" />
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <h4 
+                                        className="font-bold text-gray-800 mb-1 text-xs sm:text-sm line-clamp-2 leading-tight cursor-pointer hover:text-green-600 transition-colors"
+                                        onClick={() => navigate(createPageUrl('PerfilDiscente') + '?id=' + discente.id)}
+                                      >
                                         {discente.nome}
                                       </h4>
                                       <p className="text-[10px] sm:text-xs text-gray-600 mb-2 line-clamp-2 leading-snug">
@@ -333,7 +341,7 @@ export default function CorpoDiscentePage() {
 
                                       {/* Detalhes Expandidos */}
                                       {isDiscenteExpanded && (
-                                        <div className="mt-3 pt-3 border-t border-gray-200 space-y-2" onClick={(e) => e.stopPropagation()}>
+                                        <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
                                           {/* Info Profissional */}
                                           {(discente.cargo_atual || discente.empresa) && (
                                             <div className="text-left space-y-1 mb-3">
@@ -353,7 +361,7 @@ export default function CorpoDiscentePage() {
                                           {/* Botões de Conexão */}
                                           <div className="flex gap-2">
                                             {discente.linkedin && (
-                                              <a href={discente.linkedin} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1">
+                                              <a href={discente.linkedin} target="_blank" rel="noopener noreferrer" className="flex-1">
                                                 <Button size="sm" variant="outline" className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-8 text-xs">
                                                   <Linkedin className="w-3 h-3 mr-1" />
                                                   Conectar
@@ -361,7 +369,7 @@ export default function CorpoDiscentePage() {
                                               </a>
                                             )}
                                             {discente.whatsapp && (
-                                              <a href={`https://wa.me/${discente.whatsapp}?text=${encodeURIComponent(`Olá ${discente.nome}, vi seu perfil na comunidade ESUDA!`)}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1">
+                                              <a href={`https://wa.me/${discente.whatsapp}?text=${encodeURIComponent(`Olá ${discente.nome}, vi seu perfil na comunidade ESUDA!`)}`} target="_blank" rel="noopener noreferrer" className="flex-1">
                                                 <Button size="sm" variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-50 h-8 text-xs">
                                                   <MessageCircle className="w-3 h-3 mr-1" />
                                                   WhatsApp
@@ -373,21 +381,21 @@ export default function CorpoDiscentePage() {
                                           {/* Redes Sociais */}
                                           <div className="flex justify-center gap-1 flex-wrap pt-2">
                                             {discente.instagram && (
-                                              <a href={discente.instagram} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                              <a href={discente.instagram} target="_blank" rel="noopener noreferrer">
                                                 <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-pink-50">
                                                   <Instagram className="w-3.5 h-3.5 text-pink-600" />
                                                 </Button>
                                               </a>
                                             )}
                                             {discente.lattes && (
-                                              <a href={discente.lattes} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                              <a href={discente.lattes} target="_blank" rel="noopener noreferrer">
                                                 <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-yellow-50">
                                                   <BookOpen className="w-3.5 h-3.5 text-yellow-600" />
                                                 </Button>
                                               </a>
                                             )}
                                             {discente.site && (
-                                              <a href={discente.site} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                              <a href={discente.site} target="_blank" rel="noopener noreferrer">
                                                 <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-green-50">
                                                   <Globe className="w-3.5 h-3.5 text-gray-600" />
                                                 </Button>
@@ -399,9 +407,12 @@ export default function CorpoDiscentePage() {
 
                                       {/* Indicador de Expansão */}
                                       <div className="mt-2 text-center">
-                                        <span className="text-[10px] text-gray-400">
+                                        <button 
+                                          onClick={() => toggleDiscente(discente.id)}
+                                          className="text-[10px] text-gray-400 hover:text-gray-600 transition-colors"
+                                        >
                                           {isDiscenteExpanded ? '▲ clique para recolher' : '▼ clique para ver mais'}
-                                        </span>
+                                        </button>
                                       </div>
                                     </CardContent>
                                   </Card>

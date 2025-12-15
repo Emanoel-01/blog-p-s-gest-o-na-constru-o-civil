@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -17,8 +17,43 @@ import {
   Lightbulb,
   User
 } from 'lucide-react';
+import FeedSucesso from '../components/community/FeedSucesso';
+import NotificacoesPanel from '../components/community/NotificacoesPanel';
+import AtalhosComunidade from '../components/community/AtalhosComunidade';
 
 export default function Homepage() {
+  const [user, setUser] = useState(null);
+  const [profileType, setProfileType] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  useEffect(() => {
+    async function checkUser() {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        
+        if (currentUser) {
+          const professores = await base44.entities.Professor.list();
+          const isProfessor = professores.some(p => p.email === currentUser.email);
+          
+          if (isProfessor) {
+            setProfileType('docente');
+          } else {
+            const discentes = await base44.entities.Discente.list();
+            const isDiscente = discentes.some(d => d.email === currentUser.email);
+            if (isDiscente) {
+              setProfileType('discente');
+            }
+          }
+        }
+      } catch (error) {
+        setUser(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    }
+    checkUser();
+  }, []);
 
   const { data: posts = [] } = useQuery({
     queryKey: ['posts'],
@@ -58,10 +93,17 @@ export default function Homepage() {
           };
         })
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 4);
+        .slice(0, user ? 8 : 4);
 
       return networkActivities;
-    }
+    },
+    enabled: !loadingUser
+  });
+
+  const { data: notificacoes = [] } = useQuery({
+    queryKey: ['notificacoes-home', user?.email],
+    queryFn: () => base44.entities.Notificacao.filter({ destinatario_email: user.email, lida: false }, '-created_date', 10),
+    enabled: !!user
   });
 
 
@@ -116,6 +158,107 @@ export default function Homepage() {
     } : undefined
   }));
 
+  if (loadingUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" />
+      </div>
+    );
+  }
+
+  // Usuário LOGADO - Lobby da Comunidade
+  if (user && profileType) {
+    return (
+      <>
+        <Helmet>
+          <title>Comunidade ESUDA | Sua Home Acadêmica</title>
+        </Helmet>
+
+        <div className="space-y-8 pb-8 px-3 sm:px-4">
+          {/* Boas-vindas */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Bem-vindo(a), {user.full_name || 'Membro da Comunidade'}! 👋
+            </h1>
+            <p className="text-gray-600">
+              {profileType === 'docente' ? 'Área do Docente' : 'Área do Discente'}
+            </p>
+          </div>
+
+          {/* Atalhos Rápidos */}
+          <AtalhosComunidade profileType={profileType} />
+
+          {/* Feed de Sucesso */}
+          {incubadoraActivities.length > 0 && (
+            <FeedSucesso activities={incubadoraActivities} />
+          )}
+
+          {/* Notificações Recentes */}
+          <NotificacoesPanel notificacoes={notificacoes} />
+
+          {/* Tecnologias Exclusivas - Sempre visível */}
+          <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-xl p-6 border-2 border-blue-200">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Sparkles className="w-6 h-6 text-purple-600" />
+              <h2 className="text-xl font-bold text-gray-900">
+                Tecnologias Exclusivas
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+              <a href="https://esuda-gpo.base44.app" target="_blank" rel="noopener noreferrer" className="group">
+                <Card className="h-full bg-white border-2 border-blue-300 hover:border-blue-500 hover:shadow-lg transition-all">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-lg">
+                        <Zap className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-gray-900 mb-1">GPO 4.0</h3>
+                        <Badge className="bg-blue-100 text-blue-800 text-xs">Gestão de Projetos</Badge>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-3">
+                      Plano Interativo de Gestão de Projetos e Obras com IA.
+                    </p>
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm">
+                      Acessar
+                      <ArrowRight className="ml-2 w-4 h-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </a>
+
+              <a href="https://esuda-predial.base44.app" target="_blank" rel="noopener noreferrer" className="group">
+                <Card className="h-full bg-white border-2 border-purple-300 hover:border-purple-500 hover:shadow-lg transition-all">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-2 rounded-lg">
+                        <Building2 className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-gray-900 mb-1">Predial 4.0</h3>
+                        <Badge className="bg-purple-100 text-purple-800 text-xs">Manutenção Predial</Badge>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-700 mb-3">
+                      Plano Interativo de Manutenção Predial com IA.
+                    </p>
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm">
+                      Acessar
+                      <ArrowRight className="ml-2 w-4 h-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </a>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Usuário NÃO LOGADO - Sales Page (comportamento original)
   return (
     <>
       <Helmet>

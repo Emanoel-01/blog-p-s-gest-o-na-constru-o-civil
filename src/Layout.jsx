@@ -6,6 +6,7 @@ import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star, LogIn, LogOut, UserCircle } from 'lucide-react';
 import Chatbot from '@/components/chatbot/Chatbot';
+import NotificationBell from '@/components/layout/NotificationBell';
 
 // Componente auxiliar para decidir qual botão de perfil mostrar
 function ProfileButton({ user, location }) {
@@ -93,26 +94,10 @@ export default function Layout({ children }) {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-        setIsAdmin(currentUser && currentUser.role === 'admin');
         
-        // Redirecionar para o perfil apropriado se o usuário acabou de logar
-        if (currentUser && location.pathname === '/') {
-          // Verificar se é professor
-          const professores = await base44.entities.Professor.list();
-          const isProfessor = professores.some(p => p.email === currentUser.email);
-          
-          if (isProfessor && !location.pathname.includes('MeuPerfilDocente')) {
-            // Não redirecionar automaticamente, deixar o usuário navegar
-          }
-          
-          // Verificar se é discente
-          const discentes = await base44.entities.Discente.list();
-          const isDiscente = discentes.some(d => d.email === currentUser.email);
-          
-          if (isDiscente && !location.pathname.includes('MeuPerfilDiscente')) {
-            // Não redirecionar automaticamente, deixar o usuário navegar
-          }
-        }
+        // Super Admin hardcoded
+        const isSuperAdmin = currentUser && currentUser.email === 'emanoel.s.amorim@gmail.com';
+        setIsAdmin(isSuperAdmin || (currentUser && currentUser.role === 'admin'));
       } catch (error) {
         console.error("Erro ao verificar status de admin:", error);
         setUser(null);
@@ -222,6 +207,13 @@ export default function Layout({ children }) {
             </Link>
           )}
 
+          {/* Notificações (apenas para usuários logados) */}
+          {user && (
+            <div className="px-2 lg:px-4 mb-2">
+              <NotificationBell userEmail={user.email} />
+            </div>
+          )}
+
           {/* Botão de Login/Perfil */}
           <div className="border-t border-gray-300 pt-2 mt-2">
             {user ? (
@@ -289,6 +281,13 @@ export default function Layout({ children }) {
                     <span>Administrador</span>
                   </Button>
                 </Link>
+              )}
+
+              {/* Notificações Mobile */}
+              {user && (
+                <div className="px-4 mb-2">
+                  <NotificationBell userEmail={user.email} />
+                </div>
               )}
 
               {/* Botão de Login/Perfil Mobile */}

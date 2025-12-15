@@ -180,6 +180,15 @@ export default function MeuPerfilDiscente() {
 
               {isEditing ? (
                 <div className="space-y-4">
+                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-300 mb-4">
+                    <p className="text-xs text-yellow-800 font-semibold mb-1">
+                      ℹ️ Campos Bloqueados (gerenciados pela coordenação):
+                    </p>
+                    <p className="text-xs text-gray-700">
+                      Nome, E-mail, Turma e Especializações não podem ser editados por você.
+                    </p>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Título/Formação

@@ -107,21 +107,6 @@ export default function CorpoDiscentePage() {
     setCurrentPage(1);
   };
 
-  const toggleTurma = (especId, turma) => {
-    const key = `${especId}-${turma}`;
-    setExpandedTurmas(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
-
-  const toggleDiscente = (discenteId) => {
-    setExpandedDiscentes(prev => ({
-      ...prev,
-      [discenteId]: !prev[discenteId]
-    }));
-  };
-
   // Cores por especialização (verde clarinho para todos)
   const getEspecializacaoColor = (nomeEspec) => {
     return 'from-green-100 to-emerald-200';

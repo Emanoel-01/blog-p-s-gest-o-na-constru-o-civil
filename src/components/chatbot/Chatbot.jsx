@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
 import { MessageCircle, X, Send, ChevronRight, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { toast } from 'sonner';
 
 export default function Chatbot() {
   const location = useLocation();
@@ -16,64 +17,227 @@ export default function Chatbot() {
   const [conversationId, setConversationId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [leadInfo, setLeadInfo] = useState({ nome: '', whatsapp: '', collectingName: true, collectingWhatsApp: false });
+  const [leadInfo, setLeadInfo] = useState({ nome: '', whatsapp: '', collectingName: false, collectingWhatsApp: false, leadCreated: false });
   const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const messagesEndRef = useRef(null);
-  const hasInitialized = useRef(false);
-  // Inicializar conversa com o agente
+  
+  // Check authentication status and initialize chatbot flow
   useEffect(() => {
-    if (!hasInitialized.current) {
-      hasInitialized.current = true;
-      initializeConversation();
-    }
+    const checkAuthAndInitChat = async () => {
+      try {
+        const authStatus = await base44.auth.isAuthenticated();
+        setIsAuthenticated(authStatus);
+
+        const storedConversationId = localStorage.getItem('chatbotConversationId');
+        const storedLeadInfo = localStorage.getItem('chatbotLeadInfo');
+        const leadData = storedLeadInfo ? JSON.parse(storedLeadInfo) : {};
+
+        if (authStatus) {
+          // User is logged in, directly initialize agent conversation
+          if (storedConversationId) {
+            await initializeAgentConversation(storedConversationId);
+          } else {
+            await initializeAgentConversation();
+          }
+        } else {
+          // User is not logged in, manage lead capture flow
+          if (leadData.nome && leadData.whatsapp) {
+            // Lead info already collected
+            setLeadInfo({ ...leadData, leadCreated: true });
+            if (storedConversationId) {
+              await initializeAgentConversation(storedConversationId);
+            } else {
+              await initializeAgentConversation();
+            }
+          } else {
+            // Start lead capture flow
+            setMessages([
+              {
+                role: 'assistant',
+                content: 'Olá! Sou seu Coordenador Digital. Para que eu possa te ajudar melhor, qual é o seu nome?',
+                created_date: new Date().toISOString()
+              }
+            ]);
+            setLeadInfo(prev => ({ ...prev, collectingName: true }));
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao inicializar chatbot:', error);
+      }
+    };
+
+    checkAuthAndInitChat();
   }, []);
 
-  const initializeConversation = async () => {
-    try {
-      const conversation = await base44.agents.createConversation({
-        agent_name: 'coordenador_digital',
-        metadata: {
-          name: 'Nova Conversa',
-          page: location.pathname
-        }
-      });
-      setConversationId(conversation.id);
-      
-      // Inscrever para atualizações em tempo real
-      const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
-        setMessages(data.messages || []);
-      });
-      
-      return () => unsubscribe();
-    } catch (error) {
-      console.error('Erro ao inicializar conversa:', error);
-    }
-  };
+  // Effect for messages scrolling
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || !conversationId) return;
-
-    setIsLoadingAI(true);
-    
+  // Generic function to initialize or resume agent conversation
+  const initializeAgentConversation = async (existingConversationId = null) => {
     try {
-      const conversation = await base44.agents.getConversation(conversationId);
+      let currentConversationId = existingConversationId || localStorage.getItem('chatbotConversationId');
       
-      await base44.agents.addMessage(conversation, {
-        role: 'user',
-        content: `[Página atual: ${location.pathname}]\n\n${inputValue}`
+      if (!currentConversationId) {
+        const user = isAuthenticated ? await base44.auth.me() : null;
+        const conversation = await base44.agents.createConversation({
+          agent_name: 'coordenador_digital',
+          metadata: {
+            name: isAuthenticated ? `Conversa com ${user?.full_name}` : 'Conversa de Lead',
+            page: location.pathname
+          }
+        });
+        currentConversationId = conversation.id;
+        localStorage.setItem('chatbotConversationId', conversation.id);
+      } else {
+        // Verify conversation exists
+        try {
+          await base44.agents.getConversation(currentConversationId);
+        } catch (error) {
+          console.warn('Stored conversation invalid, creating new one.');
+          localStorage.removeItem('chatbotConversationId');
+          const user = isAuthenticated ? await base44.auth.me() : null;
+          const conversation = await base44.agents.createConversation({
+            agent_name: 'coordenador_digital',
+            metadata: {
+              name: isAuthenticated ? `Conversa com ${user?.full_name}` : 'Conversa de Lead',
+              page: location.pathname
+            }
+          });
+          currentConversationId = conversation.id;
+          localStorage.setItem('chatbotConversationId', conversation.id);
+        }
+      }
+      
+      setConversationId(currentConversationId);
+      const unsubscribe = base44.agents.subscribeToConversation(currentConversationId, (data) => {
+        setMessages(data.messages || []);
+        setIsLoadingAI(false);
       });
       
-      setInputValue('');
+      return () => unsubscribe();
+
     } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
+      console.error('Erro ao inicializar conversa do agente:', error);
+      setIsLoadingAI(false);
+    }
+  };
+
+  const sendToAgent = async (content, convId) => {
+    if (!convId) {
+      console.error('sendToAgent called without conversation ID');
+      setIsLoadingAI(false);
+      return;
+    }
+    try {
+      const conversation = await base44.agents.getConversation(convId);
+      await base44.agents.addMessage(conversation, {
+        role: 'user',
+        content: content
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar mensagem ao agente:', error);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Desculpe, houve um erro ao processar sua mensagem. Por favor, tente novamente.', 
+        created_date: new Date().toISOString() 
+      }]);
+      setIsLoadingAI(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+
+    const userMessage = inputValue;
+    setInputValue('');
+    setIsLoadingAI(true);
+
+    // Add user message to UI immediately
+    setMessages(prev => [...prev, { role: 'user', content: userMessage, created_date: new Date().toISOString() }]);
+
+    try {
+      if (!isAuthenticated && !leadInfo.leadCreated) {
+        // Lead capture flow for non-logged-in users
+        if (leadInfo.collectingName) {
+          // User just provided name
+          setLeadInfo(prev => ({ ...prev, nome: userMessage, collectingName: false, collectingWhatsApp: true }));
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `Obrigado, ${userMessage}! Agora, por favor, me informe seu WhatsApp (com DDD) para que eu possa te enviar informações e continuar a conversa, se necessário.`,
+            created_date: new Date().toISOString()
+          }]);
+          setIsLoadingAI(false);
+        } else if (leadInfo.collectingWhatsApp) {
+          // User just provided WhatsApp
+          const whatsappCleaned = userMessage.replace(/\D/g, '');
+          if (whatsappCleaned.length < 10 || whatsappCleaned.length > 13) {
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: 'Por favor, insira um número de WhatsApp válido (ex: 5581999999999).',
+              created_date: new Date().toISOString()
+            }]);
+            setIsLoadingAI(false);
+            return;
+          }
+
+          setLeadInfo(prev => ({ ...prev, whatsapp: whatsappCleaned, collectingWhatsApp: false, leadCreated: true }));
+          
+          const leadPayload = {
+            nome: leadInfo.nome,
+            whatsapp: whatsappCleaned,
+            origem: 'Chatbot',
+            mensagem_inicial: `Lead capturado via Chatbot. Nome: ${leadInfo.nome}, WhatsApp: ${whatsappCleaned}`,
+            historico_interacoes: [{
+              data: new Date().toISOString(),
+              tipo: 'Mensagem Chatbot',
+              conteudo: `Lead capturado - Nome: ${leadInfo.nome}, WhatsApp: ${whatsappCleaned}`,
+              usuario: 'chatbot'
+            }]
+          };
+          
+          await base44.entities.Lead.create(leadPayload);
+          localStorage.setItem('chatbotLeadInfo', JSON.stringify({ nome: leadInfo.nome, whatsapp: whatsappCleaned }));
+          toast.success('Seu contato foi salvo! Um especialista pode entrar em contato.');
+
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `Perfeito! Seu contato foi salvo. Agora posso te ajudar. Qual a sua dúvida sobre a ESUDA?`,
+            created_date: new Date().toISOString()
+          }]);
+          setIsLoadingAI(false);
+          
+          // Initialize agent conversation after lead capture
+          await initializeAgentConversation();
+        }
+      } else {
+        // Normal interaction - send to agent
+        if (!conversationId) {
+          await initializeAgentConversation();
+          // Wait a bit for conversation to be initialized
+          setTimeout(() => {
+            if (conversationId) {
+              sendToAgent(`[Página: ${location.pathname}] ${userMessage}`, conversationId);
+            }
+          }, 500);
+        } else {
+          const contextPrefix = !isAuthenticated ? `[LEAD: ${leadInfo.nome}, WhatsApp: ${leadInfo.whatsapp}, Página: ${location.pathname}]` : `[Página: ${location.pathname}]`;
+          await sendToAgent(`${contextPrefix} ${userMessage}`, conversationId);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao enviar mensagem ou capturar lead:', error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Desculpe, houve um erro ao processar sua mensagem. Por favor, tente novamente.',
+        created_date: new Date().toISOString()
+      }]);
       setIsLoadingAI(false);
     }
   };
@@ -209,13 +373,20 @@ export default function Chatbot() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Digite sua pergunta..."
+            placeholder={
+              !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingName 
+                ? "Digite seu nome..." 
+                : !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingWhatsApp 
+                ? "Digite seu WhatsApp..." 
+                : "Digite sua pergunta..."
+            }
             className="flex-1"
+            disabled={isLoadingAI}
           />
           <Button
             onClick={handleSendMessage}
             className="bg-green-600 hover:bg-green-700"
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || isLoadingAI}
           >
             <Send className="w-4 h-4" />
           </Button>

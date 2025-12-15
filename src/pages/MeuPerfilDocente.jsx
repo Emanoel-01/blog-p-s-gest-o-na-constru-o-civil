@@ -10,7 +10,7 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Save, User, Briefcase, Link as LinkIcon, Upload, Edit, Award, BookOpen, Instagram, Linkedin, Globe, Mail, GraduationCap, BookMarked } from 'lucide-react';
+import { ArrowLeft, Save, User, Briefcase, Link as LinkIcon, Upload, Edit, Award, BookOpen, Instagram, Linkedin, Globe, Mail, GraduationCap } from 'lucide-react';
 
 export default function MeuPerfilDocente() {
   const [user, setUser] = useState(null);
@@ -31,12 +31,8 @@ export default function MeuPerfilDocente() {
 
   const { data: especializacoes = [] } = useQuery({
     queryKey: ['especializacoes'],
-    queryFn: () => base44.entities.Especializacao.list('ordem')
-  });
-
-  const { data: ciclos = [] } = useQuery({
-    queryKey: ['ciclos'],
-    queryFn: () => base44.entities.Ciclo.list('ordem')
+    queryFn: () => base44.entities.Especializacao.list('ordem'),
+    enabled: !!professor
   });
 
   useEffect(() => {
@@ -141,11 +137,6 @@ export default function MeuPerfilDocente() {
     .map(id => especializacoes.find(e => e.id === id))
     .filter(Boolean);
 
-  const minhasDisciplinas = ciclos.flatMap(ciclo => {
-    if (!minhasEspecializacoes.some(espec => espec.ciclos?.includes(ciclo.id))) return [];
-    return (ciclo.disciplinas || []).map(d => typeof d === 'string' ? d : d.nome);
-  }).filter((v, i, a) => a.indexOf(v) === i);
-
   return (
     <>
       <Helmet>
@@ -193,14 +184,16 @@ export default function MeuPerfilDocente() {
                     </p>
                     <p className="text-gray-600 mt-1">Docente ESUDA</p>
                   </div>
-                  <Button
-                    onClick={() => setEditing(!editing)}
-                    variant={editing ? "outline" : "default"}
-                    className={editing ? "" : "bg-indigo-600 hover:bg-indigo-700"}
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    {editing ? 'Cancelar' : 'Editar Perfil'}
-                  </Button>
+                  {user && professor.email === user.email && (
+                    <Button
+                      onClick={() => setEditing(!editing)}
+                      variant={editing ? "outline" : "default"}
+                      className={editing ? "" : "bg-indigo-600 hover:bg-indigo-700"}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      {editing ? 'Cancelar' : 'Editar Perfil'}
+                    </Button>
+                  )}
                 </div>
 
                 {minhasEspecializacoes.length > 0 && (
@@ -360,29 +353,7 @@ export default function MeuPerfilDocente() {
           </Card>
         )}
 
-        {/* Disciplinas que Leciona */}
-        {!editing && minhasDisciplinas.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookMarked className="w-5 h-5 text-gray-700" />
-                Disciplinas que Leciono
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {minhasDisciplinas.map((disc, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-2 bg-indigo-50 rounded-lg border border-indigo-200">
-                    <div className="w-2 h-2 bg-indigo-600 rounded-full" />
-                    <span className="text-sm text-gray-800">{disc}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Formação */}
+        {/* Credenciais Acadêmicas */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

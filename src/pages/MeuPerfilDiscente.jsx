@@ -182,14 +182,16 @@ export default function MeuPerfilDiscente() {
                       </p>
                     )}
                   </div>
-                  <Button
-                    onClick={() => setIsEditing(!isEditing)}
-                    variant={isEditing ? "outline" : "default"}
-                    className={isEditing ? "" : "bg-green-600 hover:bg-green-700"}
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    {isEditing ? 'Cancelar' : 'Editar Perfil'}
-                  </Button>
+                  {user && discente.email === user.email && (
+                    <Button
+                      onClick={() => setIsEditing(!isEditing)}
+                      variant={isEditing ? "outline" : "default"}
+                      className={isEditing ? "" : "bg-green-600 hover:bg-green-700"}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      {isEditing ? 'Cancelar' : 'Editar Perfil'}
+                    </Button>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-3">

@@ -14,6 +14,18 @@ export default function ProfessoresPage() {
     queryFn: () => base44.entities.Professor.list('ordem')
   });
 
+  const { data: especializacoes = [] } = useQuery({
+    queryKey: ['especializacoes'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
+  });
+
+  const getEspecializacoesCount = (professor) => {
+    if (!professor.especializacoes || professor.especializacoes.length === 0) return 0;
+    const uniqueIds = [...new Set(professor.especializacoes)];
+    const validCount = uniqueIds.filter(id => especializacoes.some(e => e.id === id)).length;
+    return validCount;
+  };
+
   return (
     <>
       <Helmet>
@@ -66,9 +78,9 @@ export default function ProfessoresPage() {
                 <h4 className="font-bold text-gray-800 mb-1 text-xs line-clamp-2">{professor.nome}</h4>
                 <p className="text-[10px] text-gray-600 mb-2 line-clamp-2">{professor.titulo}</p>
                 
-                {professor.especializacoes && professor.especializacoes.length > 0 && (
+                {getEspecializacoesCount(professor) > 0 && (
                   <div className="mb-2 text-[9px] text-gray-600 bg-blue-50 rounded px-1 py-0.5">
-                    {professor.especializacoes.length} espec.
+                    {getEspecializacoesCount(professor)} espec.
                   </div>
                 )}
                 

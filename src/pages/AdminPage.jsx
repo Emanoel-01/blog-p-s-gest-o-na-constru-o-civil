@@ -111,6 +111,7 @@ export default function AdminPage() {
   const [professorForm, setProfessorForm] = useState({
     nome: '',
     email: '',
+    whatsapp: '',
     titulo: '',
     mini_bio: '',
     foto_url: '',
@@ -129,8 +130,12 @@ export default function AdminPage() {
   const [discenteForm, setDiscenteForm] = useState({
     nome: '',
     email: '',
+    whatsapp: '',
     titulo: '',
     numero_turma: '',
+    cargo_atual: '',
+    empresa: '',
+    tags_competencia: [],
     foto_url: '',
     instagram: '',
     linkedin: '',
@@ -1117,6 +1122,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     setProfessorForm({
       nome: '',
       email: '',
+      whatsapp: '',
       titulo: '',
       mini_bio: '',
       foto_url: '',
@@ -1165,6 +1171,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     const data = {
       nome: professorForm.nome,
       email: professorForm.email,
+      whatsapp: professorForm.whatsapp,
       titulo: professorForm.titulo,
       mini_bio: professorForm.mini_bio,
       foto_url: professorForm.foto_url,
@@ -1187,6 +1194,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     setProfessorForm({
       nome: professor.nome,
       email: professor.email || '',
+      whatsapp: professor.whatsapp || '',
       titulo: professor.titulo,
       mini_bio: professor.mini_bio || '',
       foto_url: professor.foto_url || '',
@@ -1212,8 +1220,12 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     setDiscenteForm({
       nome: '',
       email: '',
+      whatsapp: '',
       titulo: '',
       numero_turma: '',
+      cargo_atual: '',
+      empresa: '',
+      tags_competencia: [],
       foto_url: '',
       instagram: '',
       linkedin: '',
@@ -1270,8 +1282,12 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     const data = {
       nome: discenteForm.nome,
       email: discenteForm.email,
+      whatsapp: discenteForm.whatsapp,
       titulo: discenteForm.titulo,
       numero_turma: discenteForm.numero_turma,
+      cargo_atual: discenteForm.cargo_atual,
+      empresa: discenteForm.empresa,
+      tags_competencia: discenteForm.tags_competencia,
       foto_url: discenteForm.foto_url,
       instagram: discenteForm.instagram,
       linkedin: discenteForm.linkedin,
@@ -1293,8 +1309,12 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     setDiscenteForm({
       nome: discente.nome,
       email: discente.email || '',
+      whatsapp: discente.whatsapp || '',
       titulo: discente.titulo,
       numero_turma: discente.numero_turma || '',
+      cargo_atual: discente.cargo_atual || '',
+      empresa: discente.empresa || '',
+      tags_competencia: discente.tags_competencia || [],
       foto_url: discente.foto_url || '',
       instagram: discente.instagram || '',
       linkedin: discente.linkedin || '',
@@ -3132,6 +3152,15 @@ Seja detalhado, prático e objetivo na análise.`;
             </div>
 
             <div>
+              <label className="text-sm font-medium text-gray-700">WhatsApp</label>
+              <Input
+                value={professorForm.whatsapp}
+                onChange={(e) => setProfessorForm({...professorForm, whatsapp: e.target.value})}
+                placeholder="Ex: 5581999999999"
+              />
+            </div>
+
+            <div>
               <label className="text-sm font-medium text-gray-700">Mini Biografia</label>
               <Textarea
                 value={professorForm.mini_bio}
@@ -3894,11 +3923,11 @@ Seja detalhado, prático e objetivo na análise.`;
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Formação/Especialização</label>
+                <label className="text-sm font-medium text-gray-700">WhatsApp</label>
                 <Input
-                  value={discenteForm.titulo}
-                  onChange={(e) => setDiscenteForm({...discenteForm, titulo: e.target.value})}
-                  placeholder="Ex: Arquiteta - Gestão de Projetos BIM"
+                  value={discenteForm.whatsapp}
+                  onChange={(e) => setDiscenteForm({...discenteForm, whatsapp: e.target.value})}
+                  placeholder="Ex: 5581999999999"
                 />
               </div>
               <div>
@@ -3909,6 +3938,43 @@ Seja detalhado, prático e objetivo na análise.`;
                   placeholder="Ex: T01/2026"
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Formação/Título</label>
+                <Input
+                  value={discenteForm.titulo}
+                  onChange={(e) => setDiscenteForm({...discenteForm, titulo: e.target.value})}
+                  placeholder="Ex: Arquiteta"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Cargo Atual</label>
+                <Input
+                  value={discenteForm.cargo_atual}
+                  onChange={(e) => setDiscenteForm({...discenteForm, cargo_atual: e.target.value})}
+                  placeholder="Ex: Coordenadora BIM"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Empresa Atual</label>
+              <Input
+                value={discenteForm.empresa}
+                onChange={(e) => setDiscenteForm({...discenteForm, empresa: e.target.value})}
+                placeholder="Ex: Construtora XYZ"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Competências/Skills (separadas por vírgula)</label>
+              <Input
+                value={discenteForm.tags_competencia.join(', ')}
+                onChange={(e) => setDiscenteForm({...discenteForm, tags_competencia: e.target.value.split(',').map(t => t.trim()).filter(Boolean)})}
+                placeholder="Ex: BIM, Revit, MS Project, Lean Construction"
+              />
             </div>
 
             <div>

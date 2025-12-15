@@ -360,8 +360,8 @@ export default function CorpoDiscentePage() {
                                                 </Button>
                                               </a>
                                             )}
-                                            {discente.email && (
-                                              <a href={`https://wa.me/?text=Olá ${discente.nome}, vi seu perfil na comunidade ESUDA!`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1">
+                                            {discente.whatsapp && (
+                                              <a href={`https://wa.me/${discente.whatsapp}?text=${encodeURIComponent(`Olá ${discente.nome}, vi seu perfil na comunidade ESUDA!`)}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1">
                                                 <Button size="sm" variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-50 h-8 text-xs">
                                                   <MessageCircle className="w-3 h-3 mr-1" />
                                                   WhatsApp

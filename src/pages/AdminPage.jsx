@@ -136,6 +136,8 @@ export default function AdminPage() {
     numero_turma: '',
     cargo_atual: '',
     empresa: '',
+    status_carreira: '',
+    sobre: '',
     tags_competencia: [],
     foto_url: '',
     instagram: '',
@@ -1226,6 +1228,8 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       numero_turma: '',
       cargo_atual: '',
       empresa: '',
+      status_carreira: '',
+      sobre: '',
       tags_competencia: [],
       foto_url: '',
       instagram: '',
@@ -1288,6 +1292,8 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       numero_turma: discenteForm.numero_turma,
       cargo_atual: discenteForm.cargo_atual,
       empresa: discenteForm.empresa,
+      status_carreira: discenteForm.status_carreira,
+      sobre: discenteForm.sobre,
       tags_competencia: discenteForm.tags_competencia,
       foto_url: discenteForm.foto_url,
       instagram: discenteForm.instagram,
@@ -1315,6 +1321,8 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       numero_turma: discente.numero_turma || '',
       cargo_atual: discente.cargo_atual || '',
       empresa: discente.empresa || '',
+      status_carreira: discente.status_carreira || '',
+      sobre: discente.sobre || '',
       tags_competencia: discente.tags_competencia || [],
       foto_url: discente.foto_url || '',
       instagram: discente.instagram || '',
@@ -3966,6 +3974,34 @@ Seja detalhado, prático e objetivo na análise.`;
                 value={discenteForm.empresa}
                 onChange={(e) => setDiscenteForm({...discenteForm, empresa: e.target.value})}
                 placeholder="Ex: Construtora XYZ"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Status de Carreira</label>
+              <Select 
+                value={discenteForm.status_carreira} 
+                onValueChange={(v) => setDiscenteForm({...discenteForm, status_carreira: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Nenhum</SelectItem>
+                  <SelectItem value="Open to Work">🟢 Open to Work</SelectItem>
+                  <SelectItem value="Contratado">🔵 Contratado</SelectItem>
+                  <SelectItem value="Freelancer">🟣 Freelancer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Sobre (Bio Profissional)</label>
+              <Textarea
+                value={discenteForm.sobre}
+                onChange={(e) => setDiscenteForm({...discenteForm, sobre: e.target.value})}
+                rows={3}
+                placeholder="Resumo profissional do aluno..."
               />
             </div>
 

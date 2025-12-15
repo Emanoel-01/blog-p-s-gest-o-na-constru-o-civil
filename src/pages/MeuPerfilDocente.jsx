@@ -10,7 +10,7 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Save, User, Briefcase, Link as LinkIcon, Upload, Edit, Award, BookOpen, Instagram, Linkedin, Globe, Mail, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Save, User, Briefcase, Link as LinkIcon, Upload, Edit, Award, BookOpen, Instagram, Linkedin, Globe, Mail, GraduationCap, Book } from 'lucide-react';
 
 export default function MeuPerfilDocente() {
   const [user, setUser] = useState(null);
@@ -349,6 +349,37 @@ export default function MeuPerfilDocente() {
               <p className="text-gray-700 leading-relaxed text-justify whitespace-pre-line">
                 {formData.mini_bio}
               </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Disciplinas que Leciono */}
+        {!editing && minhasEspecializacoes.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-gray-700" />
+                Disciplinas que Leciono
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {minhasEspecializacoes.map(espec => (
+                  <div key={espec.id} className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                    <h4 className="font-bold text-indigo-900 mb-2">{espec.nome}</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-indigo-100 text-indigo-800">
+                        {espec.carga_horaria_total}h
+                      </Badge>
+                      {espec.formato_aulas?.map((formato, idx) => (
+                        <Badge key={idx} variant="outline" className="border-indigo-300 text-indigo-700">
+                          {formato}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}

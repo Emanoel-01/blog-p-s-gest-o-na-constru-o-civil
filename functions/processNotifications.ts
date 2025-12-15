@@ -4,20 +4,18 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Usar service role para operações administrativas
     const notifications = [];
-    
-    // 1. NOTIFICAÇÃO DE BOAS-VINDAS (Primeiro login)
-    // Buscar usuários criados recentemente (últimas 24h) sem notificação de boas-vindas
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    
+    // ========== CATEGORIA: ACADÊMICO ==========
+    
+    // 1. BOAS-VINDAS (Primeiro login)
     const users = await base44.asServiceRole.entities.User.list();
     const recentUsers = users.filter(u => u.created_date > oneDayAgo);
     
     for (const user of recentUsers) {
-      // Verificar se já tem notificação de boas-vindas
       const existingWelcome = await base44.asServiceRole.entities.Notificacao.filter({
         destinatario_email: user.email,
-        tipo: 'Acadêmico',
         titulo: 'Bem-vindo à Comunidade ESUDA!'
       });
       
@@ -26,52 +24,99 @@ Deno.serve(async (req) => {
           destinatario_email: user.email,
           tipo: 'Acadêmico',
           titulo: 'Bem-vindo à Comunidade ESUDA!',
-          mensagem: 'Estamos felizes em ter você conosco! Complete seu perfil e explore as oportunidades disponíveis.',
-          link_destino: 'Homepage'
+          mensagem: 'Seu acesso está liberado. Complete seu perfil agora para se conectar com parceiros e oportunidades.',
+          link_destino: 'MeuPerfilDiscente'
         });
       }
     }
     
-    // 2. LEMBRETE DE AULA (48h antes)
-    const twoDaysFromNow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
-    const twoDaysFromNowStr = twoDaysFromNow.toLocaleDateString('pt-BR');
+    // 2. LEMBRETE DE AULA (D+1 - dia seguinte)
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const tomorrowStr = tomorrow.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     
     const aulas = await base44.asServiceRole.entities.CronogramaAula.list();
-    const upcomingAulas = aulas.filter(aula => {
-      return aula.data === twoDaysFromNowStr && 
+    const aulasAmanha = aulas.filter(aula => {
+      return aula.data === tomorrowStr && 
              aula.tipo !== 'Dia Sem aula' && 
              !['Prévias', 'Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro'].includes(aula.tipo);
     });
     
-    if (upcomingAulas.length > 0) {
+    if (aulasAmanha.length > 0) {
       const discentes = await base44.asServiceRole.entities.Discente.list();
+      
       for (const discente of discentes) {
-        // Verificar se já enviou notificação para esta aula
+        if (!discente.email) continue;
+        
         const existingReminder = await base44.asServiceRole.entities.Notificacao.filter({
           destinatario_email: discente.email,
-          titulo: `Lembrete: Aula em ${twoDaysFromNowStr}`
+          titulo: `Aula Amanhã: ${tomorrowStr}`
         });
         
         if (existingReminder.length === 0) {
+          const disciplinasAmanha = aulasAmanha.map(a => a.disciplina_nome).filter(Boolean).join(', ') || 'Confira sua agenda';
+          
           notifications.push({
             destinatario_email: discente.email,
             tipo: 'Acadêmico',
-            titulo: `Lembrete: Aula em ${twoDaysFromNowStr}`,
-            mensagem: `Você tem ${upcomingAulas.length} aula(s) agendada(s) para ${twoDaysFromNowStr}. Não esqueça de se preparar!`,
+            titulo: `Aula Amanhã: ${tomorrowStr}`,
+            mensagem: `Você tem aula(s) agendada(s) amanhã: ${disciplinasAmanha}. Verifique o horário e prepare-se!`,
             link_destino: 'CalendarioDeAula'
           });
         }
       }
     }
     
-    // 3. MATCH DE SKILL (Verificar vagas na incubadora)
-    // TODO: Implementar quando houver entidade de vagas
+    // ========== CATEGORIA: CARREIRA ==========
     
-    // 4. LEMBRETE DE ATUALIZAÇÃO NA INCUBADORA (30 dias sem atividade)
+    // 3. MATCH DE SKILL (Quando nova oportunidade é criada na Incubadora)
+    // Buscar oportunidades criadas nas últimas 24h do tipo FreelancerNetwork
+    const recentOpportunities = await base44.asServiceRole.entities.FreelancerNetwork.filter({});
+    const newOpportunities = recentOpportunities.filter(opp => opp.created_date > oneDayAgo);
+    
+    if (newOpportunities.length > 0) {
+      const discentes = await base44.asServiceRole.entities.Discente.list();
+      const discentesOpenToWork = discentes.filter(d => d.status_carreira === 'Open to Work' && d.tags_competencia);
+      
+      for (const opp of newOpportunities) {
+        // Verificar se a oportunidade tem requisitos de competências (no resumo ou descrição)
+        const oppText = `${opp.resumo || ''} ${opp.descricao_completa || ''}`.toLowerCase();
+        
+        for (const discente of discentesOpenToWork) {
+          // Verificar match de competências
+          const hasMatch = discente.tags_competencia.some(tag => 
+            oppText.includes(tag.toLowerCase())
+          );
+          
+          if (hasMatch) {
+            const existingMatch = await base44.asServiceRole.entities.Notificacao.filter({
+              destinatario_email: discente.email,
+              titulo: 'Vaga Compatível Encontrada'
+            });
+            
+            const recentMatch = existingMatch.filter(n => n.created_date > oneDayAgo);
+            
+            if (recentMatch.length === 0) {
+              notifications.push({
+                destinatario_email: discente.email,
+                tipo: 'Carreira',
+                titulo: 'Vaga Compatível Encontrada',
+                mensagem: `Uma nova oportunidade foi encontrada que combina com suas competências. Confira os detalhes na Incubadora!`,
+                link_destino: 'IncubadoraProfissionalPage'
+              });
+            }
+            break; // Apenas uma notificação por discente
+          }
+        }
+      }
+    }
+    
+    // 4. LEMBRETE DE ROI (30 dias sem atividade na Incubadora)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const discentes = await base44.asServiceRole.entities.Discente.list();
     
     for (const discente of discentes) {
+      if (!discente.email) continue;
+      
       // Buscar última atividade do aluno na incubadora
       const [freelancers, relatorios, producoes, eventos, canteiros, artigos] = await Promise.all([
         base44.asServiceRole.entities.FreelancerNetwork.filter({ aluno_id: discente.id }),
@@ -88,10 +133,9 @@ Deno.serve(async (req) => {
         const lastActivity = allActivities.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
         
         if (new Date(lastActivity.created_date) < thirtyDaysAgo) {
-          // Verificar se já enviou lembrete
           const existingReminder = await base44.asServiceRole.entities.Notificacao.filter({
             destinatario_email: discente.email,
-            titulo: 'Atualize sua Incubadora Profissional'
+            titulo: 'Atualize seu Portfólio'
           });
           
           const recentReminder = existingReminder.filter(n => new Date(n.created_date) > thirtyDaysAgo);
@@ -100,8 +144,8 @@ Deno.serve(async (req) => {
             notifications.push({
               destinatario_email: discente.email,
               tipo: 'Carreira',
-              titulo: 'Atualize sua Incubadora Profissional',
-              mensagem: 'Faz mais de 30 dias desde sua última atividade. Adicione seus projetos recentes e conquistas!',
+              titulo: 'Atualize seu Portfólio',
+              mensagem: 'Teve alguma conquista profissional ou economia em obra este mês? Registre na Incubadora e valorize seu perfil.',
               link_destino: 'IncubadoraProfissionalPage'
             });
           }
@@ -109,30 +153,40 @@ Deno.serve(async (req) => {
       }
     }
     
-    // 5. NOTIFICAÇÃO DE RESPOSTA EM COMENTÁRIO
+    // 5. PROVA SOCIAL (Item marcado como destaque)
+    // Este gatilho seria acionado quando o admin marcar algo como destaque manualmente
+    // Por enquanto, não há campo "destaque" nas entidades da Incubadora
+    
+    // ========== CATEGORIA: ENGAJAMENTO ==========
+    
+    // 6. RESPOSTA EM COMENTÁRIO (Admin/Docente responde)
     const comentarios = await base44.asServiceRole.entities.Comentario.filter({ aprovado: true });
     const comentariosComResposta = comentarios.filter(c => c.resposta_admin && c.resposta_admin.trim() !== '');
     
     for (const comentario of comentariosComResposta) {
-      // Verificar se já notificou sobre esta resposta
+      if (!comentario.autor_email) continue;
+      
       const existingNotification = await base44.asServiceRole.entities.Notificacao.filter({
         destinatario_email: comentario.autor_email,
-        titulo: 'Resposta no seu comentário'
+        titulo: 'Você recebeu uma resposta!'
       });
       
-      // Verificar se a resposta é recente (últimas 24h)
       const comentarioRecente = new Date(comentario.updated_date) > oneDayAgo;
       
       if (existingNotification.length === 0 && comentarioRecente) {
         notifications.push({
           destinatario_email: comentario.autor_email,
           tipo: 'Engajamento',
-          titulo: 'Resposta no seu comentário',
-          mensagem: 'Seu comentário recebeu uma resposta da equipe ESUDA. Confira!',
+          titulo: 'Você recebeu uma resposta!',
+          mensagem: 'O Coordenador/Professor comentou na sua publicação. Veja a resposta.',
           link_destino: 'EmAcaoPage'
         });
       }
     }
+    
+    // 7. VISITAS AO PERFIL (Semanal)
+    // Este gatilho requer sistema de tracking de visualizações
+    // Por ora, está marcado como "Planejado" no sistema
     
     // Criar todas as notificações
     if (notifications.length > 0) {
@@ -142,7 +196,14 @@ Deno.serve(async (req) => {
     return Response.json({ 
       success: true,
       notifications_created: notifications.length,
-      message: `${notifications.length} notificações processadas com sucesso`
+      details: {
+        boas_vindas: notifications.filter(n => n.titulo.includes('Bem-vindo')).length,
+        lembrete_aula: notifications.filter(n => n.titulo.includes('Aula Amanhã')).length,
+        match_skill: notifications.filter(n => n.titulo.includes('Vaga Compatível')).length,
+        lembrete_roi: notifications.filter(n => n.titulo.includes('Atualize seu Portfólio')).length,
+        resposta_comentario: notifications.filter(n => n.titulo.includes('Você recebeu uma resposta')).length
+      },
+      message: `${notifications.length} notificação(ões) processada(s) com sucesso`
     });
     
   } catch (error) {

@@ -8,7 +8,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
-import { User, Save, Upload, Briefcase, Edit, MessageCircle, Linkedin, Instagram, BookOpen, Globe, Mail, GraduationCap, Building2 } from 'lucide-react';
+import { User, Save, Upload, Briefcase, Edit, MessageCircle, Linkedin, Instagram, BookOpen, Globe, Mail, GraduationCap, Building2, User as UserIcon } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function MeuPerfilDiscente() {
   const [user, setUser] = useState(null);
@@ -18,6 +19,8 @@ export default function MeuPerfilDiscente() {
     titulo: '',
     cargo_atual: '',
     empresa: '',
+    status_carreira: '',
+    sobre: '',
     tags_competencia: [],
     foto_url: '',
     instagram: '',
@@ -58,6 +61,8 @@ export default function MeuPerfilDiscente() {
           titulo: meuPerfil.titulo || '',
           cargo_atual: meuPerfil.cargo_atual || '',
           empresa: meuPerfil.empresa || '',
+          status_carreira: meuPerfil.status_carreira || '',
+          sobre: meuPerfil.sobre || '',
           tags_competencia: meuPerfil.tags_competencia || [],
           foto_url: meuPerfil.foto_url || '',
           instagram: meuPerfil.instagram || '',
@@ -181,6 +186,16 @@ export default function MeuPerfilDiscente() {
                         {formData.cargo_atual} na {formData.empresa}
                       </p>
                     )}
+                    {formData.status_carreira && (
+                      <Badge className={`mt-2 ${
+                        formData.status_carreira === 'Open to Work' ? 'bg-green-600 text-white' :
+                        formData.status_carreira === 'Contratado' ? 'bg-blue-600 text-white' :
+                        'bg-purple-600 text-white'
+                      }`}>
+                        {formData.status_carreira === 'Open to Work' ? '🟢' : 
+                         formData.status_carreira === 'Contratado' ? '🔵' : '🟣'} {formData.status_carreira}
+                      </Badge>
+                    )}
                   </div>
                   {user && discente.email === user.email && (
                     <Button
@@ -263,6 +278,34 @@ export default function MeuPerfilDiscente() {
                   value={formData.titulo}
                   onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
                   placeholder="Ex: Engenheiro Civil, Arquiteta..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status de Carreira</label>
+                <Select 
+                  value={formData.status_carreira} 
+                  onValueChange={(v) => setFormData({ ...formData, status_carreira: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione seu status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Nenhum</SelectItem>
+                    <SelectItem value="Open to Work">🟢 Open to Work</SelectItem>
+                    <SelectItem value="Contratado">🔵 Contratado</SelectItem>
+                    <SelectItem value="Freelancer">🟣 Freelancer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sobre Você (Bio Profissional)</label>
+                <Textarea
+                  value={formData.sobre}
+                  onChange={(e) => setFormData({ ...formData, sobre: e.target.value })}
+                  rows={4}
+                  placeholder="Conte um pouco sobre sua trajetória profissional, experiências e objetivos..."
                 />
               </div>
 
@@ -373,6 +416,23 @@ export default function MeuPerfilDiscente() {
                   Cancelar
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Sobre */}
+        {!isEditing && formData.sobre && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserIcon className="w-5 h-5 text-gray-700" />
+                Sobre
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 leading-relaxed text-justify whitespace-pre-line">
+                {formData.sobre}
+              </p>
             </CardContent>
           </Card>
         )}

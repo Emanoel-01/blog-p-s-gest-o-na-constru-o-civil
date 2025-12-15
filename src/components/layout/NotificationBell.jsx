@@ -24,6 +24,16 @@ export default function NotificationBell({ userEmail }) {
     }
   });
 
+  const marcarTodasComoLidasMutation = useMutation({
+    mutationFn: async () => {
+      const naoLidasIds = notificacoes.filter(n => !n.lida).map(n => n.id);
+      await Promise.all(naoLidasIds.map(id => base44.entities.Notificacao.update(id, { lida: true })));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['notificacoes']);
+    }
+  });
+
   const naoLidas = notificacoes.filter(n => !n.lida).length;
 
   const getIcon = (tipo) => {
@@ -49,10 +59,24 @@ export default function NotificationBell({ userEmail }) {
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="p-4 border-b">
-          <h3 className="font-semibold text-gray-900">Notificações</h3>
-          {naoLidas > 0 && (
-            <p className="text-xs text-gray-600">{naoLidas} não lida(s)</p>
-          )}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-900">Notificações</h3>
+              {naoLidas > 0 && (
+                <p className="text-xs text-gray-600">{naoLidas} não lida(s)</p>
+              )}
+            </div>
+            {naoLidas > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => marcarTodasComoLidasMutation.mutate()}
+                className="text-xs text-blue-600 hover:bg-blue-50"
+              >
+                Marcar todas como lidas
+              </Button>
+            )}
+          </div>
         </div>
         <ScrollArea className="h-96">
           {notificacoes.length === 0 ? (
@@ -64,8 +88,12 @@ export default function NotificationBell({ userEmail }) {
             <div className="p-2 space-y-2">
               {notificacoes.map((notif) => (
                 <div
-                  key={notif.id}
-                  className={`p-3 rounded-lg border ${!notif.lida ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'} hover:shadow-sm transition-all`}
+                 key={notif.id}
+                 className={`p-3 rounded-lg border-l-4 ${
+                   notif.tipo === 'Acadêmico' ? 'border-l-red-500' :
+                   notif.tipo === 'Carreira' ? 'border-l-green-500' :
+                   'border-l-blue-500'
+                 } ${!notif.lida ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'} hover:shadow-sm transition-all`}
                 >
                   <div className="flex items-start gap-2 mb-2">
                     {getIcon(notif.tipo)}

@@ -24,6 +24,7 @@ import AtalhosComunidade from '../components/community/AtalhosComunidade';
 export default function Homepage() {
   const [user, setUser] = useState(null);
   const [profileType, setProfileType] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
@@ -33,6 +34,11 @@ export default function Homepage() {
         setUser(currentUser);
         
         if (currentUser) {
+          // Verificar se é admin
+          const isSuperAdmin = currentUser.email === 'emanoel.s.amorim@gmail.com';
+          const adminStatus = isSuperAdmin || currentUser.role === 'admin';
+          setIsAdmin(adminStatus);
+
           const professores = await base44.entities.Professor.list();
           const isProfessor = professores.some(p => p.email === currentUser.email);
           
@@ -43,6 +49,9 @@ export default function Homepage() {
             const isDiscente = discentes.some(d => d.email === currentUser.email);
             if (isDiscente) {
               setProfileType('discente');
+            } else if (adminStatus) {
+              // Admin sem perfil específico - mostrar como docente
+              setProfileType('docente');
             }
           }
         }
@@ -166,8 +175,8 @@ export default function Homepage() {
     );
   }
 
-  // Usuário LOGADO - Lobby da Comunidade
-  if (user && profileType) {
+  // Usuário LOGADO - Lobby da Comunidade (incluindo admins)
+  if (user && (profileType || isAdmin)) {
     return (
       <>
         <Helmet>

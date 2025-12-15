@@ -8,12 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { Instagram, Linkedin, Globe, BookOpen, User, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Instagram, Linkedin, Globe, BookOpen, User, Search, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react';
 
 export default function CorpoDiscentePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTurma, setSelectedTurma] = useState('todas');
   const [selectedEspecializacao, setSelectedEspecializacao] = useState('todas');
+  const [searchCompetencia, setSearchCompetencia] = useState('');
+  const [searchEmpresa, setSearchEmpresa] = useState('');
   const [expandedTurmas, setExpandedTurmas] = useState({});
   const [expandedDiscentes, setExpandedDiscentes] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,10 +47,14 @@ export default function CorpoDiscentePage() {
       const matchTurma = selectedTurma === 'todas' || discente.numero_turma === selectedTurma;
       const matchEspec = selectedEspecializacao === 'todas' || 
         (discente.especializacoes && discente.especializacoes.includes(selectedEspecializacao));
+      const matchCompetencia = !searchCompetencia || 
+        discente.tags_competencia?.some(tag => tag.toLowerCase().includes(searchCompetencia.toLowerCase()));
+      const matchEmpresa = !searchEmpresa || 
+        discente.empresa?.toLowerCase().includes(searchEmpresa.toLowerCase());
       
-      return matchNome && matchTurma && matchEspec;
+      return matchNome && matchTurma && matchEspec && matchCompetencia && matchEmpresa;
     });
-  }, [discentes, searchTerm, selectedTurma, selectedEspecializacao]);
+  }, [discentes, searchTerm, selectedTurma, selectedEspecializacao, searchCompetencia, searchEmpresa]);
 
   // Agrupar discentes por especialização e turma
   const discentesAgrupados = useMemo(() => {
@@ -96,7 +102,24 @@ export default function CorpoDiscentePage() {
     setSearchTerm('');
     setSelectedTurma('todas');
     setSelectedEspecializacao('todas');
+    setSearchCompetencia('');
+    setSearchEmpresa('');
     setCurrentPage(1);
+  };
+
+  const toggleTurma = (especId, turma) => {
+    const key = `${especId}-${turma}`;
+    setExpandedTurmas(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const toggleDiscente = (discenteId) => {
+    setExpandedDiscentes(prev => ({
+      ...prev,
+      [discenteId]: !prev[discenteId]
+    }));
   };
 
   // Cores por especialização (verde clarinho para todos)
@@ -133,8 +156,8 @@ export default function CorpoDiscentePage() {
         {/* Filtros e Busca */}
         <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300">
           <CardContent className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4">
-              <div className="md:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <div className="lg:col-span-2">
                 <label className="text-xs sm:text-sm font-medium text-gray-700 mb-2 block">
                   <Search className="w-4 h-4 inline mr-1" />
                   Buscar por Nome
@@ -179,9 +202,35 @@ export default function CorpoDiscentePage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div>
+                <label className="text-xs sm:text-sm font-medium text-gray-700 mb-2 block">Buscar por Competência</label>
+                <Input
+                  value={searchCompetencia}
+                  onChange={(e) => {
+                    setSearchCompetencia(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="Ex: BIM, Revit..."
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs sm:text-sm font-medium text-gray-700 mb-2 block">Buscar por Empresa</label>
+                <Input
+                  value={searchEmpresa}
+                  onChange={(e) => {
+                    setSearchEmpresa(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="Ex: Construtora XYZ..."
+                  className="w-full"
+                />
+              </div>
             </div>
 
-            {(searchTerm || selectedTurma !== 'todas' || selectedEspecializacao !== 'todas') && (
+            {(searchTerm || selectedTurma !== 'todas' || selectedEspecializacao !== 'todas' || searchCompetencia || searchEmpresa) && (
               <div className="mt-4 flex justify-between items-center">
                 <p className="text-sm text-gray-600">
                   <strong>{discentesFiltrados.length}</strong> aluno(s) encontrado(s)
@@ -300,18 +349,48 @@ export default function CorpoDiscentePage() {
                                       {/* Detalhes Expandidos */}
                                       {isDiscenteExpanded && (
                                         <div className="mt-3 pt-3 border-t border-gray-200 space-y-2" onClick={(e) => e.stopPropagation()}>
-                                          <div className="flex justify-center gap-1 flex-wrap">
+                                          {/* Info Profissional */}
+                                          {(discente.cargo_atual || discente.empresa) && (
+                                            <div className="text-left space-y-1 mb-3">
+                                              {discente.cargo_atual && (
+                                                <p className="text-xs text-gray-700">
+                                                  <strong>Cargo:</strong> {discente.cargo_atual}
+                                                </p>
+                                              )}
+                                              {discente.empresa && (
+                                                <p className="text-xs text-gray-700">
+                                                  <strong>Empresa:</strong> {discente.empresa}
+                                                </p>
+                                              )}
+                                            </div>
+                                          )}
+
+                                          {/* Botões de Conexão */}
+                                          <div className="flex gap-2">
+                                            {discente.linkedin && (
+                                              <a href={discente.linkedin} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1">
+                                                <Button size="sm" variant="outline" className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 h-8 text-xs">
+                                                  <Linkedin className="w-3 h-3 mr-1" />
+                                                  Conectar
+                                                </Button>
+                                              </a>
+                                            )}
+                                            {discente.email && (
+                                              <a href={`https://wa.me/?text=Olá ${discente.nome}, vi seu perfil na comunidade ESUDA!`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex-1">
+                                                <Button size="sm" variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-50 h-8 text-xs">
+                                                  <MessageCircle className="w-3 h-3 mr-1" />
+                                                  WhatsApp
+                                                </Button>
+                                              </a>
+                                            )}
+                                          </div>
+
+                                          {/* Redes Sociais */}
+                                          <div className="flex justify-center gap-1 flex-wrap pt-2">
                                             {discente.instagram && (
                                               <a href={discente.instagram} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                                                 <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-pink-50">
                                                   <Instagram className="w-3.5 h-3.5 text-pink-600" />
-                                                </Button>
-                                              </a>
-                                            )}
-                                            {discente.linkedin && (
-                                              <a href={discente.linkedin} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                                                <Button size="icon" variant="ghost" className="h-7 w-7 hover:bg-blue-50">
-                                                  <Linkedin className="w-3.5 h-3.5 text-blue-600" />
                                                 </Button>
                                               </a>
                                             )}

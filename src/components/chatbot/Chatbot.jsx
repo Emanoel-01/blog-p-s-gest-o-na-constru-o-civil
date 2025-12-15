@@ -43,19 +43,19 @@ export default function Chatbot() {
         } else {
           // User is not logged in, manage lead capture flow
           if (leadData.nome && leadData.whatsapp) {
-            // Lead info already collected
+            // Lead info already collected, resume agent conversation
             setLeadInfo({ ...leadData, leadCreated: true });
             if (storedConversationId) {
               await initializeAgentConversation(storedConversationId);
             } else {
-              await initializeAgentConversation();
+              await initializeAgentConversation(null, `Olá, sou ${leadData.nome}. Meu WhatsApp é ${leadData.whatsapp}.`);
             }
           } else {
             // Start lead capture flow
             setMessages([
               {
                 role: 'assistant',
-                content: 'Olá! Sou seu Coordenador Digital. Para que eu possa te ajudar melhor, qual é o seu nome?',
+                content: 'Olá! Sou o Coordenador Digital da ESUDA. Para melhor te atender, qual é o seu nome?',
                 created_date: new Date().toISOString()
               }
             ]);
@@ -63,14 +63,13 @@ export default function Chatbot() {
           }
         }
       } catch (error) {
-        console.error('Erro ao inicializar chatbot:', error);
+        console.error('Erro ao verificar autenticação:', error);
       }
     };
 
     checkAuthAndInitChat();
   }, []);
 
-  // Effect for messages scrolling
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -79,62 +78,76 @@ export default function Chatbot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Generic function to initialize or resume agent conversation
-  const initializeAgentConversation = async (existingConversationId = null) => {
+  // Initialize or resume agent conversation
+  const initializeAgentConversation = async (existingConversationId = null, initialPrompt = null) => {
     try {
-      let currentConversationId = existingConversationId || localStorage.getItem('chatbotConversationId');
+      let currentConversationId = existingConversationId;
       
       if (!currentConversationId) {
-        const user = isAuthenticated ? await base44.auth.me() : null;
+        let conversationName = 'Nova Conversa';
+        
+        if (isAuthenticated) {
+          try {
+            const user = await base44.auth.me();
+            conversationName = `Conversa com ${user.full_name}`;
+          } catch (error) {
+            console.warn('Erro ao obter usuário:', error);
+          }
+        } else {
+          conversationName = 'Conversa de Lead';
+        }
+
         const conversation = await base44.agents.createConversation({
           agent_name: 'coordenador_digital',
           metadata: {
-            name: isAuthenticated ? `Conversa com ${user?.full_name}` : 'Conversa de Lead',
+            name: conversationName,
             page: location.pathname
           }
         });
         currentConversationId = conversation.id;
         localStorage.setItem('chatbotConversationId', conversation.id);
       } else {
-        // Verify conversation exists
+        // Validate existing conversation
         try {
           await base44.agents.getConversation(currentConversationId);
         } catch (error) {
-          console.warn('Stored conversation invalid, creating new one.');
+          console.warn('Conversa inválida, criando nova:', error);
           localStorage.removeItem('chatbotConversationId');
-          const user = isAuthenticated ? await base44.auth.me() : null;
-          const conversation = await base44.agents.createConversation({
-            agent_name: 'coordenador_digital',
-            metadata: {
-              name: isAuthenticated ? `Conversa com ${user?.full_name}` : 'Conversa de Lead',
-              page: location.pathname
-            }
-          });
-          currentConversationId = conversation.id;
-          localStorage.setItem('chatbotConversationId', conversation.id);
+          return await initializeAgentConversation(null, initialPrompt);
         }
       }
       
       setConversationId(currentConversationId);
+      
+      // Subscribe to conversation updates
       const unsubscribe = base44.agents.subscribeToConversation(currentConversationId, (data) => {
-        setMessages(data.messages || []);
+        if (data.messages && data.messages.length > 0) {
+          setMessages(data.messages);
+        }
         setIsLoadingAI(false);
       });
+
+      // Send initial prompt if provided
+      if (initialPrompt) {
+        await sendToAgent(initialPrompt, currentConversationId);
+      }
       
       return () => unsubscribe();
 
     } catch (error) {
-      console.error('Erro ao inicializar conversa do agente:', error);
+      console.error('Erro ao inicializar conversa:', error);
       setIsLoadingAI(false);
+      toast.error('Erro ao iniciar conversa. Tente novamente.');
     }
   };
 
   const sendToAgent = async (content, convId) => {
     if (!convId) {
-      console.error('sendToAgent called without conversation ID');
+      console.error('sendToAgent: conversationId não fornecido');
       setIsLoadingAI(false);
       return;
     }
+    
     try {
       const conversation = await base44.agents.getConversation(convId);
       await base44.agents.addMessage(conversation, {
@@ -142,7 +155,7 @@ export default function Chatbot() {
         content: content
       });
     } catch (error) {
-      console.error('Erro ao adicionar mensagem ao agente:', error);
+      console.error('Erro ao enviar mensagem ao agente:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: 'Desculpe, houve um erro ao processar sua mensagem. Por favor, tente novamente.', 
@@ -160,103 +173,127 @@ export default function Chatbot() {
     setIsLoadingAI(true);
 
     // Add user message to UI immediately
-    setMessages(prev => [...prev, { role: 'user', content: userMessage, created_date: new Date().toISOString() }]);
+    setMessages(prev => [...prev, { 
+      role: 'user', 
+      content: userMessage, 
+      created_date: new Date().toISOString() 
+    }]);
 
     try {
       if (!isAuthenticated && !leadInfo.leadCreated) {
         // Lead capture flow for non-logged-in users
         if (leadInfo.collectingName) {
-          // User just provided name
-          setLeadInfo(prev => ({ ...prev, nome: userMessage, collectingName: false, collectingWhatsApp: true }));
+          // User provided name
+          setLeadInfo(prev => ({ 
+            ...prev, 
+            nome: userMessage, 
+            collectingName: false, 
+            collectingWhatsApp: true 
+          }));
+          
           setMessages(prev => [...prev, {
             role: 'assistant',
-            content: `Obrigado, ${userMessage}! Agora, por favor, me informe seu WhatsApp (com DDD) para que eu possa te enviar informações e continuar a conversa, se necessário.`,
+            content: `Prazer, ${userMessage}! Para que eu possa te enviar informações e dar continuidade ao atendimento, qual é o seu WhatsApp? (com DDD, ex: 81999999999)`,
             created_date: new Date().toISOString()
           }]);
           setIsLoadingAI(false);
+          
         } else if (leadInfo.collectingWhatsApp) {
-          // User just provided WhatsApp
-          const whatsappCleaned = userMessage.replace(/\D/g, '');
-          if (whatsappCleaned.length < 10 || whatsappCleaned.length > 13) {
+          // User provided WhatsApp
+          const cleanWhatsApp = userMessage.replace(/\D/g, '');
+          
+          if (cleanWhatsApp.length < 10 || cleanWhatsApp.length > 13) {
             setMessages(prev => [...prev, {
               role: 'assistant',
-              content: 'Por favor, insira um número de WhatsApp válido (ex: 5581999999999).',
+              content: 'Por favor, insira um número de WhatsApp válido (ex: 81999999999 ou 5581999999999).',
               created_date: new Date().toISOString()
             }]);
             setIsLoadingAI(false);
             return;
           }
 
-          setLeadInfo(prev => ({ ...prev, whatsapp: whatsappCleaned, collectingWhatsApp: false, leadCreated: true }));
+          const finalWhatsApp = cleanWhatsApp.length === 13 ? cleanWhatsApp : `55${cleanWhatsApp}`;
           
-          const leadPayload = {
-            nome: leadInfo.nome,
-            whatsapp: whatsappCleaned,
-            origem: 'Chatbot',
-            mensagem_inicial: `Lead capturado via Chatbot. Nome: ${leadInfo.nome}, WhatsApp: ${whatsappCleaned}`,
-            historico_interacoes: [{
-              data: new Date().toISOString(),
-              tipo: 'Mensagem Chatbot',
-              conteudo: `Lead capturado - Nome: ${leadInfo.nome}, WhatsApp: ${whatsappCleaned}`,
-              usuario: 'chatbot'
-            }]
-          };
+          setLeadInfo(prev => ({ 
+            ...prev, 
+            whatsapp: finalWhatsApp, 
+            collectingWhatsApp: false, 
+            leadCreated: true 
+          }));
           
-          await base44.entities.Lead.create(leadPayload);
-          localStorage.setItem('chatbotLeadInfo', JSON.stringify({ nome: leadInfo.nome, whatsapp: whatsappCleaned }));
-          toast.success('Seu contato foi salvo! Um especialista pode entrar em contato.');
+          // Create lead in database
+          try {
+            await base44.entities.Lead.create({
+              nome: leadInfo.nome,
+              whatsapp: finalWhatsApp,
+              origem: 'Chatbot',
+              mensagem_inicial: 'Iniciou conversa via Chatbot',
+              interesse: 'Informações gerais',
+              categoria_interesse: ['Geral'],
+              historico_interacoes: [{
+                data: new Date().toISOString(),
+                tipo: 'Mensagem Chatbot',
+                conteudo: `Lead capturado: ${leadInfo.nome} - ${finalWhatsApp}`,
+                usuario: 'chatbot'
+              }]
+            });
+            
+            localStorage.setItem('chatbotLeadInfo', JSON.stringify({ 
+              nome: leadInfo.nome, 
+              whatsapp: finalWhatsApp 
+            }));
+            
+            toast.success('Contato salvo! Agora posso te ajudar melhor.');
+          } catch (error) {
+            console.error('Erro ao criar lead:', error);
+          }
 
           setMessages(prev => [...prev, {
             role: 'assistant',
-            content: `Perfeito! Seu contato foi salvo. Agora posso te ajudar. Qual a sua dúvida sobre a ESUDA?`,
+            content: `Perfeito! Seu contato foi salvo. Agora me conta: como posso te ajudar? Quer saber sobre nossas especializações, horários, valores ou tem alguma dúvida específica?`,
             created_date: new Date().toISOString()
           }]);
           setIsLoadingAI(false);
           
-          // Initialize agent conversation after lead capture
-          await initializeAgentConversation();
+          // Initialize agent conversation now
+          await initializeAgentConversation(null, `[LEAD: ${leadInfo.nome} | WhatsApp: ${finalWhatsApp} | Página: ${location.pathname}] Usuário conectado e pronto para conversar.`);
+          
+        } else {
+          // Lead info collected, send to agent
+          await sendToAgent(`[LEAD: ${leadInfo.nome} | WhatsApp: ${leadInfo.whatsapp} | Página: ${location.pathname}] ${userMessage}`, conversationId);
         }
       } else {
-        // Normal interaction - send to agent
-        if (!conversationId) {
-          await initializeAgentConversation();
-          // Wait a bit for conversation to be initialized
-          setTimeout(() => {
-            if (conversationId) {
-              sendToAgent(`[Página: ${location.pathname}] ${userMessage}`, conversationId);
-            }
-          }, 500);
-        } else {
-          const contextPrefix = !isAuthenticated ? `[LEAD: ${leadInfo.nome}, WhatsApp: ${leadInfo.whatsapp}, Página: ${location.pathname}]` : `[Página: ${location.pathname}]`;
-          await sendToAgent(`${contextPrefix} ${userMessage}`, conversationId);
-        }
+        // Normal interaction (authenticated user or lead already captured)
+        const context = isAuthenticated ? 
+          `[Página: ${location.pathname}]` : 
+          `[LEAD: ${leadInfo.nome} | WhatsApp: ${leadInfo.whatsapp} | Página: ${location.pathname}]`;
+        
+        await sendToAgent(`${context} ${userMessage}`, conversationId);
       }
+
     } catch (error) {
-      console.error('Erro ao enviar mensagem ou capturar lead:', error);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Desculpe, houve um erro ao processar sua mensagem. Por favor, tente novamente.',
-        created_date: new Date().toISOString()
+      console.error('Erro ao processar mensagem:', error);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Desculpe, houve um erro. Por favor, tente novamente.', 
+        created_date: new Date().toISOString() 
       }]);
       setIsLoadingAI(false);
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSendMessage();
     }
   };
   
   const renderMessageContent = (content) => {
-    // Converter links de página para links clicáveis
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    
     return (
       <ReactMarkdown
         components={{
           a: ({ node, children, href, ...props }) => {
-            // Verificar se é um link de página interna
             const pageNames = ['EspecializacoesPage', 'CiclosPage', 'DiferenciaisPage', 'EmAcaoPage', 
                               'CalendarioDeAula', 'IncubadoraProfissionalPage', 'CoordenadorPage', 
                               'ProfessoresPage', 'DepoimentosPage', 'UpgradePage', 'Homepage'];
@@ -274,7 +311,6 @@ export default function Chatbot() {
               );
             }
             
-            // Link externo
             return (
               <a 
                 href={href} 
@@ -325,7 +361,7 @@ export default function Chatbot() {
             <X className="w-5 h-5" />
           </Button>
         </div>
-        <p className="text-xs text-green-100 mt-1">🤖 Assistente treinado pelo Coordenador Emanoel</p>
+        <p className="text-xs text-green-100 mt-1">🤖 Assistente treinado pelo Prof. Emanoel</p>
       </CardHeader>
 
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
@@ -359,7 +395,7 @@ export default function Chatbot() {
             <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2">
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                <p className="text-sm text-gray-600">Coordenador Digital está pensando...</p>
+                <p className="text-sm text-gray-600">Pensando...</p>
               </div>
             </div>
           </div>
@@ -374,11 +410,9 @@ export default function Chatbot() {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={
-              !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingName 
-                ? "Digite seu nome..." 
-                : !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingWhatsApp 
-                ? "Digite seu WhatsApp..." 
-                : "Digite sua pergunta..."
+              !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingName ? "Digite seu nome..." :
+              !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingWhatsApp ? "Digite seu WhatsApp..." :
+              "Digite sua pergunta..."
             }
             className="flex-1"
             disabled={isLoadingAI}

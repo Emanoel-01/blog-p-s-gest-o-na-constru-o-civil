@@ -14,6 +14,7 @@ import IncubadoraProfissionalPage from './pages/IncubadoraProfissionalPage';
 import GerenciadorDeMidiaPage from './pages/GerenciadorDeMidiaPage';
 import DepoimentosPage from './pages/DepoimentosPage';
 import MeuPerfilDiscente from './pages/MeuPerfilDiscente';
+import MeuPerfilDocente from './pages/MeuPerfilDocente';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "GerenciadorDeMidiaPage": GerenciadorDeMidiaPage,
     "DepoimentosPage": DepoimentosPage,
     "MeuPerfilDiscente": MeuPerfilDiscente,
+    "MeuPerfilDocente": MeuPerfilDocente,
 }
 
 export const pagesConfig = {

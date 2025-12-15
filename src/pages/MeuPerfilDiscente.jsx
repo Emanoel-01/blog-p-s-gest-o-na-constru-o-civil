@@ -14,6 +14,9 @@ export default function MeuPerfilDiscente() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     titulo: '',
+    cargo_atual: '',
+    empresa: '',
+    tags_competencia: [],
     foto_url: '',
     instagram: '',
     linkedin: '',

@@ -7,6 +7,80 @@ import { createPageUrl } from '@/utils';
 import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star, LogIn, LogOut, UserCircle } from 'lucide-react';
 import Chatbot from '@/components/chatbot/Chatbot';
 
+// Componente auxiliar para decidir qual botão de perfil mostrar
+function ProfileButton({ user, location }) {
+  const [profileType, setProfileType] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function checkProfileType() {
+      try {
+        // Verificar se é professor
+        const professores = await base44.entities.Professor.list();
+        const isProfessor = professores.some(p => p.email === user.email);
+        
+        if (isProfessor) {
+          setProfileType('docente');
+          setLoading(false);
+          return;
+        }
+        
+        // Verificar se é discente
+        const discentes = await base44.entities.Discente.list();
+        const isDiscente = discentes.some(d => d.email === user.email);
+        
+        if (isDiscente) {
+          setProfileType('discente');
+        }
+      } catch (error) {
+        console.error('Erro ao verificar tipo de perfil:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    checkProfileType();
+  }, [user.email]);
+
+  if (loading) {
+    return null;
+  }
+
+  if (profileType === 'docente') {
+    return (
+      <Link to={createPageUrl('MeuPerfilDocente')}>
+        <Button
+          variant="ghost"
+          className={`w-full justify-start text-sm lg:text-base transition-all duration-200
+            ${location.pathname.includes('MeuPerfilDocente') ? 'bg-blue-100 text-blue-800 shadow-md' : 'text-gray-700 hover:bg-gray-100'}
+            ${location.pathname.includes('MeuPerfilDocente') ? 'lg:pl-4' : 'lg:pl-2'}`}
+        >
+          <UserCircle className={`w-5 h-5 lg:mr-3 ${location.pathname.includes('MeuPerfilDocente') ? 'text-blue-800' : 'text-gray-600'}`} />
+          <span className="hidden lg:block">Meu Perfil</span>
+        </Button>
+      </Link>
+    );
+  }
+
+  if (profileType === 'discente') {
+    return (
+      <Link to={createPageUrl('MeuPerfilDiscente')}>
+        <Button
+          variant="ghost"
+          className={`w-full justify-start text-sm lg:text-base transition-all duration-200
+            ${location.pathname.includes('MeuPerfilDiscente') ? 'bg-blue-100 text-blue-800 shadow-md' : 'text-gray-700 hover:bg-gray-100'}
+            ${location.pathname.includes('MeuPerfilDiscente') ? 'lg:pl-4' : 'lg:pl-2'}`}
+        >
+          <UserCircle className={`w-5 h-5 lg:mr-3 ${location.pathname.includes('MeuPerfilDiscente') ? 'text-blue-800' : 'text-gray-600'}`} />
+          <span className="hidden lg:block">Meu Perfil</span>
+        </Button>
+      </Link>
+    );
+  }
+
+  return null;
+}
+
 export default function Layout({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState(null);
@@ -20,6 +94,25 @@ export default function Layout({ children }) {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setIsAdmin(currentUser && currentUser.role === 'admin');
+        
+        // Redirecionar para o perfil apropriado se o usuário acabou de logar
+        if (currentUser && location.pathname === '/') {
+          // Verificar se é professor
+          const professores = await base44.entities.Professor.list();
+          const isProfessor = professores.some(p => p.email === currentUser.email);
+          
+          if (isProfessor && !location.pathname.includes('MeuPerfilDocente')) {
+            // Não redirecionar automaticamente, deixar o usuário navegar
+          }
+          
+          // Verificar se é discente
+          const discentes = await base44.entities.Discente.list();
+          const isDiscente = discentes.some(d => d.email === currentUser.email);
+          
+          if (isDiscente && !location.pathname.includes('MeuPerfilDiscente')) {
+            // Não redirecionar automaticamente, deixar o usuário navegar
+          }
+        }
       } catch (error) {
         console.error("Erro ao verificar status de admin:", error);
         setUser(null);
@@ -29,7 +122,7 @@ export default function Layout({ children }) {
       }
     }
     checkAdminStatus();
-  }, []);
+  }, [location.pathname]);
 
   const navItems = [
     { name: 'Home', path: 'Homepage' },
@@ -133,17 +226,7 @@ export default function Layout({ children }) {
           <div className="border-t border-gray-300 pt-2 mt-2">
             {user ? (
               <>
-                <Link to={createPageUrl('MeuPerfilDiscente')}>
-                  <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-sm lg:text-base transition-all duration-200
-                      ${location.pathname.includes('MeuPerfilDiscente') ? 'bg-blue-100 text-blue-800 shadow-md' : 'text-gray-700 hover:bg-gray-100'}
-                      ${location.pathname.includes('MeuPerfilDiscente') ? 'lg:pl-4' : 'lg:pl-2'}`}
-                  >
-                    <UserCircle className={`w-5 h-5 lg:mr-3 ${location.pathname.includes('MeuPerfilDiscente') ? 'text-blue-800' : 'text-gray-600'}`} />
-                    <span className="hidden lg:block">Meu Perfil</span>
-                  </Button>
-                </Link>
+                <ProfileButton user={user} location={location} />
                 <Button
                   variant="ghost"
                   onClick={() => base44.auth.logout()}
@@ -212,16 +295,7 @@ export default function Layout({ children }) {
               <div className="border-t border-gray-300 pt-2 mt-2">
                 {user ? (
                   <>
-                    <Link to={createPageUrl('MeuPerfilDiscente')} onClick={() => setMobileMenuOpen(false)}>
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start text-base transition-all duration-200
-                          ${location.pathname.includes('MeuPerfilDiscente') ? 'bg-blue-100 text-blue-800 shadow-md' : 'text-gray-700 hover:bg-gray-100'}`}
-                      >
-                        <UserCircle className={`w-5 h-5 mr-3 ${location.pathname.includes('MeuPerfilDiscente') ? 'text-blue-800' : 'text-gray-600'}`} />
-                        <span>Meu Perfil</span>
-                      </Button>
-                    </Link>
+                    <ProfileButton user={user} location={location} />
                     <Button
                       variant="ghost"
                       onClick={() => base44.auth.logout()}

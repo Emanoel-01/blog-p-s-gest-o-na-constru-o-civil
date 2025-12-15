@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Save, User, Briefcase, Link as LinkIcon, Upload } from 'lucide-react';
+import { ArrowLeft, Save, User, Briefcase, Link as LinkIcon, Upload, Edit, Award, BookOpen, Instagram, Linkedin, Globe, Mail, GraduationCap, BookMarked } from 'lucide-react';
 
 export default function MeuPerfilDocente() {
   const [user, setUser] = useState(null);
@@ -126,164 +127,306 @@ export default function MeuPerfilDocente() {
     );
   }
 
+  const { data: especializacoes = [] } = useQuery({
+    queryKey: ['especializacoes'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
+  });
+
+  const { data: ciclos = [] } = useQuery({
+    queryKey: ['ciclos'],
+    queryFn: () => base44.entities.Ciclo.list('ordem')
+  });
+
+  const minhasEspecializacoes = (professor?.especializacoes || [])
+    .map(id => especializacoes.find(e => e.id === id))
+    .filter(Boolean);
+
+  const minhasDisciplinas = ciclos.flatMap(ciclo => {
+    if (!minhasEspecializacoes.some(espec => espec.ciclos?.includes(ciclo.id))) return [];
+    return (ciclo.disciplinas || []).map(d => typeof d === 'string' ? d : d.nome);
+  }).filter((v, i, a) => a.indexOf(v) === i);
+
   return (
     <>
       <Helmet>
-        <title>Meu Perfil - Docente | ESUDA</title>
+        <title>{professor?.nome || 'Meu Perfil'} | Docente ESUDA</title>
       </Helmet>
 
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Meu Perfil - Docente</h1>
-          {!editing ? (
-            <Button onClick={() => setEditing(true)} className="bg-green-600 hover:bg-green-700">
-              <User className="w-4 h-4 mr-2" />
-              Editar Perfil
-            </Button>
-          ) : (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setEditing(false)}>
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleSave} 
-                className="bg-green-600 hover:bg-green-700"
-                disabled={updateMutation.isPending}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {updateMutation.isPending ? 'Salvando...' : 'Salvar'}
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Informações Institucionais (Read-Only) */}
-        <Card className="border-2 border-gray-300">
-          <CardHeader className="bg-gray-50">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Briefcase className="w-5 h-5 text-gray-600" />
-              Informações Institucionais (Somente Leitura)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Nome Completo</label>
-              <Input value={professor.nome} readOnly className="bg-gray-100" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">E-mail de Login</label>
-              <Input value={professor.email} readOnly className="bg-gray-100" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Titulação Acadêmica</label>
-              <Input value={professor.titulo} readOnly className="bg-gray-100" />
-            </div>
-            <p className="text-xs text-gray-500 italic">
-              * Estes dados são gerenciados pela coordenação e não podem ser alterados por você.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Informações Editáveis (Networking) */}
-        <Card className="border-2 border-green-300">
-          <CardHeader className="bg-green-50">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <LinkIcon className="w-5 h-5 text-green-600" />
-              Informações Profissionais (Editável)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Foto de Perfil</label>
-              <div className="flex items-center gap-4">
-                {formData.foto_url && (
-                  <img 
-                    src={formData.foto_url} 
-                    alt="Foto de perfil" 
-                    className="w-20 h-20 rounded-full object-cover border-2 border-green-600"
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Header do Perfil - Estilo Profissional */}
+        <Card className="relative overflow-hidden border-2 border-indigo-300">
+          {/* Banner Superior */}
+          <div className="h-32 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600" />
+          
+          {/* Área do Avatar e Info Principal */}
+          <CardContent className="relative px-6 pb-6">
+            <div className="flex flex-col md:flex-row gap-6 -mt-16">
+              {/* Avatar */}
+              <div className="relative">
+                {formData.foto_url ? (
+                  <img
+                    src={formData.foto_url}
+                    alt={professor.nome}
+                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
                   />
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center border-4 border-white shadow-xl">
+                    <User className="w-16 h-16 text-white" />
+                  </div>
                 )}
                 {editing && (
+                  <label className="absolute bottom-0 right-0 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2 cursor-pointer shadow-lg">
+                    <Upload className="w-4 h-4" />
+                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" disabled={uploading} />
+                  </label>
+                )}
+              </div>
+
+              {/* Nome e Credenciais */}
+              <div className="flex-1 mt-16 md:mt-0">
+                <div className="flex justify-between items-start">
                   <div>
-                    <Input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      disabled={uploading}
-                      className="mb-2"
-                    />
-                    {uploading && <p className="text-sm text-gray-500">Enviando...</p>}
+                    <h1 className="text-3xl font-bold text-gray-900">{professor.nome}</h1>
+                    <p className="text-lg text-indigo-700 font-semibold mt-1 flex items-center gap-2">
+                      <Award className="w-5 h-5" />
+                      {professor.titulo}
+                    </p>
+                    <p className="text-gray-600 mt-1">Docente ESUDA</p>
+                  </div>
+                  <Button
+                    onClick={() => setEditing(!editing)}
+                    variant={editing ? "outline" : "default"}
+                    className={editing ? "" : "bg-indigo-600 hover:bg-indigo-700"}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    {editing ? 'Cancelar' : 'Editar Perfil'}
+                  </Button>
+                </div>
+
+                {minhasEspecializacoes.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {minhasEspecializacoes.map(espec => (
+                      <Badge key={espec.id} className="bg-indigo-100 text-indigo-800 border-indigo-300">
+                        {espec.nome}
+                      </Badge>
+                    ))}
                   </div>
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Mini Biografia</label>
-              <Textarea
-                value={formData.mini_bio}
-                onChange={(e) => setFormData({ ...formData, mini_bio: e.target.value })}
-                disabled={!editing}
-                placeholder="Descreva brevemente sua experiência profissional..."
-                rows={4}
-                className={!editing ? 'bg-gray-100' : ''}
-              />
-            </div>
+        {/* Botões de Conexão Rápida */}
+        {!editing && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {formData.linkedin && (
+              <a href={formData.linkedin} target="_blank" rel="noopener noreferrer">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                  <Linkedin className="w-4 h-4 mr-2" />
+                  LinkedIn
+                </Button>
+              </a>
+            )}
+            {formData.lattes && (
+              <a href={formData.lattes} target="_blank" rel="noopener noreferrer">
+                <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Lattes
+                </Button>
+              </a>
+            )}
+            {formData.instagram && (
+              <a href={formData.instagram} target="_blank" rel="noopener noreferrer">
+                <Button className="w-full bg-pink-600 hover:bg-pink-700 text-white">
+                  <Instagram className="w-4 h-4 mr-2" />
+                  Instagram
+                </Button>
+              </a>
+            )}
+            {formData.site && (
+              <a href={formData.site} target="_blank" rel="noopener noreferrer">
+                <Button className="w-full bg-gray-600 hover:bg-gray-700 text-white">
+                  <Globe className="w-4 h-4 mr-2" />
+                  Site
+                </Button>
+              </a>
+            )}
+          </div>
+        )}
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">LinkedIn</label>
-              <Input
-                value={formData.linkedin}
-                onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-                disabled={!editing}
-                placeholder="https://linkedin.com/in/seu-perfil"
-                className={!editing ? 'bg-gray-100' : ''}
-              />
-            </div>
+        {/* Formulário de Edição */}
+        {editing && (
+          <Card className="border-2 border-indigo-300">
+            <CardHeader className="bg-indigo-50">
+              <CardTitle>Editar Informações do Perfil</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mini Biografia de Mercado</label>
+                <Textarea
+                  value={formData.mini_bio}
+                  onChange={(e) => setFormData({ ...formData, mini_bio: e.target.value })}
+                  placeholder="Descreva sua experiência profissional, consultorias, obras realizadas, perícias..."
+                  rows={5}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Destaque sua atuação prática no mercado para transmitir autoridade.
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Lattes</label>
-              <Input
-                value={formData.lattes}
-                onChange={(e) => setFormData({ ...formData, lattes: e.target.value })}
-                disabled={!editing}
-                placeholder="http://lattes.cnpq.br/seu-lattes"
-                className={!editing ? 'bg-gray-100' : ''}
-              />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">LinkedIn</label>
+                  <Input
+                    value={formData.linkedin}
+                    onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                    placeholder="https://linkedin.com/in/seu-perfil"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                  <Input
+                    value={formData.instagram}
+                    onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                    placeholder="https://instagram.com/seu-perfil"
+                  />
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Instagram</label>
-              <Input
-                value={formData.instagram}
-                onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
-                disabled={!editing}
-                placeholder="https://instagram.com/seu-perfil"
-                className={!editing ? 'bg-gray-100' : ''}
-              />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Currículo Lattes</label>
+                  <Input
+                    value={formData.lattes}
+                    onChange={(e) => setFormData({ ...formData, lattes: e.target.value })}
+                    placeholder="http://lattes.cnpq.br/..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Site Pessoal</label>
+                  <Input
+                    value={formData.site}
+                    onChange={(e) => setFormData({ ...formData, site: e.target.value })}
+                    placeholder="https://seu-site.com"
+                  />
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Site Pessoal</label>
-              <Input
-                value={formData.site}
-                onChange={(e) => setFormData({ ...formData, site: e.target.value })}
-                disabled={!editing}
-                placeholder="https://seu-site.com"
-                className={!editing ? 'bg-gray-100' : ''}
-              />
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleSave}
+                  disabled={updateMutation.isPending}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {updateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEditing(false);
+                    setFormData({
+                      foto_url: professor.foto_url || '',
+                      mini_bio: professor.mini_bio || '',
+                      instagram: professor.instagram || '',
+                      linkedin: professor.linkedin || '',
+                      lattes: professor.lattes || '',
+                      site: professor.site || ''
+                    });
+                  }}
+                  variant="outline"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Sobre - Mini Bio */}
+        {!editing && formData.mini_bio && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5 text-gray-700" />
+                Sobre
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 leading-relaxed text-justify whitespace-pre-line">
+                {formData.mini_bio}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Disciplinas que Leciona */}
+        {!editing && minhasDisciplinas.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookMarked className="w-5 h-5 text-gray-700" />
+                Disciplinas que Leciono
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {minhasDisciplinas.map((disc, idx) => (
+                  <div key={idx} className="flex items-center gap-2 p-2 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <div className="w-2 h-2 bg-indigo-600 rounded-full" />
+                    <span className="text-sm text-gray-800">{disc}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Formação */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-gray-700" />
+              Credenciais Acadêmicas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 flex-shrink-0">
+                <img 
+                  src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" 
+                  alt="ESUDA"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">ESUDA - Escola Superior de Desenho e Animação</h3>
+                <p className="text-gray-600">{professor.titulo}</p>
+                <p className="text-sm text-gray-500 mt-1">Corpo Docente</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex justify-center pt-4">
-          <Link to={createPageUrl('Homepage')}>
-            <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar à Página Inicial
-            </Button>
-          </Link>
-        </div>
+        {/* Informações de Contato */}
+        {!editing && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5 text-gray-700" />
+                Informações de Contato
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <p className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  {professor.email}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </>
   );

@@ -110,13 +110,15 @@ export default function AdminPage() {
   const [showProfessorForm, setShowProfessorForm] = useState(false);
   const [professorForm, setProfessorForm] = useState({
     nome: '',
+    email: '',
     titulo: '',
+    mini_bio: '',
     foto_url: '',
     instagram: '',
     linkedin: '',
     lattes: '',
     site: '',
-    especializacoes: [], // Added especializacoes
+    especializacoes: [],
     ordem: 0
   });
   const [uploadingFotoProfessor, setUploadingFotoProfessor] = useState(false);
@@ -1109,13 +1111,15 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const resetProfessorForm = () => {
     setProfessorForm({
       nome: '',
+      email: '',
       titulo: '',
+      mini_bio: '',
       foto_url: '',
       instagram: '',
       linkedin: '',
       lattes: '',
       site: '',
-      especializacoes: [], // Reset especializacoes
+      especializacoes: [],
       ordem: 0
     });
     setShowProfessorForm(false);
@@ -1155,13 +1159,15 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
 
     const data = {
       nome: professorForm.nome,
+      email: professorForm.email,
       titulo: professorForm.titulo,
+      mini_bio: professorForm.mini_bio,
       foto_url: professorForm.foto_url,
       instagram: professorForm.instagram,
       linkedin: professorForm.linkedin,
       lattes: professorForm.lattes,
       site: professorForm.site,
-      especializacoes: professorForm.especializacoes, // Added especializacoes to data
+      especializacoes: professorForm.especializacoes,
       ordem: parseInt(professorForm.ordem) || 0
     };
 
@@ -1175,13 +1181,15 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const handleEditProfessor = (professor) => {
     setProfessorForm({
       nome: professor.nome,
+      email: professor.email || '',
       titulo: professor.titulo,
+      mini_bio: professor.mini_bio || '',
       foto_url: professor.foto_url || '',
       instagram: professor.instagram || '',
       linkedin: professor.linkedin || '',
       lattes: professor.lattes || '',
       site: professor.site || '',
-      especializacoes: professor.especializacoes || [], // Load especializacoes
+      especializacoes: professor.especializacoes || [],
       ordem: professor.ordem || 0
     });
     setEditingProfessor(professor);
@@ -3082,9 +3090,26 @@ Seja detalhado, prático e objetivo na análise.`;
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-300 mb-4">
+              <h4 className="text-sm font-bold text-yellow-900 mb-2">📧 Dados de Login (Obrigatório)</h4>
+              <p className="text-xs text-yellow-800 mb-3">
+                O e-mail cadastrado aqui será usado pelo professor para fazer login no sistema e acessar seu perfil.
+              </p>
+              <div>
+                <label className="text-sm font-medium text-gray-700">E-mail de Login *</label>
+                <Input
+                  type="email"
+                  value={professorForm.email}
+                  onChange={(e) => setProfessorForm({...professorForm, email: e.target.value})}
+                  placeholder="professor@email.com"
+                  className="bg-white"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Nome Completo</label>
+                <label className="text-sm font-medium text-gray-700">Nome Completo *</label>
                 <Input
                   value={professorForm.nome}
                   onChange={(e) => setProfessorForm({...professorForm, nome: e.target.value})}
@@ -3092,13 +3117,26 @@ Seja detalhado, prático e objetivo na análise.`;
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Titulação</label>
+                <label className="text-sm font-medium text-gray-700">Titulação *</label>
                 <Input
                   value={professorForm.titulo}
                   onChange={(e) => setProfessorForm({...professorForm, titulo: e.target.value})}
                   placeholder="Ex: Doutor em Engenharia Civil"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Mini Biografia</label>
+              <Textarea
+                value={professorForm.mini_bio}
+                onChange={(e) => setProfessorForm({...professorForm, mini_bio: e.target.value})}
+                rows={3}
+                placeholder="Breve descrição da experiência profissional..."
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Esta biografia pode ser editada pelo próprio professor no perfil dele.
+              </p>
             </div>
 
             <div>
@@ -3236,10 +3274,15 @@ Seja detalhado, prático e objetivo na análise.`;
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-gray-900 mb-1 text-lg">{professor.nome}</h4>
-                      <p className="text-sm text-indigo-700 mb-3">{professor.titulo}</p>
-                      
-                      {especializacoesNomes.length > 0 && (
+                     <h4 className="font-bold text-gray-900 mb-1 text-lg">{professor.nome}</h4>
+                     <p className="text-sm text-indigo-700 mb-1">{professor.titulo}</p>
+                     {professor.email && (
+                       <p className="text-xs text-gray-600 mb-2">
+                         📧 {professor.email}
+                       </p>
+                     )}
+
+                     {especializacoesNomes.length > 0 && (
                         <div className="mb-3">
                           <p className="text-xs font-semibold text-gray-600 mb-1">Leciona em:</p>
                           <div className="flex flex-wrap gap-1">

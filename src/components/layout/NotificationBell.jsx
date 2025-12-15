@@ -81,19 +81,32 @@ export default function NotificationBell({ userEmail }) {
                       <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />
                     )}
                   </div>
-                  {notif.link_destino && (
-                    <a 
-                      href={notif.link_destino} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      onClick={() => marcarComoLidaMutation.mutate(notif.id)}
-                    >
-                      <Button size="sm" variant="outline" className="w-full h-7 text-xs mt-2">
-                        Ver mais
-                        <ExternalLink className="w-3 h-3 ml-1" />
+                  <div className="flex gap-2 mt-2">
+                    {notif.link_destino && (
+                      <a 
+                        href={notif.link_destino} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        onClick={() => !notif.lida && marcarComoLidaMutation.mutate(notif.id)}
+                        className="flex-1"
+                      >
+                        <Button size="sm" variant="outline" className="w-full h-7 text-xs">
+                          Ver mais
+                          <ExternalLink className="w-3 h-3 ml-1" />
+                        </Button>
+                      </a>
+                    )}
+                    {!notif.lida && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => marcarComoLidaMutation.mutate(notif.id)}
+                        className="h-7 text-xs text-blue-600 hover:bg-blue-50"
+                      >
+                        Marcar como lida
                       </Button>
-                    </a>
-                  )}
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

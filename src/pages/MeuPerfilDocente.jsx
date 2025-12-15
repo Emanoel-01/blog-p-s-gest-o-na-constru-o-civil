@@ -29,6 +29,16 @@ export default function MeuPerfilDocente() {
 
   const queryClient = useQueryClient();
 
+  const { data: especializacoes = [] } = useQuery({
+    queryKey: ['especializacoes'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
+  });
+
+  const { data: ciclos = [] } = useQuery({
+    queryKey: ['ciclos'],
+    queryFn: () => base44.entities.Ciclo.list('ordem')
+  });
+
   useEffect(() => {
     async function loadUserAndProfile() {
       try {
@@ -126,16 +136,6 @@ export default function MeuPerfilDocente() {
       </div>
     );
   }
-
-  const { data: especializacoes = [] } = useQuery({
-    queryKey: ['especializacoes'],
-    queryFn: () => base44.entities.Especializacao.list('ordem')
-  });
-
-  const { data: ciclos = [] } = useQuery({
-    queryKey: ['ciclos'],
-    queryFn: () => base44.entities.Ciclo.list('ordem')
-  });
 
   const minhasEspecializacoes = (professor?.especializacoes || [])
     .map(id => especializacoes.find(e => e.id === id))

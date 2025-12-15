@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { User, Save, Upload } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { User, Save, Upload, Briefcase } from 'lucide-react';
 
 export default function MeuPerfilDiscente() {
   const [user, setUser] = useState(null);
@@ -52,6 +53,9 @@ export default function MeuPerfilDiscente() {
         setDiscente(meuPerfil);
         setFormData({
           titulo: meuPerfil.titulo || '',
+          cargo_atual: meuPerfil.cargo_atual || '',
+          empresa: meuPerfil.empresa || '',
+          tags_competencia: meuPerfil.tags_competencia || [],
           foto_url: meuPerfil.foto_url || '',
           instagram: meuPerfil.instagram || '',
           linkedin: meuPerfil.linkedin || '',
@@ -207,6 +211,48 @@ export default function MeuPerfilDiscente() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Cargo Atual
+                    </label>
+                    <Input
+                      value={formData.cargo_atual}
+                      onChange={(e) => setFormData({ ...formData, cargo_atual: e.target.value })}
+                      placeholder="Ex: Coordenador de Obras, Gestor BIM..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Empresa
+                    </label>
+                    <Input
+                      value={formData.empresa}
+                      onChange={(e) => setFormData({ ...formData, empresa: e.target.value })}
+                      placeholder="Ex: Construtora XYZ, Escritório ABC..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tags de Competência
+                    </label>
+                    <Input
+                      value={formData.tags_competencia.join(', ')}
+                      onChange={(e) => setFormData({ ...formData, tags_competencia: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
+                      placeholder="Ex: BIM, Revit, MS Project, Lean Construction (separadas por vírgula)"
+                    />
+                    {formData.tags_competencia.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {formData.tags_competencia.map((tag, idx) => (
+                          <Badge key={idx} className="bg-blue-100 text-blue-800 border-blue-300">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Instagram
                     </label>
                     <Input
@@ -264,6 +310,9 @@ export default function MeuPerfilDiscente() {
                         // Resetar formulário
                         setFormData({
                           titulo: discente.titulo || '',
+                          cargo_atual: discente.cargo_atual || '',
+                          empresa: discente.empresa || '',
+                          tags_competencia: discente.tags_competencia || [],
                           foto_url: discente.foto_url || '',
                           instagram: discente.instagram || '',
                           linkedin: discente.linkedin || '',
@@ -283,6 +332,20 @@ export default function MeuPerfilDiscente() {
                     <img src={formData.foto_url} alt={discente.nome} className="w-20 h-20 rounded-full object-cover border-2 border-green-600 mb-2" />
                   )}
                   <p><strong>Título:</strong> {formData.titulo || 'Não informado'}</p>
+                  <p><strong>Cargo Atual:</strong> {formData.cargo_atual || 'Não informado'}</p>
+                  <p><strong>Empresa:</strong> {formData.empresa || 'Não informado'}</p>
+                  {formData.tags_competencia.length > 0 && (
+                    <div>
+                      <strong>Competências:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {formData.tags_competencia.map((tag, idx) => (
+                          <Badge key={idx} variant="outline" className="bg-blue-50 text-blue-700 text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <p><strong>Instagram:</strong> {formData.instagram || 'Não informado'}</p>
                   <p><strong>LinkedIn:</strong> {formData.linkedin || 'Não informado'}</p>
                   <p><strong>Lattes:</strong> {formData.lattes || 'Não informado'}</p>

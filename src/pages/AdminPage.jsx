@@ -23,6 +23,7 @@ import ComentariosManager from '../components/admin/ComentariosManager';
 import NotificationCenter from '../components/admin/NotificationCenter';
 import DepoimentosManager from '../components/admin/DepoimentosManager';
 import BulkEnrollStudents from '../components/admin/BulkEnrollStudents';
+import NotificationManager from '../components/admin/NotificationManager';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -4181,15 +4182,7 @@ Seja detalhado, prático e objetivo na análise.`;
   const [editingLead, setEditingLead] = useState(null);
   const [leadStatusFilter, setLeadStatusFilter] = useState('Todos');
 
-  // Notificações state
-  const [showNotifForm, setShowNotifForm] = useState(false);
-  const [notifForm, setNotifForm] = useState({
-    destinatario_email: '',
-    tipo: 'Acadêmico',
-    titulo: '',
-    mensagem: '',
-    link_destino: ''
-  });
+
 
   const renderIncubadoraTab = () => {
     return (
@@ -4772,171 +4765,8 @@ Seja detalhado, prático e objetivo na análise.`;
     </div>
   );
 
-  const createNotifMutation = useMutation({
-    mutationFn: (data) => base44.entities.Notificacao.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-notificacoes']);
-      setShowNotifForm(false);
-      setNotifForm({
-        destinatario_email: '',
-        tipo: 'Acadêmico',
-        titulo: '',
-        mensagem: '',
-        link_destino: ''
-      });
-      toast.success('Notificação criada com sucesso!');
-    }
-  });
-
-  const deleteNotifMutation = useMutation({
-    mutationFn: (id) => base44.entities.Notificacao.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['admin-notificacoes']);
-      toast.success('Notificação removida!');
-    }
-  });
-
   const renderNotificacoesTab = () => {
-    return (
-      <div>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-800">Gerenciar Notificações</h3>
-          <Button
-            onClick={() => setShowNotifForm(!showNotifForm)}
-            className="bg-violet-600 hover:bg-violet-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Notificação
-          </Button>
-        </div>
-
-        {showNotifForm && (
-          <Card className="mb-6 bg-violet-50 border-violet-200">
-            <CardHeader>
-              <CardTitle className="text-lg">Nova Notificação</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">E-mail do Destinatário</label>
-                <Input
-                  value={notifForm.destinatario_email}
-                  onChange={(e) => setNotifForm({...notifForm, destinatario_email: e.target.value})}
-                  placeholder="aluno@email.com"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Tipo</label>
-                <Select value={notifForm.tipo} onValueChange={(v) => setNotifForm({...notifForm, tipo: v})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Acadêmico">Acadêmico</SelectItem>
-                    <SelectItem value="Carreira">Carreira</SelectItem>
-                    <SelectItem value="Engajamento">Engajamento</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Título</label>
-                <Input
-                  value={notifForm.titulo}
-                  onChange={(e) => setNotifForm({...notifForm, titulo: e.target.value})}
-                  placeholder="Ex: Nova aula disponível"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Mensagem</label>
-                <Textarea
-                  value={notifForm.mensagem}
-                  onChange={(e) => setNotifForm({...notifForm, mensagem: e.target.value})}
-                  rows={3}
-                  placeholder="Conteúdo da notificação..."
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700">Link (opcional)</label>
-                <Input
-                  value={notifForm.link_destino}
-                  onChange={(e) => setNotifForm({...notifForm, link_destino: e.target.value})}
-                  placeholder="https://..."
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => createNotifMutation.mutate(notifForm)}
-                  className="bg-violet-600 hover:bg-violet-700"
-                  disabled={!notifForm.destinatario_email || !notifForm.titulo || !notifForm.mensagem}
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Enviar Notificação
-                </Button>
-                <Button onClick={() => setShowNotifForm(false)} variant="outline">
-                  <X className="w-4 h-4 mr-2" />
-                  Cancelar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="grid gap-3">
-          {allNotificacoes.length === 0 ? (
-            <p className="text-gray-500 italic">Nenhuma notificação enviada ainda.</p>
-          ) : (
-            allNotificacoes.map((notif) => (
-              <Card key={notif.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge className={
-                          notif.tipo === 'Acadêmico' ? 'bg-blue-100 text-blue-800' :
-                          notif.tipo === 'Carreira' ? 'bg-green-100 text-green-800' :
-                          'bg-purple-100 text-purple-800'
-                        }>
-                          {notif.tipo}
-                        </Badge>
-                        {notif.lida ? (
-                          <Badge variant="outline" className="text-xs">Lida</Badge>
-                        ) : (
-                          <Badge className="bg-red-100 text-red-800 text-xs">Não lida</Badge>
-                        )}
-                      </div>
-                      <h4 className="font-bold text-gray-800">{notif.titulo}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{notif.mensagem}</p>
-                      <p className="text-xs text-gray-500">
-                        Para: <strong>{notif.destinatario_email}</strong>
-                      </p>
-                      {notif.link_destino && (
-                        <p className="text-xs text-blue-600 mt-1">🔗 {notif.link_destino}</p>
-                      )}
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => {
-                        if (window.confirm('Remover esta notificação?')) {
-                          deleteNotifMutation.mutate(notif.id);
-                        }
-                      }}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
-      </div>
-    );
+    return <NotificationManager allNotificacoes={allNotificacoes} />;
   };
 
   const renderPostsTab = () => (

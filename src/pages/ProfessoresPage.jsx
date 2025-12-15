@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { createPageUrl } from '@/utils';
 import { Linkedin, BookOpen, Globe, Instagram, User } from 'lucide-react';
 
 export default function ProfessoresPage() {
+  const navigate = useNavigate();
   const { data: professores = [], isLoading } = useQuery({
     queryKey: ['professores'],
     queryFn: () => base44.entities.Professor.list('ordem')
@@ -63,19 +64,29 @@ export default function ProfessoresPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-8">
           {professores.map((professor) => (
             <Card key={professor.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-3 text-center">
-                {professor.foto_url ? (
-                  <img
-                    src={professor.foto_url}
-                    alt={professor.nome}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-indigo-600 mx-auto mb-2"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-gray-300 mx-auto mb-2 flex items-center justify-center">
-                    <User className="w-8 h-8 text-gray-500" />
-                  </div>
-                )}
-                <h4 className="font-bold text-gray-800 mb-1 text-xs line-clamp-2">{professor.nome}</h4>
+             <CardContent className="p-3 text-center">
+               <div 
+                 className="cursor-pointer"
+                 onClick={() => navigate(createPageUrl('PerfilDocente') + '?id=' + professor.id)}
+               >
+                 {professor.foto_url ? (
+                   <img
+                     src={professor.foto_url}
+                     alt={professor.nome}
+                     className="w-16 h-16 rounded-full object-cover border-2 border-indigo-600 mx-auto mb-2 hover:border-indigo-700 transition-all"
+                   />
+                 ) : (
+                   <div className="w-16 h-16 rounded-full bg-gray-300 mx-auto mb-2 flex items-center justify-center hover:bg-gray-400 transition-all">
+                     <User className="w-8 h-8 text-gray-500" />
+                   </div>
+                 )}
+               </div>
+               <h4 
+                 className="font-bold text-gray-800 mb-1 text-xs line-clamp-2 cursor-pointer hover:text-indigo-600 transition-colors"
+                 onClick={() => navigate(createPageUrl('PerfilDocente') + '?id=' + professor.id)}
+               >
+                 {professor.nome}
+               </h4>
                 <p className="text-[10px] text-gray-600 mb-2 line-clamp-2">{professor.titulo}</p>
                 
                 {getEspecializacoesCount(professor) > 0 && (

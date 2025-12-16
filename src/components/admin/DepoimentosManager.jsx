@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Star, Check, X, Edit, UserCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { listAllDepoimentos } from '@/functions/listAllDepoimentos';
 
 export default function DepoimentosManager() {
   const queryClient = useQueryClient();
@@ -17,7 +18,10 @@ export default function DepoimentosManager() {
 
   const { data: depoimentos = [] } = useQuery({
     queryKey: ['admin-depoimentos'],
-    queryFn: () => base44.entities.Depoimento.list('-created_date'),
+    queryFn: async () => {
+      const response = await listAllDepoimentos({});
+      return response.data.depoimentos;
+    },
   });
 
   const updateMutation = useMutation({

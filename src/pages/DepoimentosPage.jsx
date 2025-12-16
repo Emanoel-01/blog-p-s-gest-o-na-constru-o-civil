@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { Star, Upload, Mic, Square, Play, Pause, Send, AlertCircle } from 'lucide-react';
+import { Star, Upload, Mic, Square, Play, Pause, Send, AlertCircle, ThumbsUp, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -45,6 +45,33 @@ export default function DepoimentosPage() {
     queryKey: ['depoimentos-publicos'],
     queryFn: () => base44.entities.Depoimento.list('-created_date'),
   });
+
+  const [reactions, setReactions] = useState({});
+
+  const handleReaction = (depId, type) => {
+    setReactions(prev => {
+      const current = prev[depId] || { likes: 0, hearts: 0 };
+      return {
+        ...prev,
+        [depId]: {
+          ...current,
+          [type]: current[type] + 1
+        }
+      };
+    });
+    toast.success(type === 'likes' ? '👍 Obrigado!' : '❤️ Obrigado!');
+  };
+
+  // SEO: Cálculo de estatísticas
+  const seoStats = useMemo(() => {
+    if (!depoimentos.length) return null;
+    
+    const totalRatings = depoimentos.reduce((sum, dep) => sum + (dep.avaliacao_estrelas || 0), 0);
+    const avgRating = (totalRatings / depoimentos.length).toFixed(1);
+    const reviewCount = depoimentos.length;
+    
+    return { avgRating, reviewCount };
+  }, [depoimentos]);
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
@@ -237,8 +264,84 @@ export default function DepoimentosPage() {
   return (
     <>
       <Helmet>
-        <title>Depoimentos ESUDA | Veja o que nossos alunos dizem</title>
-        <meta name="description" content="Veja depoimentos de alunos, ex-alunos e professores da ESUDA sobre suas experiências com nossa pós-graduação em Construção Civil." />
+        <title>Depoimentos ESUDA | {seoStats ? `${seoStats.reviewCount} Avaliações` : 'Veja o que nossos alunos dizem'}</title>
+        <meta name="description" content={seoStats 
+          ? `Leia ${seoStats.reviewCount} depoimentos autênticos de alunos e ex-alunos da ESUDA. Avaliação média: ${seoStats.avgRating}/5 estrelas. Descubra por que somos referência em pós-graduação em Construção Civil.`
+          : 'Veja depoimentos de alunos, ex-alunos e professores da ESUDA sobre suas experiências com nossa pós-graduação em Construção Civil.'
+        } />
+        <meta name="keywords" content="depoimentos esuda, avaliações esuda, reviews construção civil, pós graduação engenharia opiniões, testemunhos alunos esuda" />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/DepoimentosPage" />
+        
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={`Depoimentos ESUDA | ${seoStats ? `${seoStats.reviewCount} Avaliações Reais` : 'Reviews de Alunos'}`} />
+        <meta property="og:description" content={seoStats 
+          ? `${seoStats.reviewCount} depoimentos verificados. Avaliação ${seoStats.avgRating}/5⭐`
+          : 'Veja avaliações reais de alunos da ESUDA'
+        } />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/DepoimentosPage" />
+        <meta property="og:image" content="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`Depoimentos ESUDA | ${seoStats?.reviewCount || ''} Avaliações`} />
+        <meta name="twitter:description" content={seoStats ? `Avaliação média: ${seoStats.avgRating}/5⭐` : 'Reviews de alunos'} />
+        
+        {/* Schema Markup - Organization & AggregateRating */}
+        {seoStats && (
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "EducationalOrganization",
+              "name": "ESUDA - Escola Superior de Desenvolvimento e Aperfeiçoamento",
+              "url": "https://posgraduacao-esuda.base44.app",
+              "logo": "https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png",
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": seoStats.avgRating,
+                "reviewCount": seoStats.reviewCount,
+                "bestRating": "5",
+                "worstRating": "1"
+              },
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Recife",
+                "addressRegion": "PE",
+                "addressCountry": "BR"
+              }
+            })}
+          </script>
+        )}
+        
+        {/* Schema Markup - Individual Reviews */}
+        {depoimentos.slice(0, 10).map((dep) => (
+          <script key={dep.id} type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Review",
+              "itemReviewed": {
+                "@type": "Course",
+                "name": "Pós-Graduação ESUDA",
+                "provider": {
+                  "@type": "EducationalOrganization",
+                  "name": "ESUDA"
+                }
+              },
+              "author": {
+                "@type": "Person",
+                "name": dep.nome
+              },
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": dep.avaliacao_estrelas,
+                "bestRating": "5",
+                "worstRating": "1"
+              },
+              "reviewBody": dep.depoimento_texto || "Depoimento em áudio/vídeo",
+              "datePublished": dep.created_date
+            })}
+          </script>
+        ))}
       </Helmet>
 
       <div className="space-y-12">
@@ -514,9 +617,29 @@ export default function DepoimentosPage() {
 
         {/* Lista de Depoimentos Aprovados */}
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-            O que nossos alunos dizem
-          </h2>
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              O que nossos alunos dizem
+            </h2>
+            {seoStats && (
+              <div className="flex items-center justify-center gap-2 text-lg">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-6 h-6 ${
+                        parseFloat(seoStats.avgRating) >= star
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="font-bold text-gray-900">{seoStats.avgRating}</span>
+                <span className="text-gray-600">({seoStats.reviewCount} avaliações)</span>
+              </div>
+            )}
+          </div>
 
           {isLoading ? (
             <div className="text-center py-12">
@@ -593,6 +716,38 @@ export default function DepoimentosPage() {
                               <source src={dep.depoimento_audio_url} />
                             </audio>
                           )}
+
+                          {/* Sistema de Reações */}
+                          <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleReaction(dep.id, 'likes')}
+                              className="flex items-center gap-2 hover:bg-blue-50 hover:text-blue-600"
+                            >
+                              <ThumbsUp className="w-4 h-4" />
+                              <span className="text-sm">Útil</span>
+                              {reactions[dep.id]?.likes > 0 && (
+                                <span className="text-xs font-semibold">
+                                  ({reactions[dep.id].likes})
+                                </span>
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleReaction(dep.id, 'hearts')}
+                              className="flex items-center gap-2 hover:bg-pink-50 hover:text-pink-600"
+                            >
+                              <Heart className="w-4 h-4" />
+                              <span className="text-sm">Inspirador</span>
+                              {reactions[dep.id]?.hearts > 0 && (
+                                <span className="text-xs font-semibold">
+                                  ({reactions[dep.id].hearts})
+                                </span>
+                              )}
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     </motion.div>

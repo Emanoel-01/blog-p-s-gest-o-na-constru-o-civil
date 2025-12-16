@@ -83,25 +83,29 @@ export default function Chatbot() {
     try {
       let currentConversationId = existingConversationId;
       
+      // Determina qual agente usar baseado na autenticação
+      const agentName = isAuthenticated ? 'suporte_aluno' : 'coordenador_digital';
+      
       if (!currentConversationId) {
         let conversationName = 'Nova Conversa';
         
         if (isAuthenticated) {
           try {
             const user = await base44.auth.me();
-            conversationName = `Conversa com ${user.full_name}`;
+            conversationName = `Suporte: ${user.full_name}`;
           } catch (error) {
             console.warn('Erro ao obter usuário:', error);
           }
         } else {
-          conversationName = 'Conversa de Lead';
+          conversationName = 'Captura de Lead';
         }
 
         const conversation = await base44.agents.createConversation({
-          agent_name: 'coordenador_digital',
+          agent_name: agentName,
           metadata: {
             name: conversationName,
-            page: location.pathname
+            page: location.pathname,
+            user_type: isAuthenticated ? 'logged_in' : 'lead'
           }
         });
         currentConversationId = conversation.id;
@@ -350,7 +354,9 @@ export default function Chatbot() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5" />
-            <CardTitle className="text-lg">Coordenador Digital</CardTitle>
+            <CardTitle className="text-lg">
+              {isAuthenticated ? 'Assistente Acadêmico' : 'Coordenador Digital'}
+            </CardTitle>
           </div>
           <Button
             variant="ghost"
@@ -361,7 +367,11 @@ export default function Chatbot() {
             <X className="w-5 h-5" />
           </Button>
         </div>
-        <p className="text-xs text-green-100 mt-1">🤖 Assistente treinado pelo Prof. Emanoel</p>
+        <p className="text-xs text-green-100 mt-1">
+          {isAuthenticated 
+            ? '📚 Suporte para alunos e professores' 
+            : '🤖 Assistente treinado pelo Prof. Emanoel'}
+        </p>
       </CardHeader>
 
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">

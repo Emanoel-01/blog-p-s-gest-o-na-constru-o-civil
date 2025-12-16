@@ -4,17 +4,21 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verifica se o usuário está autenticado e é admin
     const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    
+    let depoimentos;
+    
+    if (user && user.role === 'admin') {
+      // Admin vê todos os depoimentos
+      depoimentos = await base44.asServiceRole.entities.Depoimento.list('-created_date');
+    } else {
+      // Usuários comuns veem apenas aprovados
+      depoimentos = await base44.entities.Depoimento.list('-created_date');
     }
 
-    // Busca todos os depoimentos usando service role (bypassa RLS)
-    const depoimentos = await base44.asServiceRole.entities.Depoimento.list('-created_date');
-
-    return Response.json({ depoimentos });
+    return Response.json({ depoimentos, isAdmin: user?.role === 'admin' });
   } catch (error) {
+    console.error("Error in listAllDepoimentos:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });

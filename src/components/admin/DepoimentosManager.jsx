@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Star, Check, X, Edit, UserCircle, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Star, Check, X, Edit, UserCircle, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { listAllDepoimentos } from '@/functions/listAllDepoimentos';
 
@@ -15,6 +17,7 @@ export default function DepoimentosManager() {
   const queryClient = useQueryClient();
   const [editingDep, setEditingDep] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(null);
 
   const { data: depoimentos = [] } = useQuery({
     queryKey: ['admin-depoimentos'],
@@ -38,6 +41,7 @@ export default function DepoimentosManager() {
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-depoimentos']);
       toast.success('Depoimento deletado!');
+      setDeleteConfirmDialog(null);
     },
   });
 
@@ -57,16 +61,30 @@ export default function DepoimentosManager() {
       vinculo_pos_graduacao: dep.vinculo_pos_graduacao,
       depoimento_texto: dep.depoimento_texto,
       admin_observacoes: dep.admin_observacoes || '',
+      autoApprove: dep.autoApprove || false,
     });
   };
 
   const handleSaveEdit = () => {
-    updateMutation.mutate({ id: editingDep.id, data: editForm });
+    // Se autoApprove for true, aprovar automaticamente
+    const dataToUpdate = {
+      ...editForm,
+      ...(editForm.autoApprove && editingDep.status === 'Pendente' 
+        ? { status: 'Aprovado' } 
+        : {}
+      )
+    };
+    
+    updateMutation.mutate({ id: editingDep.id, data: dataToUpdate });
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Tem certeza que deseja deletar este depoimento?')) {
-      deleteMutation.mutate(id);
+  const handleDeleteClick = (dep) => {
+    setDeleteConfirmDialog(dep);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmDialog) {
+      deleteMutation.mutate(deleteConfirmDialog.id);
     }
   };
 
@@ -113,6 +131,11 @@ export default function DepoimentosManager() {
                   <h4 className="font-bold text-lg">{dep.nome}</h4>
                   <p className="text-sm text-gray-600">{dep.profissao} - {dep.vinculo_pos_graduacao}</p>
                   <p className="text-xs text-gray-500">{dep.email} | {dep.telefone}</p>
+                  {dep.autoApprove && (
+                    <Badge className="bg-purple-100 text-purple-800 mt-1">
+                      Auto-Aprovação Ativa
+                    </Badge>
+                  )}
                 </div>
               </div>
               <Badge className={
@@ -167,7 +190,7 @@ export default function DepoimentosManager() {
               <Button onClick={() => handleEdit(dep)} size="sm" variant="outline">
                 <Edit className="w-4 h-4 mr-1" /> Editar
               </Button>
-              <Button onClick={() => handleDelete(dep.id)} size="sm" variant="destructive">
+              <Button onClick={() => handleDeleteClick(dep)} size="sm" variant="destructive">
                 <Trash2 className="w-4 h-4 mr-1" /> Deletar
               </Button>
             </div>
@@ -175,6 +198,7 @@ export default function DepoimentosManager() {
         </Card>
       ))}
 
+      {/* Dialog de Edição */}
       <Dialog open={!!editingDep} onOpenChange={() => setEditingDep(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -201,10 +225,59 @@ export default function DepoimentosManager() {
               <label className="text-sm font-semibold">Observações Admin</label>
               <Textarea value={editForm.admin_observacoes || ''} onChange={(e) => setEditForm({...editForm, admin_observacoes: e.target.value})} rows={3} />
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="autoApprove" 
+                checked={editForm.autoApprove || false}
+                onCheckedChange={(checked) => setEditForm({...editForm, autoApprove: checked})}
+              />
+              <Label htmlFor="autoApprove" className="text-sm font-semibold">
+                Aprovação Automática
+              </Label>
+            </div>
+            <p className="text-xs text-gray-500 italic">
+              * Se marcado, este depoimento será aprovado automaticamente quando salvo (se estiver pendente)
+            </p>
             <Button onClick={handleSaveEdit} className="w-full bg-green-600 hover:bg-green-700">
               Salvar Alterações
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <Dialog open={!!deleteConfirmDialog} onOpenChange={() => setDeleteConfirmDialog(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-6 h-6" />
+              Confirmar Exclusão
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700 mb-4">
+              Tem certeza que deseja deletar permanentemente o depoimento de{' '}
+              <strong>{deleteConfirmDialog?.nome}</strong>?
+            </p>
+            <p className="text-sm text-gray-500 italic">
+              Esta ação não pode ser desfeita.
+            </p>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteConfirmDialog(null)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmDelete}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deletando...' : 'Sim, Deletar'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

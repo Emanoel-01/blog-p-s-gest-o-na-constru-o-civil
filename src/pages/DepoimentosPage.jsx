@@ -1,20 +1,26 @@
 import React, { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Star, UserCircle, Mic, Video, Camera, Plus } from 'lucide-react';
-import Breadcrumb from '@/components/ui/Breadcrumb';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { Link } from 'react-router-dom';
+import { Star, Upload, Mic, Square, Play, Pause, Send, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_AUDIO_SIZE = 10 * 1024 * 1024; // 10MB
 
 export default function DepoimentosPage() {
   const queryClient = useQueryClient();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -22,47 +28,57 @@ export default function DepoimentosPage() {
     profissao: '',
     vinculo_pos_graduacao: '',
     depoimento_texto: '',
-    foto_file: null,
-    video_file: null,
-    audio_file: null,
-    avaliacao_estrelas: 0,
+    avaliacao_estrelas: 5,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const audioRecorderRef = useRef(null);
+
+  const [errors, setErrors] = useState({});
+  const [selectedFoto, setSelectedFoto] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const audioPlayerRef = useRef(null);
 
   const { data: depoimentos = [], isLoading } = useQuery({
-    queryKey: ['depoimentos'],
-    queryFn: () => base44.entities.Depoimento.filter({ status: 'Aprovado' }, '-created_date'),
+    queryKey: ['depoimentos-publicos'],
+    queryFn: () => base44.entities.Depoimento.list('-created_date'),
   });
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const { foto_file, video_file, audio_file, ...depoimentoData } = data;
-      const uploadedUrls = {};
+      let fotoUrl = null;
+      let videoUrl = null;
+      let audioUrl = null;
 
-      if (foto_file) {
-        toast.info('Enviando foto...');
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: foto_file });
-        uploadedUrls.foto_url = file_url;
-      }
-      if (video_file) {
-        toast.info('Enviando vídeo...');
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: video_file });
-        uploadedUrls.depoimento_video_url = file_url;
-      }
-      if (audio_file) {
-        toast.info('Enviando áudio...');
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: audio_file });
-        uploadedUrls.depoimento_audio_url = file_url;
+      if (selectedFoto) {
+        const fotoResponse = await base44.integrations.Core.UploadFile({ file: selectedFoto });
+        fotoUrl = fotoResponse.file_url;
       }
 
-      toast.info('Salvando depoimento...');
-      return base44.entities.Depoimento.create({ ...depoimentoData, ...uploadedUrls, status: 'Pendente' });
+      if (selectedVideo) {
+        const videoResponse = await base44.integrations.Core.UploadFile({ file: selectedVideo });
+        videoUrl = videoResponse.file_url;
+      }
+
+      if (audioBlob) {
+        const audioFile = new File([audioBlob], 'depoimento-audio.webm', { type: 'audio/webm' });
+        const audioResponse = await base44.integrations.Core.UploadFile({ file: audioFile });
+        audioUrl = audioResponse.file_url;
+      }
+
+      return base44.entities.Depoimento.create({
+        ...data,
+        foto_url: fotoUrl,
+        depoimento_video_url: videoUrl,
+        depoimento_audio_url: audioUrl,
+        status: 'Pendente',
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['depoimentos']);
-      toast.success('✅ Depoimento enviado com sucesso! Será publicado após aprovação da coordenação.', { duration: 5000 });
+      queryClient.invalidateQueries(['depoimentos-publicos']);
+      toast.success('Depoimento enviado! Aguardando aprovação da coordenação.');
       setFormData({
         nome: '',
         email: '',
@@ -70,310 +86,547 @@ export default function DepoimentosPage() {
         profissao: '',
         vinculo_pos_graduacao: '',
         depoimento_texto: '',
-        foto_file: null,
-        video_file: null,
-        audio_file: null,
-        avaliacao_estrelas: 0,
+        avaliacao_estrelas: 5,
       });
-      setIsSubmitting(false);
+      setErrors({});
+      setSelectedFoto(null);
+      setSelectedVideo(null);
+      setAudioBlob(null);
     },
     onError: (error) => {
-      toast.error(`❌ Erro ao enviar depoimento: ${error.message}`);
-      setIsSubmitting(false);
+      toast.error('Erro ao enviar depoimento: ' + error.message);
     },
   });
 
-  const handleChange = (e) => {
+  const validateField = (name, value) => {
+    let error = '';
+    
+    switch(name) {
+      case 'nome':
+        if (!value || value.trim().length < 3) {
+          error = 'Nome deve ter pelo menos 3 caracteres';
+        }
+        break;
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!value || !emailRegex.test(value)) {
+          error = 'Email inválido';
+        }
+        break;
+      case 'profissao':
+        if (!value || value.trim().length < 3) {
+          error = 'Profissão deve ter pelo menos 3 caracteres';
+        }
+        break;
+      case 'vinculo_pos_graduacao':
+        if (!value || value.trim().length < 3) {
+          error = 'Vínculo deve ter pelo menos 3 caracteres';
+        }
+        break;
+    }
+    
+    return error;
+  };
+
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Validação em tempo real
+    const error = validateField(name, value);
+    setErrors(prev => ({ ...prev, [name]: error }));
   };
 
-  const handleFileChange = (e, fileType) => {
-    setFormData((prev) => ({ ...prev, [fileType]: e.target.files[0] }));
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validar todos os campos obrigatórios
+    const newErrors = {};
+    ['nome', 'email', 'profissao', 'vinculo_pos_graduacao'].forEach(field => {
+      const error = validateField(field, formData[field]);
+      if (error) newErrors[field] = error;
+    });
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Por favor, corrija os erros no formulário');
+      return;
+    }
+    
+    if (!formData.depoimento_texto && !selectedVideo && !audioBlob) {
+      toast.error('Por favor, forneça um depoimento (texto, vídeo ou áudio)');
+      return;
+    }
+    
+    createMutation.mutate(formData);
   };
 
-  const handleRatingChange = (stars) => {
-    setFormData((prev) => ({ ...prev, avaliacao_estrelas: stars }));
+  const handleFileChange = (e, type) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (type === 'foto') {
+      setSelectedFoto(file);
+    } else if (type === 'video') {
+      if (file.size > MAX_VIDEO_SIZE) {
+        toast.error('Vídeo muito grande! Tamanho máximo: 50MB');
+        e.target.value = '';
+        return;
+      }
+      setSelectedVideo(file);
+    }
   };
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioRecorderRef.current = new MediaRecorder(stream);
-      const audioChunks = [];
-      audioRecorderRef.current.ondataavailable = (event) => {
-        audioChunks.push(event.data);
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
       };
-      audioRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const audioFile = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
-        setFormData((prev) => ({ ...prev, audio_file: audioFile }));
+
+      mediaRecorderRef.current.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        if (blob.size > MAX_AUDIO_SIZE) {
+          toast.error('Áudio muito grande! Tamanho máximo: 10MB');
+          return;
+        }
+        setAudioBlob(blob);
         stream.getTracks().forEach(track => track.stop());
       };
-      audioRecorderRef.current.start();
+
+      mediaRecorderRef.current.start();
       setIsRecording(true);
-      toast.info('Gravação iniciada...');
-    } catch (err) {
-      toast.error('Erro ao acessar o microfone.');
+      toast.success('Gravação iniciada');
+    } catch (error) {
+      toast.error('Erro ao acessar microfone: ' + error.message);
     }
   };
 
   const stopRecording = () => {
-    if (audioRecorderRef.current && audioRecorderRef.current.state === 'recording') {
-      audioRecorderRef.current.stop();
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
       setIsRecording(false);
-      toast.success('Gravação finalizada.');
+      toast.success('Gravação finalizada');
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    if (!formData.nome || !formData.email || !formData.profissao || !formData.vinculo_pos_graduacao) {
-      toast.error('Preencha todos os campos obrigatórios.');
-      setIsSubmitting(false);
-      return;
+  const toggleAudioPlayback = () => {
+    if (!audioPlayerRef.current) return;
+
+    if (isPlayingAudio) {
+      audioPlayerRef.current.pause();
+      setIsPlayingAudio(false);
+    } else {
+      audioPlayerRef.current.play();
+      setIsPlayingAudio(true);
     }
-    createMutation.mutate(formData);
+  };
+
+  // Paginação
+  const totalPages = Math.ceil(depoimentos.length / itemsPerPage);
+  const currentDepoimentos = depoimentos.slice(0, currentPage * itemsPerPage);
+  const hasMore = currentPage < totalPages;
+
+  const loadMore = () => {
+    setCurrentPage(prev => prev + 1);
   };
 
   return (
     <>
       <Helmet>
-        <title>Depoimentos ESUDA | Avaliações de Alunos da Pós-Graduação em Construção Civil</title>
-        <meta name="description" content="Leia depoimentos reais de alunos e ex-alunos da pós-graduação ESUDA em Construção Civil. Compartilhe sua experiência e inspire futuros profissionais." />
-        <meta name="keywords" content="depoimentos ESUDA, avaliações pós-graduação, opinião alunos, reviews construção civil, testemunhos ESUDA" />
-        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/DepoimentosPage" />
-        
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Depoimentos ESUDA | O que dizem nossos alunos" />
-        <meta property="og:description" content="Conheça as experiências reais de quem fez a pós-graduação ESUDA em Construção Civil." />
-        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/DepoimentosPage" />
-        
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ItemList",
-            "name": "Depoimentos de Alunos ESUDA",
-            "description": "Avaliações e depoimentos de alunos da pós-graduação ESUDA",
-            "itemListElement": depoimentos.slice(0, 5).map((dep, index) => ({
-              "@type": "Review",
-              "position": index + 1,
-              "author": {
-                "@type": "Person",
-                "name": dep.nome
-              },
-              "reviewRating": {
-                "@type": "Rating",
-                "ratingValue": dep.avaliacao_estrelas,
-                "bestRating": 5
-              },
-              "reviewBody": dep.depoimento_texto,
-              "itemReviewed": {
-                "@type": "EducationalOrganization",
-                "name": "ESUDA - Pós-Graduação em Construção Civil"
-              }
-            }))
-          })}
-        </script>
+        <title>Depoimentos ESUDA | Veja o que nossos alunos dizem</title>
+        <meta name="description" content="Veja depoimentos de alunos, ex-alunos e professores da ESUDA sobre suas experiências com nossa pós-graduação em Construção Civil." />
       </Helmet>
-      
-      <div className="px-2 sm:px-0">
-        <Breadcrumb />
-        
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
-            Deixe seu Depoimento
-          </h1>
-        <p className="text-gray-600 text-sm sm:text-base max-w-3xl mx-auto">
-          Sua opinião é importante. Compartilhe sua experiência e inspire futuros alunos.
-        </p>
-      </div>
 
-      <Card className="max-w-3xl mx-auto mb-8 p-4 sm:p-6 border-2 border-green-600 shadow-lg">
-        <CardHeader className="text-center pb-4">
-          <CardTitle className="text-lg sm:text-xl font-bold text-green-700">Compartilhe sua Experiência</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="nome">Nome Completo <span className="text-red-500">*</span></Label>
-                <Input type="text" id="nome" name="nome" value={formData.nome} onChange={handleChange} required />
-              </div>
-              <div>
-                <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
-                <Input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="telefone">Telefone/WhatsApp</Label>
-              <Input type="tel" id="telefone" name="telefone" value={formData.telefone} onChange={handleChange} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="profissao">Profissão <span className="text-red-500">*</span></Label>
-                <Input type="text" id="profissao" name="profissao" value={formData.profissao} onChange={handleChange} required />
-              </div>
-              <div>
-                <Label htmlFor="vinculo_pos_graduacao">Vínculo <span className="text-red-500">*</span></Label>
-                <Input type="text" id="vinculo_pos_graduacao" name="vinculo_pos_graduacao" placeholder="Ex: Aluno, Professor..." value={formData.vinculo_pos_graduacao} onChange={handleChange} required />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="depoimento_texto">Seu Depoimento</Label>
-              <Textarea id="depoimento_texto" name="depoimento_texto" value={formData.depoimento_texto} onChange={handleChange} rows={5} />
-            </div>
-
-            <div>
-              <Label>Avaliação (1-5 Estrelas)</Label>
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className={`w-6 h-6 cursor-pointer ${formData.avaliacao_estrelas >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
-                    onClick={() => handleRatingChange(star)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="foto_file" className="flex items-center gap-2">
-                  <Camera className="w-4 h-4" /> Foto
-                </Label>
-                <Input type="file" id="foto_file" onChange={(e) => handleFileChange(e, 'foto_file')} accept="image/*" />
-                {formData.foto_file && <span className="text-xs text-gray-500">{formData.foto_file.name}</span>}
-              </div>
-              <div>
-                <Label htmlFor="video_file" className="flex items-center gap-2">
-                  <Video className="w-4 h-4" /> Vídeo
-                </Label>
-                <Input type="file" id="video_file" onChange={(e) => handleFileChange(e, 'video_file')} accept="video/*" />
-                {formData.video_file && <span className="text-xs text-gray-500">{formData.video_file.name}</span>}
-              </div>
-              <div>
-                <Label className="flex items-center gap-2">
-                  <Mic className="w-4 h-4" /> Áudio
-                </Label>
-                <div className="flex gap-2">
-                  <Button 
-                    type="button" 
-                    onClick={isRecording ? stopRecording : startRecording} 
-                    variant={isRecording ? "destructive" : "outline"} 
-                    size="sm"
-                    className="flex-1"
-                  >
-                    {isRecording ? (
-                      <>
-                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                        Parar
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="w-3 h-3 mr-1" />
-                        Gravar
-                      </>
-                    )}
-                  </Button>
-                  <Input type="file" id="audio_file" onChange={(e) => handleFileChange(e, 'audio_file')} accept="audio/*" className="flex-1" />
-                </div>
-                {formData.audio_file && <span className="text-xs text-green-600 font-semibold">✓ Áudio pronto para envio</span>}
-              </div>
-            </div>
-            
-            <p className="text-xs text-gray-500 italic">
-              * Email e telefone não serão divulgados publicamente.
-            </p>
-
-            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Plus className="mr-2 h-5 w-5" />
-                  Enviar Depoimento
-                </>
-              )}
-            </Button>
-            {isSubmitting && (
-              <p className="text-sm text-gray-600 text-center mt-2 animate-pulse">
-                Por favor, aguarde enquanto processamos seu depoimento...
-              </p>
-            )}
-          </form>
-        </CardContent>
-      </Card>
-
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 text-center">
-        Depoimentos
-      </h2>
-
-      {isLoading ? (
-        <div className="text-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto" />
+      <div className="space-y-12">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">Depoimentos</h1>
+          <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+            Conheça as experiências de quem já faz parte da nossa comunidade acadêmica
+          </p>
         </div>
-      ) : depoimentos.length === 0 ? (
-        <Card className="max-w-3xl mx-auto bg-gray-50 p-6 text-center">
-          <p className="text-gray-500 italic">Seja o primeiro a compartilhar!</p>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {depoimentos.map((dep) => (
-            <Card key={dep.id} className="border-2 border-gray-200 hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  {dep.foto_url ? (
-                    <img src={dep.foto_url} alt={dep.nome} className="w-12 h-12 rounded-full object-cover mr-4 border-2 border-green-500" />
-                  ) : (
-                    <UserCircle className="w-12 h-12 text-gray-400 mr-4" />
+
+        {/* Formulário de Envio */}
+        <Card className="border-2 border-pink-200 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-pink-50 to-rose-50">
+            <CardTitle className="text-2xl text-pink-800">Deixe seu Depoimento</CardTitle>
+          </CardHeader>
+          <CardContent className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="nome" className="text-base font-semibold">
+                    Nome Completo *
+                  </Label>
+                  <Input
+                    id="nome"
+                    name="nome"
+                    value={formData.nome}
+                    onChange={handleInputChange}
+                    className={`mt-2 ${errors.nome ? 'border-red-500' : ''}`}
+                    placeholder="Seu nome completo"
+                  />
+                  {errors.nome && (
+                    <motion.p 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-500 text-sm mt-1 flex items-center gap-1"
+                    >
+                      <AlertCircle className="w-4 h-4" />
+                      {errors.nome}
+                    </motion.p>
                   )}
-                  <div>
-                    <h3 className="font-bold text-gray-900">{dep.nome}</h3>
-                    <p className="text-sm text-gray-600">{dep.profissao} - {dep.vinculo_pos_graduacao}</p>
-                  </div>
                 </div>
-                
-                <div className="flex mb-4">
+
+                <div>
+                  <Label htmlFor="email" className="text-base font-semibold">
+                    Email *
+                  </Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`mt-2 ${errors.email ? 'border-red-500' : ''}`}
+                    placeholder="seu@email.com"
+                  />
+                  {errors.email && (
+                    <motion.p 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-500 text-sm mt-1 flex items-center gap-1"
+                    >
+                      <AlertCircle className="w-4 h-4" />
+                      {errors.email}
+                    </motion.p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="telefone" className="text-base font-semibold">
+                    Telefone/WhatsApp
+                  </Label>
+                  <Input
+                    id="telefone"
+                    name="telefone"
+                    value={formData.telefone}
+                    onChange={handleInputChange}
+                    className="mt-2"
+                    placeholder="(81) 99999-9999"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="profissao" className="text-base font-semibold">
+                    Profissão *
+                  </Label>
+                  <Input
+                    id="profissao"
+                    name="profissao"
+                    value={formData.profissao}
+                    onChange={handleInputChange}
+                    className={`mt-2 ${errors.profissao ? 'border-red-500' : ''}`}
+                    placeholder="Sua profissão"
+                  />
+                  {errors.profissao && (
+                    <motion.p 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-500 text-sm mt-1 flex items-center gap-1"
+                    >
+                      <AlertCircle className="w-4 h-4" />
+                      {errors.profissao}
+                    </motion.p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="vinculo_pos_graduacao" className="text-base font-semibold">
+                  Vínculo com a Pós-Graduação *
+                </Label>
+                <Input
+                  id="vinculo_pos_graduacao"
+                  name="vinculo_pos_graduacao"
+                  value={formData.vinculo_pos_graduacao}
+                  onChange={handleInputChange}
+                  className={`mt-2 ${errors.vinculo_pos_graduacao ? 'border-red-500' : ''}`}
+                  placeholder="Ex: Aluno(a), Ex-Aluno(a), Professor(a)"
+                />
+                {errors.vinculo_pos_graduacao && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-red-500 text-sm mt-1 flex items-center gap-1"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.vinculo_pos_graduacao}
+                  </motion.p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="depoimento_texto" className="text-base font-semibold">
+                  Seu Depoimento
+                </Label>
+                <Textarea
+                  id="depoimento_texto"
+                  name="depoimento_texto"
+                  value={formData.depoimento_texto}
+                  onChange={handleInputChange}
+                  rows={5}
+                  className="mt-2"
+                  placeholder="Compartilhe sua experiência..."
+                />
+              </div>
+
+              <div>
+                <Label className="text-base font-semibold mb-3 block">Avaliação</Label>
+                <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className={`w-5 h-5 ${dep.avaliacao_estrelas >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, avaliacao_estrelas: star })}
+                      className="transition-transform hover:scale-110"
+                    >
+                      <Star
+                        className={`w-8 h-8 ${
+                          formData.avaliacao_estrelas >= star
+                            ? 'text-yellow-400 fill-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    </button>
                   ))}
                 </div>
+              </div>
 
-                {dep.depoimento_texto && (
-                  <p className="text-gray-700 leading-relaxed mb-4 italic">"{dep.depoimento_texto}"</p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-base font-semibold mb-2 block">Foto (opcional)</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, 'foto')}
+                      className="flex-1"
+                    />
+                    {selectedFoto && <Upload className="w-5 h-5 text-green-600" />}
+                  </div>
+                </div>
 
-                {dep.depoimento_video_url && (
-                  <video controls className="w-full rounded-lg mb-4">
-                    <source src={dep.depoimento_video_url} />
-                  </video>
-                )}
+                <div>
+                  <Label className="text-base font-semibold mb-2 block">
+                    Vídeo (opcional, máx. 50MB)
+                  </Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => handleFileChange(e, 'video')}
+                      className="flex-1"
+                    />
+                    {selectedVideo && <Upload className="w-5 h-5 text-green-600" />}
+                  </div>
+                </div>
+              </div>
 
-                {dep.depoimento_audio_url && (
-                  <audio controls className="w-full mb-4">
-                    <source src={dep.depoimento_audio_url} />
-                  </audio>
+              <div>
+                <Label className="text-base font-semibold mb-2 block">
+                  Áudio (opcional, máx. 10MB)
+                </Label>
+                <div className="flex gap-3">
+                  {!isRecording ? (
+                    <Button
+                      type="button"
+                      onClick={startRecording}
+                      variant="outline"
+                      className="flex-1 border-pink-300 hover:bg-pink-50"
+                    >
+                      <Mic className="w-5 h-5 mr-2" /> Gravar Áudio
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={stopRecording}
+                      variant="destructive"
+                      className="flex-1"
+                    >
+                      <Square className="w-5 h-5 mr-2" /> Parar Gravação
+                    </Button>
+                  )}
+
+                  {audioBlob && (
+                    <Button
+                      type="button"
+                      onClick={toggleAudioPlayback}
+                      variant="outline"
+                      className="flex-1 border-green-300 hover:bg-green-50"
+                    >
+                      {isPlayingAudio ? (
+                        <>
+                          <Pause className="w-5 h-5 mr-2" /> Pausar
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-5 h-5 mr-2" /> Reproduzir
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+
+                {audioBlob && (
+                  <audio
+                    ref={audioPlayerRef}
+                    src={URL.createObjectURL(audioBlob)}
+                    onEnded={() => setIsPlayingAudio(false)}
+                    className="hidden"
+                  />
                 )}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold py-4 text-lg"
+                disabled={createMutation.isPending}
+              >
+                {createMutation.isPending ? (
+                  'Enviando...'
+                ) : (
+                  <>
+                    <Send className="w-5 h-5 mr-2" /> Enviar Depoimento
+                  </>
+                )}
+              </Button>
+
+              <p className="text-sm text-gray-500 text-center italic">
+                * Campos obrigatórios | Seu depoimento será publicado após aprovação
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Lista de Depoimentos Aprovados */}
+        <div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+            O que nossos alunos dizem
+          </h2>
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4" />
+              <p className="text-gray-600">Carregando depoimentos...</p>
+            </div>
+          ) : currentDepoimentos.length === 0 ? (
+            <Card className="bg-gray-50">
+              <CardContent className="p-12 text-center">
+                <p className="text-gray-500 italic">
+                  Ainda não há depoimentos aprovados. Seja o primeiro a deixar o seu!
+                </p>
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatePresence>
+                  {currentDepoimentos.map((dep, index) => (
+                    <motion.div
+                      key={dep.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 border-gray-200">
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-4 mb-4">
+                            {dep.foto_url ? (
+                              <img
+                                src={dep.foto_url}
+                                alt={dep.nome}
+                                className="w-16 h-16 rounded-full object-cover border-2 border-pink-200"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-200 to-rose-200 flex items-center justify-center text-2xl font-bold text-pink-800">
+                                {dep.nome.charAt(0)}
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="font-bold text-lg text-gray-900">{dep.nome}</h3>
+                              <p className="text-sm text-gray-600">{dep.profissao}</p>
+                              <p className="text-xs text-gray-500">{dep.vinculo_pos_graduacao}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex mb-3">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-5 h-5 ${
+                                  dep.avaliacao_estrelas >= star
+                                    ? 'text-yellow-400 fill-yellow-400'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+
+                          {dep.depoimento_texto && (
+                            <p className="text-gray-700 mb-4 italic text-sm leading-relaxed">
+                              "{dep.depoimento_texto}"
+                            </p>
+                          )}
+
+                          {dep.depoimento_video_url && (
+                            <video controls className="w-full rounded-lg mb-4">
+                              <source src={dep.depoimento_video_url} />
+                            </video>
+                          )}
+
+                          {dep.depoimento_audio_url && (
+                            <audio controls className="w-full mb-4">
+                              <source src={dep.depoimento_audio_url} />
+                            </audio>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {hasMore && (
+                <div className="text-center mt-8">
+                  <Button
+                    onClick={loadMore}
+                    className="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 px-8 py-3"
+                  >
+                    Carregar Mais Depoimentos
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
-      
-      <div className="flex justify-between gap-4 mt-8">
-        <Link to={createPageUrl('EmAcaoPage')}>
-          <Button variant="outline">← Voltar</Button>
-        </Link>
-        <Link to={createPageUrl('CalendarioDeAula')}>
-          <Button className="bg-gradient-to-r from-green-600 to-green-700">Calendário →</Button>
-        </Link>
+
+        <div className="flex justify-between gap-4 mt-8">
+          <Link to={createPageUrl('CalendarioDeAula')}>
+            <Button variant="outline" className="border-gray-300">
+              ← Voltar
+            </Button>
+          </Link>
+          <Link to={createPageUrl('Homepage')}>
+            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
+              Ir para Home →
+            </Button>
+          </Link>
+        </div>
       </div>
-    </div>
     </>
   );
 }

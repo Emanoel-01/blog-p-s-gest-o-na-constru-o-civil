@@ -95,11 +95,33 @@ export default function DepoimentosPage() {
         audioUrl = audioResponse.file_url;
       }
 
+      // Verificar se existe perfil de usuário com este email
+      let userProfileId = null;
+      try {
+        const profiles = await base44.entities.UserProfile.filter({ email: data.email });
+        if (profiles.length > 0) {
+          userProfileId = profiles[0].id;
+        } else {
+          // Criar novo perfil
+          const newProfile = await base44.entities.UserProfile.create({
+            nome: data.nome,
+            email: data.email,
+            profissao: data.profissao,
+            foto_url: fotoUrl,
+            total_depoimentos: 1
+          });
+          userProfileId = newProfile.id;
+        }
+      } catch (error) {
+        console.error('Erro ao gerenciar perfil de usuário:', error);
+      }
+
       return base44.entities.Depoimento.create({
         ...data,
         foto_url: fotoUrl,
         depoimento_video_url: videoUrl,
         depoimento_audio_url: audioUrl,
+        user_profile_id: userProfileId,
         status: 'Pendente',
       });
     },
@@ -667,24 +689,31 @@ export default function DepoimentosPage() {
                     >
                       <Card className="h-full hover:shadow-xl transition-all duration-300 border-2 border-gray-200">
                         <CardContent className="p-6">
-                          <div className="flex items-center gap-4 mb-4">
-                            {dep.foto_url ? (
-                              <img
-                                src={dep.foto_url}
-                                alt={dep.nome}
-                                className="w-16 h-16 rounded-full object-cover border-2 border-pink-200"
-                              />
-                            ) : (
-                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-200 to-rose-200 flex items-center justify-center text-2xl font-bold text-pink-800">
-                                {dep.nome.charAt(0)}
+                          <Link 
+                            to={dep.user_profile_id ? `${createPageUrl('UserProfilePage')}?id=${dep.user_profile_id}` : '#'}
+                            className={dep.user_profile_id ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
+                          >
+                            <div className="flex items-center gap-4 mb-4">
+                              {dep.foto_url ? (
+                                <img
+                                  src={dep.foto_url}
+                                  alt={dep.nome}
+                                  className="w-16 h-16 rounded-full object-cover border-2 border-pink-200"
+                                />
+                              ) : (
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-200 to-rose-200 flex items-center justify-center text-2xl font-bold text-pink-800">
+                                  {dep.nome.charAt(0)}
+                                </div>
+                              )}
+                              <div>
+                                <h3 className="font-bold text-lg text-gray-900 hover:text-pink-600 transition-colors">
+                                  {dep.nome}
+                                </h3>
+                                <p className="text-sm text-gray-600">{dep.profissao}</p>
+                                <p className="text-xs text-gray-500">{dep.vinculo_pos_graduacao}</p>
                               </div>
-                            )}
-                            <div>
-                              <h3 className="font-bold text-lg text-gray-900">{dep.nome}</h3>
-                              <p className="text-sm text-gray-600">{dep.profissao}</p>
-                              <p className="text-xs text-gray-500">{dep.vinculo_pos_graduacao}</p>
                             </div>
-                          </div>
+                          </Link>
 
                           <div className="flex mb-3">
                             {[1, 2, 3, 4, 5].map((star) => (

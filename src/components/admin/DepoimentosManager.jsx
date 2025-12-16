@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Star, Check, X, Edit, UserCircle, Trash2, AlertTriangle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Star, Check, X, Edit, UserCircle, Trash2, AlertTriangle, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { listAllDepoimentos } from '@/functions/listAllDepoimentos';
 
@@ -18,6 +19,11 @@ export default function DepoimentosManager() {
   const [editingDep, setEditingDep] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(null);
+  
+  // Filtros e ordenação
+  const [statusFilter, setStatusFilter] = useState('Todos');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('data_desc');
 
   const { data: depoimentos = [] } = useQuery({
     queryKey: ['admin-depoimentos'],
@@ -88,6 +94,48 @@ export default function DepoimentosManager() {
     }
   };
 
+  // Filtrar e ordenar depoimentos
+  const filteredAndSortedDepoimentos = useMemo(() => {
+    let filtered = [...depoimentos];
+    
+    // Filtro por status
+    if (statusFilter !== 'Todos') {
+      filtered = filtered.filter(d => d.status === statusFilter);
+    }
+    
+    // Busca por nome ou texto
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(d => 
+        d.nome?.toLowerCase().includes(term) ||
+        d.depoimento_texto?.toLowerCase().includes(term) ||
+        d.email?.toLowerCase().includes(term)
+      );
+    }
+    
+    // Ordenação
+    filtered.sort((a, b) => {
+      switch(sortBy) {
+        case 'data_desc':
+          return new Date(b.created_date) - new Date(a.created_date);
+        case 'data_asc':
+          return new Date(a.created_date) - new Date(b.created_date);
+        case 'nome_asc':
+          return (a.nome || '').localeCompare(b.nome || '');
+        case 'nome_desc':
+          return (b.nome || '').localeCompare(a.nome || '');
+        case 'rating_desc':
+          return (b.avaliacao_estrelas || 0) - (a.avaliacao_estrelas || 0);
+        case 'rating_asc':
+          return (a.avaliacao_estrelas || 0) - (b.avaliacao_estrelas || 0);
+        default:
+          return 0;
+      }
+    });
+    
+    return filtered;
+  }, [depoimentos, statusFilter, searchTerm, sortBy]);
+
   const pendentes = depoimentos.filter(d => d.status === 'Pendente');
   const aprovados = depoimentos.filter(d => d.status === 'Aprovado');
   const rejeitados = depoimentos.filter(d => d.status === 'Rejeitado');
@@ -95,6 +143,83 @@ export default function DepoimentosManager() {
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-bold">Gerenciar Depoimentos</h3>
+
+      {/* Filtros e Busca */}
+      <Card className="border-2 border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <Search className="w-4 h-4" />
+                Buscar
+              </Label>
+              <Input
+                placeholder="Nome, email ou texto..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-white"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                Status
+              </Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos</SelectItem>
+                  <SelectItem value="Pendente">Pendente</SelectItem>
+                  <SelectItem value="Aprovado">Aprovado</SelectItem>
+                  <SelectItem value="Rejeitado">Rejeitado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <ArrowUpDown className="w-4 h-4" />
+                Ordenar por
+              </Label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="data_desc">Mais Recentes</SelectItem>
+                  <SelectItem value="data_asc">Mais Antigos</SelectItem>
+                  <SelectItem value="nome_asc">Nome (A-Z)</SelectItem>
+                  <SelectItem value="nome_desc">Nome (Z-A)</SelectItem>
+                  <SelectItem value="rating_desc">Maior Avaliação</SelectItem>
+                  <SelectItem value="rating_asc">Menor Avaliação</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          {(searchTerm || statusFilter !== 'Todos') && (
+            <div className="mt-3 flex items-center gap-2">
+              <Badge variant="outline" className="bg-white">
+                {filteredAndSortedDepoimentos.length} resultado(s)
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('Todos');
+                }}
+                className="text-xs"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <Card className="bg-yellow-50 border-yellow-200">
@@ -117,7 +242,16 @@ export default function DepoimentosManager() {
         </Card>
       </div>
 
-      {depoimentos.map((dep) => (
+      {filteredAndSortedDepoimentos.length === 0 ? (
+        <Card className="bg-gray-50">
+          <CardContent className="p-12 text-center">
+            <p className="text-gray-500 italic">
+              Nenhum depoimento encontrado com os filtros aplicados.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        filteredAndSortedDepoimentos.map((dep) => (
         <Card key={dep.id} className="border-2">
           <CardContent className="p-6">
             <div className="flex items-start justify-between mb-4">
@@ -196,7 +330,7 @@ export default function DepoimentosManager() {
             </div>
           </CardContent>
         </Card>
-      ))}
+      )))}
 
       {/* Dialog de Edição */}
       <Dialog open={!!editingDep} onOpenChange={() => setEditingDep(null)}>

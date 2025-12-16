@@ -17,6 +17,7 @@ import MeuPerfilDiscente from './pages/MeuPerfilDiscente';
 import MeuPerfilDocente from './pages/MeuPerfilDocente';
 import PerfilDocente from './pages/PerfilDocente';
 import PerfilDiscente from './pages/PerfilDiscente';
+import UserProfilePage from './pages/UserProfilePage';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +41,7 @@ export const PAGES = {
     "MeuPerfilDocente": MeuPerfilDocente,
     "PerfilDocente": PerfilDocente,
     "PerfilDiscente": PerfilDiscente,
+    "UserProfilePage": UserProfilePage,
 }
 
 export const pagesConfig = {

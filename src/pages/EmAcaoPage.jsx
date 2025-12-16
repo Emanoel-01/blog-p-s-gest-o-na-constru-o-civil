@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { ChevronDown, ChevronUp, Image as ImageIcon, Video, FileText, ExternalLink, Calendar, Tag, Search, MessageCircle, Send } from 'lucide-react';
+import { ChevronDown, ChevronUp, Image as ImageIcon, Video, FileText, ExternalLink, Calendar, Tag, Search, MessageCircle, Send, User, Users, Handshake } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ImageViewer from '../components/blog/ImageViewer';
 import { toast } from 'sonner';
@@ -32,6 +32,21 @@ export default function EmAcaoPage() {
   const { data: allComentarios = [] } = useQuery({
     queryKey: ['comentarios'],
     queryFn: () => base44.entities.Comentario.list('-created_date')
+  });
+
+  const { data: discentes = [] } = useQuery({
+    queryKey: ['discentes'],
+    queryFn: () => base44.entities.Discente.list('nome')
+  });
+
+  const { data: professores = [] } = useQuery({
+    queryKey: ['professores'],
+    queryFn: () => base44.entities.Professor.list('nome')
+  });
+
+  const { data: parceiros = [] } = useQuery({
+    queryKey: ['parceiros'],
+    queryFn: () => base44.entities.Parceiro.list('nome')
   });
 
   const createComentarioMutation = useMutation({
@@ -250,6 +265,7 @@ export default function EmAcaoPage() {
                     <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3">{post.titulo}</h3>
                     <p className="text-gray-600 text-sm sm:text-base md:text-lg leading-relaxed">{post.descricao}</p>
                     
+                    {/* Tags */}
                     {post.tags && post.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-4">
                         {post.tags.map((tag, i) => (
@@ -258,6 +274,84 @@ export default function EmAcaoPage() {
                             {tag}
                           </Badge>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Marcações de Pessoas */}
+                    {((post.discentes && post.discentes.length > 0) || 
+                      (post.professores && post.professores.length > 0) || 
+                      (post.parceiros && post.parceiros.length > 0)) && (
+                      <div className="mt-4 space-y-3">
+                        <p className="text-sm font-semibold text-gray-700">Marcações:</p>
+                        
+                        {/* Alunos Marcados */}
+                        {post.discentes && post.discentes.length > 0 && (
+                          <div className="flex flex-wrap gap-2 items-center">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300 text-xs flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              Alunos
+                            </Badge>
+                            {post.discentes.map(discenteId => {
+                              const discente = discentes.find(d => d.id === discenteId);
+                              if (!discente) return null;
+                              return (
+                                <Link 
+                                  key={discenteId} 
+                                  to={createPageUrl('PerfilDiscente') + '?id=' + discenteId}
+                                  className="hover:scale-105 transition-transform"
+                                >
+                                  <Badge className="bg-blue-100 text-blue-800 border-blue-300 cursor-pointer hover:bg-blue-200 text-xs">
+                                    {discente.nome}
+                                  </Badge>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Professores Marcados */}
+                        {post.professores && post.professores.length > 0 && (
+                          <div className="flex flex-wrap gap-2 items-center">
+                            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-300 text-xs flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              Professores
+                            </Badge>
+                            {post.professores.map(professorId => {
+                              const professor = professores.find(p => p.id === professorId);
+                              if (!professor) return null;
+                              return (
+                                <Link 
+                                  key={professorId} 
+                                  to={createPageUrl('PerfilDocente') + '?id=' + professorId}
+                                  className="hover:scale-105 transition-transform"
+                                >
+                                  <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300 cursor-pointer hover:bg-indigo-200 text-xs">
+                                    {professor.nome}
+                                  </Badge>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Parceiros Marcados */}
+                        {post.parceiros && post.parceiros.length > 0 && (
+                          <div className="flex flex-wrap gap-2 items-center">
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300 text-xs flex items-center gap-1">
+                              <Handshake className="w-3 h-3" />
+                              Parceiros
+                            </Badge>
+                            {post.parceiros.map(parceiroId => {
+                              const parceiro = parceiros.find(p => p.id === parceiroId);
+                              if (!parceiro) return null;
+                              return (
+                                <Badge key={parceiroId} className="bg-green-100 text-green-800 border-green-300 text-xs">
+                                  {parceiro.nome}
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

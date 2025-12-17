@@ -30,7 +30,7 @@ export default function EmAcaoPage() {
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['posts'],
-    queryFn: () => base44.entities.Post.list('-ordem')
+    queryFn: () => base44.entities.Post.list('-data')
   });
 
   // Auto-expandir e rolar para o post se vier de URL

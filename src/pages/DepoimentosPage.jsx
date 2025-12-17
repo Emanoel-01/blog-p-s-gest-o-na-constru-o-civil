@@ -48,18 +48,20 @@ export default function DepoimentosPage() {
 
   const [reactions, setReactions] = useState({});
 
-  const handleReaction = (depId, type) => {
-    setReactions(prev => {
-      const current = prev[depId] || { likes: 0, hearts: 0 };
-      return {
-        ...prev,
-        [depId]: {
-          ...current,
-          [type]: current[type] + 1
-        }
-      };
-    });
-    toast.success(type === 'likes' ? '👍 Obrigado!' : '❤️ Obrigado!');
+  const handleReaction = async (depId, type) => {
+    const dep = depoimentos.find(d => d.id === depId);
+    if (!dep) return;
+
+    const field = type === 'likes' ? 'reactions_likes' : 'reactions_hearts';
+    const newValue = (dep[field] || 0) + 1;
+
+    try {
+      await base44.entities.Depoimento.update(depId, { [field]: newValue });
+      queryClient.invalidateQueries(['depoimentos-publicos']);
+      toast.success(type === 'likes' ? '👍 Obrigado!' : '❤️ Obrigado!');
+    } catch (error) {
+      console.error('Erro ao registrar reação:', error);
+    }
   };
 
   // SEO: Cálculo de estatísticas
@@ -75,6 +77,7 @@ export default function DepoimentosPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      const base44 = (await import('@/api/base44Client')).base44;
       let fotoUrl = null;
       let videoUrl = null;
       let audioUrl = null;
@@ -116,7 +119,7 @@ export default function DepoimentosPage() {
         console.error('Erro ao gerenciar perfil de usuário:', error);
       }
 
-      return base44.entities.Depoimento.create({
+      const newDepoimento = await base44.entities.Depoimento.create({
         ...data,
         foto_url: fotoUrl,
         depoimento_video_url: videoUrl,
@@ -124,6 +127,19 @@ export default function DepoimentosPage() {
         user_profile_id: userProfileId,
         status: 'Pendente',
       });
+
+      // Enviar notificação para admin
+      try {
+        await base44.functions.invoke('sendDepoimentoNotification', {
+          depoimentoId: newDepoimento.id,
+          action: 'new_submission',
+          depoimento: newDepoimento
+        });
+      } catch (error) {
+        console.error('Erro ao enviar notificação:', error);
+      }
+
+      return newDepoimento;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['depoimentos-publicos']);
@@ -756,9 +772,9 @@ export default function DepoimentosPage() {
                             >
                               <ThumbsUp className="w-4 h-4" />
                               <span className="text-sm">Útil</span>
-                              {reactions[dep.id]?.likes > 0 && (
+                              {(dep.reactions_likes || 0) > 0 && (
                                 <span className="text-xs font-semibold">
-                                  ({reactions[dep.id].likes})
+                                  ({dep.reactions_likes})
                                 </span>
                               )}
                             </Button>
@@ -770,9 +786,9 @@ export default function DepoimentosPage() {
                             >
                               <Heart className="w-4 h-4" />
                               <span className="text-sm">Inspirador</span>
-                              {reactions[dep.id]?.hearts > 0 && (
+                              {(dep.reactions_hearts || 0) > 0 && (
                                 <span className="text-xs font-semibold">
-                                  ({reactions[dep.id].hearts})
+                                  ({dep.reactions_hearts})
                                 </span>
                               )}
                             </Button>

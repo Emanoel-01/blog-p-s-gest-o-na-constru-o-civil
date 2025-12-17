@@ -51,12 +51,34 @@ export default function DepoimentosManager() {
     },
   });
 
-  const handleApprove = (dep) => {
+  const handleApprove = async (dep) => {
     updateMutation.mutate({ id: dep.id, data: { status: 'Aprovado' } });
+    
+    // Enviar notificação por email
+    try {
+      await base44.functions.invoke('sendDepoimentoNotification', {
+        depoimentoId: dep.id,
+        action: 'approved',
+        depoimento: dep
+      });
+    } catch (error) {
+      console.error('Erro ao enviar notificação:', error);
+    }
   };
 
-  const handleReject = (dep) => {
+  const handleReject = async (dep) => {
     updateMutation.mutate({ id: dep.id, data: { status: 'Rejeitado' } });
+    
+    // Enviar notificação por email
+    try {
+      await base44.functions.invoke('sendDepoimentoNotification', {
+        depoimentoId: dep.id,
+        action: 'rejected',
+        depoimento: dep
+      });
+    } catch (error) {
+      console.error('Erro ao enviar notificação:', error);
+    }
   };
 
   const handleEdit = (dep) => {
@@ -68,6 +90,8 @@ export default function DepoimentosManager() {
       depoimento_texto: dep.depoimento_texto,
       admin_observacoes: dep.admin_observacoes || '',
       autoApprove: dep.autoApprove || false,
+      featured: dep.featured || false,
+      status: dep.status,
     });
   };
 
@@ -265,11 +289,18 @@ export default function DepoimentosManager() {
                   <h4 className="font-bold text-lg">{dep.nome}</h4>
                   <p className="text-sm text-gray-600">{dep.profissao} - {dep.vinculo_pos_graduacao}</p>
                   <p className="text-xs text-gray-500">{dep.email} | {dep.telefone}</p>
-                  {dep.autoApprove && (
-                    <Badge className="bg-purple-100 text-purple-800 mt-1">
-                      Auto-Aprovação Ativa
-                    </Badge>
-                  )}
+                  <div className="flex gap-2 mt-1 flex-wrap">
+                    {dep.autoApprove && (
+                      <Badge className="bg-purple-100 text-purple-800">
+                        Auto-Aprovação Ativa
+                      </Badge>
+                    )}
+                    {dep.featured && (
+                      <Badge className="bg-yellow-100 text-yellow-800">
+                        ⭐ Em Destaque
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
               <Badge className={
@@ -359,19 +390,47 @@ export default function DepoimentosManager() {
               <label className="text-sm font-semibold">Observações Admin</label>
               <Textarea value={editForm.admin_observacoes || ''} onChange={(e) => setEditForm({...editForm, admin_observacoes: e.target.value})} rows={3} />
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="autoApprove" 
-                checked={editForm.autoApprove || false}
-                onCheckedChange={(checked) => setEditForm({...editForm, autoApprove: checked})}
-              />
-              <Label htmlFor="autoApprove" className="text-sm font-semibold">
-                Aprovação Automática
-              </Label>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-semibold">Status</label>
+                <Select value={editForm.status} onValueChange={(value) => setEditForm({...editForm, status: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pendente">Pendente</SelectItem>
+                    <SelectItem value="Aprovado">Aprovado</SelectItem>
+                    <SelectItem value="Rejeitado">Rejeitado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="autoApprove" 
+                  checked={editForm.autoApprove || false}
+                  onCheckedChange={(checked) => setEditForm({...editForm, autoApprove: checked})}
+                />
+                <Label htmlFor="autoApprove" className="text-sm font-semibold">
+                  Aprovação Automática
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="featured" 
+                  checked={editForm.featured || false}
+                  onCheckedChange={(checked) => setEditForm({...editForm, featured: checked})}
+                />
+                <Label htmlFor="featured" className="text-sm font-semibold">
+                  ⭐ Depoimento em Destaque
+                </Label>
+              </div>
+
+              <p className="text-xs text-gray-500 italic">
+                * Depoimentos em destaque aparecem na homepage
+              </p>
             </div>
-            <p className="text-xs text-gray-500 italic">
-              * Se marcado, este depoimento será aprovado automaticamente quando salvo (se estiver pendente)
-            </p>
             <Button onClick={handleSaveEdit} className="w-full bg-green-600 hover:bg-green-700">
               Salvar Alterações
             </Button>

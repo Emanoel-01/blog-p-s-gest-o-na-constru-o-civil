@@ -15,7 +15,11 @@ import ImageViewer from '../components/blog/ImageViewer';
 import { toast } from 'sonner';
 
 export default function EmAcaoPage() {
-  const [expandedPost, setExpandedPost] = useState(null);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const postIdFromUrl = searchParams.get('postId');
+  
+  const [expandedPost, setExpandedPost] = useState(postIdFromUrl);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -28,6 +32,19 @@ export default function EmAcaoPage() {
     queryKey: ['posts'],
     queryFn: () => base44.entities.Post.list('-ordem')
   });
+
+  // Auto-expandir e rolar para o post se vier de URL
+  useEffect(() => {
+    if (postIdFromUrl && posts.length > 0) {
+      setExpandedPost(postIdFromUrl);
+      setTimeout(() => {
+        const postElement = document.getElementById(`post-${postIdFromUrl}`);
+        if (postElement) {
+          postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+    }
+  }, [postIdFromUrl, posts]);
 
   const { data: allComentarios = [] } = useQuery({
     queryKey: ['comentarios'],
@@ -238,7 +255,7 @@ export default function EmAcaoPage() {
             const isExpanded = expandedPost === post.id;
 
             return (
-              <Card key={post.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
+              <Card key={post.id} id={`post-${post.id}`} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
                 {post.imagem_destaque && (
                   <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
                     <img

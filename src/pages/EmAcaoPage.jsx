@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -233,6 +233,8 @@ export default function EmAcaoPage() {
       ) : (
         <div className="space-y-6 max-w-5xl mx-auto">
           {filteredPosts.map((post) => {
+            const postUrl = `${window.location.origin}${createPageUrl('EmAcaoPage')}?postId=${post.id}`;
+
             const isExpanded = expandedPost === post.id;
 
             return (
@@ -374,11 +376,11 @@ export default function EmAcaoPage() {
                   {isExpanded && (
                     <div className="space-y-6 pt-6 mt-6 border-t-2 border-pink-200">
                       {/* Botões de Compartilhamento */}
-                      <div className="flex items-center gap-3 bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-lg">
+                      <div className="flex flex-wrap items-center gap-3 bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-lg">
                         <Share2 className="w-5 h-5 text-pink-600" />
                         <span className="font-semibold text-gray-700">Compartilhar:</span>
                         <a
-                          href={`https://wa.me/?text=${encodeURIComponent(`${post.titulo} - ${window.location.origin}${createPageUrl('EmAcaoPage')}`)}`}
+                          href={`https://wa.me/?text=${encodeURIComponent(`${post.titulo} - ${postUrl}`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
@@ -389,7 +391,7 @@ export default function EmAcaoPage() {
                           WhatsApp
                         </a>
                         <a
-                          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + createPageUrl('EmAcaoPage'))}`}
+                          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-all"
@@ -397,7 +399,7 @@ export default function EmAcaoPage() {
                           Facebook
                         </a>
                         <a
-                          href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin + createPageUrl('EmAcaoPage'))}`}
+                          href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-lg font-semibold transition-all"
@@ -405,13 +407,22 @@ export default function EmAcaoPage() {
                           LinkedIn
                         </a>
                         <a
-                          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.titulo)}&url=${encodeURIComponent(window.location.origin + createPageUrl('EmAcaoPage'))}`}
+                          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.titulo)}&url=${encodeURIComponent(postUrl)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-lg font-semibold transition-all"
                         >
                           X / Twitter
                         </a>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(postUrl);
+                            toast.success('Link copiado!');
+                          }}
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold transition-all"
+                        >
+                          Copiar Link
+                        </button>
                       </div>
 
                       {post.conteudo_completo && (

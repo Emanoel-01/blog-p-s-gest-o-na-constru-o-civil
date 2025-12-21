@@ -149,10 +149,12 @@ export default function Layout({ children }) {
 
   return (
     <HelmetProvider>
-      <Helmet htmlAttributes={{ lang: 'pt-BR' }}>
-        <meta name="language" content="Portuguese" />
-        <meta httpEquiv="content-language" content="pt-BR" />
-      </Helmet>
+          <Helmet htmlAttributes={{ lang: 'pt-BR' }}>
+            <meta name="language" content="Portuguese" />
+            <meta httpEquiv="content-language" content="pt-BR" />
+            <link rel="alternate" type="application/rss+xml" title="Blog ESUDA RSS Feed" href="https://posgraduacao-esuda.base44.app/api/generateSitemap" />
+            <link rel="sitemap" type="application/xml" title="Sitemap" href="https://posgraduacao-esuda.base44.app/api/generateSitemap" />
+          </Helmet>
       <div className="flex min-h-screen bg-gray-50">
         <style>{`
           .esuda-green { background: linear-gradient(135deg, #61b376 0%, #4a9960 100%); }

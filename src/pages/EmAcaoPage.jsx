@@ -138,15 +138,50 @@ export default function EmAcaoPage() {
   return (
     <>
       <Helmet>
-        <title>Blog Em Ação ESUDA | Eventos, Workshops e Novidades da Construção Civil</title>
-        <meta name="description" content="Acompanhe eventos, workshops, masterclasses e novidades da comunidade acadêmica ESUDA. Blog com conteúdo sobre Construção Civil, BIM, Gestão de Obras e Tecnologias 4.0." />
+        <title>{postIdFromUrl && expandedPost ? `${posts.find(p => p.id === postIdFromUrl)?.titulo || 'Post'} | Blog ESUDA` : 'Blog Em Ação ESUDA | Eventos, Workshops e Novidades da Construção Civil'}</title>
+        <meta name="description" content={postIdFromUrl && expandedPost ? posts.find(p => p.id === postIdFromUrl)?.descricao : "Acompanhe eventos, workshops, masterclasses e novidades da comunidade acadêmica ESUDA. Blog com conteúdo sobre Construção Civil, BIM, Gestão de Obras e Tecnologias 4.0."} />
         <meta name="keywords" content="blog construção civil, eventos ESUDA, workshops BIM, masterclasses engenharia, notícias construção civil, comunidade acadêmica" />
-        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/EmAcaoPage" />
+        <link rel="canonical" href={postIdFromUrl ? `https://posgraduacao-esuda.base44.app/EmAcaoPage?postId=${postIdFromUrl}` : "https://posgraduacao-esuda.base44.app/EmAcaoPage"} />
         
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Blog Em Ação ESUDA | Eventos e Novidades" />
-        <meta property="og:description" content="Fique por dentro dos eventos, workshops e novidades da comunidade ESUDA em Construção Civil." />
-        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/EmAcaoPage" />
+        <meta property="og:type" content={postIdFromUrl ? "article" : "website"} />
+        <meta property="og:title" content={postIdFromUrl && expandedPost ? posts.find(p => p.id === postIdFromUrl)?.titulo : "Blog Em Ação ESUDA | Eventos e Novidades"} />
+        <meta property="og:description" content={postIdFromUrl && expandedPost ? posts.find(p => p.id === postIdFromUrl)?.descricao : "Fique por dentro dos eventos, workshops e novidades da comunidade ESUDA em Construção Civil."} />
+        <meta property="og:url" content={postIdFromUrl ? `https://posgraduacao-esuda.base44.app/EmAcaoPage?postId=${postIdFromUrl}` : "https://posgraduacao-esuda.base44.app/EmAcaoPage"} />
+        {postIdFromUrl && posts.find(p => p.id === postIdFromUrl)?.imagem_destaque && (
+          <meta property="og:image" content={posts.find(p => p.id === postIdFromUrl).imagem_destaque} />
+        )}
+        
+        {/* Schema.org para posts individuais */}
+        {postIdFromUrl && expandedPost && posts.find(p => p.id === postIdFromUrl) && (
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BlogPosting",
+              "headline": posts.find(p => p.id === postIdFromUrl).titulo,
+              "description": posts.find(p => p.id === postIdFromUrl).descricao,
+              "image": posts.find(p => p.id === postIdFromUrl).imagem_destaque,
+              "datePublished": posts.find(p => p.id === postIdFromUrl).created_date,
+              "dateModified": posts.find(p => p.id === postIdFromUrl).updated_date || posts.find(p => p.id === postIdFromUrl).created_date,
+              "author": {
+                "@type": "Organization",
+                "name": "ESUDA - Pós-Graduação em Construção Civil"
+              },
+              "publisher": {
+                "@type": "Organization",
+                "name": "ESUDA",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
+                }
+              },
+              "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": `https://posgraduacao-esuda.base44.app/EmAcaoPage?postId=${postIdFromUrl}`
+              },
+              "keywords": posts.find(p => p.id === postIdFromUrl).tags?.join(', ')
+            })}
+          </script>
+        )}
       </Helmet>
       
       <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
@@ -257,12 +292,13 @@ export default function EmAcaoPage() {
             return (
               <Card key={post.id} id={`post-${post.id}`} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
                 {post.imagem_destaque && (
-                  <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
-                    <img
-                      src={post.imagem_destaque}
-                      alt={post.titulo}
-                      loading="lazy"
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
+                  <img
+                    src={post.imagem_destaque}
+                    alt={post.titulo}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
                       onClick={() => {
                         const allImages = [
                           post.imagem_destaque,
@@ -487,6 +523,7 @@ export default function EmAcaoPage() {
                                       src={midia.url} 
                                       alt={midia.titulo || 'Imagem'}
                                       loading="lazy"
+                                      decoding="async"
                                       className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-gray-300" 
                                       onClick={() => {
                                         const allImages = [
@@ -513,7 +550,7 @@ export default function EmAcaoPage() {
                                           />
                                         </div>
                                       ) : (
-                                        <video controls preload="metadata" className="w-full rounded-lg">
+                                        <video controls preload="none" loading="lazy" className="w-full rounded-lg">
                                           <source src={midia.url} />
                                           Seu navegador não suporta o elemento de vídeo.
                                         </video>
@@ -592,12 +629,13 @@ export default function EmAcaoPage() {
                               >
                                 <div className="flex gap-3">
                                   {relatedPost.imagem_destaque && (
-                                    <img 
-                                      src={relatedPost.imagem_destaque} 
-                                      alt={relatedPost.titulo}
-                                      loading="lazy"
-                                      className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-                                    />
+                                   <img 
+                                     src={relatedPost.imagem_destaque} 
+                                     alt={relatedPost.titulo}
+                                     loading="lazy"
+                                     decoding="async"
+                                     className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                                   />
                                   )}
                                   <div className="flex-1 min-w-0">
                                     <h5 className="font-bold text-sm text-gray-800 line-clamp-2 mb-1">

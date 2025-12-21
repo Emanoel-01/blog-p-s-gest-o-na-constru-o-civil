@@ -714,6 +714,7 @@ export default function DepoimentosPage() {
                                 <img
                                   src={dep.foto_url}
                                   alt={dep.nome}
+                                  loading="lazy"
                                   className="w-16 h-16 rounded-full object-cover border-2 border-pink-200"
                                 />
                               ) : (
@@ -751,13 +752,13 @@ export default function DepoimentosPage() {
                           )}
 
                           {dep.depoimento_video_url && (
-                            <video controls className="w-full rounded-lg mb-4">
+                            <video controls preload="metadata" className="w-full rounded-lg mb-4">
                               <source src={dep.depoimento_video_url} />
                             </video>
                           )}
 
                           {dep.depoimento_audio_url && (
-                            <audio controls className="w-full mb-4">
+                            <audio controls preload="metadata" className="w-full mb-4">
                               <source src={dep.depoimento_audio_url} />
                             </audio>
                           )}

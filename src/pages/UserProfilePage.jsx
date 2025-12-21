@@ -64,19 +64,41 @@ export default function UserProfilePage() {
         <title>{profile.nome} | Perfil de Avaliador ESUDA</title>
         <meta name="description" content={`Veja todos os depoimentos de ${profile.nome} sobre a ESUDA. ${depoimentos.length} avaliações com média ${avgRating}/5 estrelas.`} />
         <meta name="keywords" content={`${profile.nome}, depoimentos esuda, avaliações ${profile.profissao}`} />
+        <meta property="og:title" content={`${profile.nome} | Perfil ESUDA`} />
+        <meta property="og:description" content={`${profile.profissao || 'Profissional'} - ${depoimentos.length} depoimentos`} />
+        <meta property="og:image" content={profile.foto_url || 'https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png'} />
         
+        {/* Schema.org para perfil de autor */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Person",
             "name": profile.nome,
+            "image": profile.foto_url,
             "jobTitle": profile.profissao,
             "worksFor": profile.empresa ? {
               "@type": "Organization",
               "name": profile.empresa
             } : undefined,
-            "image": profile.foto_url,
-            "description": profile.bio
+            "description": profile.bio,
+            "sameAs": [
+              profile.linkedin_url,
+              profile.github_url,
+              profile.website_url,
+              profile.twitter_url,
+              profile.instagram_url
+            ].filter(Boolean),
+            "alumniOf": {
+              "@type": "EducationalOrganization",
+              "name": "ESUDA - Escola Superior de Desenvolvimento e Aperfeiçoamento"
+            },
+            "aggregateRating": depoimentos.length > 0 ? {
+              "@type": "AggregateRating",
+              "ratingValue": avgRating,
+              "reviewCount": depoimentos.length,
+              "bestRating": "5",
+              "worstRating": "1"
+            } : undefined
           })}
         </script>
       </Helmet>

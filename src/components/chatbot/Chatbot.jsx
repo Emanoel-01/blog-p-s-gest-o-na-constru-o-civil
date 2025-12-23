@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { MessageCircle, X, Send, ChevronRight, ExternalLink } from 'lucide-react';
+import { MessageCircle, X, Send, ChevronRight, ExternalLink, Mic, Volume2, VolumeX } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
 import { useInactivityDetector } from './InactivityHelper';
@@ -22,6 +22,13 @@ export default function Chatbot() {
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const messagesEndRef = useRef(null);
+  
+  // Voice features
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(false);
+  const recognitionRef = useRef(null);
+  const synthRef = useRef(null);
   
   const complexPages = ['IncubadoraProfissionalPage', 'AdminPage', 'MeuPerfilDiscente', 'MeuPerfilDocente'];
   const isComplexPage = complexPages.some(page => location.pathname.includes(page));
@@ -76,7 +83,60 @@ export default function Chatbot() {
 
   useEffect(() => {
     scrollToBottom();
+    
+    // Auto-speak new assistant messages if enabled
+    if (autoSpeak && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'assistant' && !isLoadingAI) {
+        speakText(lastMessage.content);
+      }
+    }
   }, [messages]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'pt-BR';
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInputValue(transcript);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('Erro no reconhecimento de voz:', event.error);
+        setIsListening(false);
+        if (event.error === 'no-speech') {
+          toast.error('Nenhuma fala detectada. Tente novamente.');
+        } else {
+          toast.error('Erro ao reconhecer voz.');
+        }
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+
+    // Initialize speech synthesis
+    if ('speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+      if (synthRef.current) {
+        synthRef.current.cancel();
+      }
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -324,6 +384,85 @@ export default function Chatbot() {
       handleSendMessage();
     }
   };
+
+  const startVoiceRecognition = () => {
+    if (!recognitionRef.current) {
+      toast.error('Reconhecimento de voz não suportado neste navegador.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+        toast.info('Fale agora...');
+      } catch (error) {
+        console.error('Erro ao iniciar reconhecimento:', error);
+        toast.error('Erro ao ativar microfone.');
+      }
+    }
+  };
+
+  const speakText = (text) => {
+    if (!synthRef.current) {
+      toast.error('Síntese de voz não suportada neste navegador.');
+      return;
+    }
+
+    // Cancel any ongoing speech
+    synthRef.current.cancel();
+
+    // Remove markdown formatting for better speech
+    const cleanText = text
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+      .replace(/#/g, '')
+      .replace(/`/g, '');
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+
+    // Try to find a Brazilian Portuguese voice
+    const voices = synthRef.current.getVoices();
+    const ptBRVoice = voices.find(voice => voice.lang === 'pt-BR') || 
+                      voices.find(voice => voice.lang.startsWith('pt'));
+    
+    if (ptBRVoice) {
+      utterance.voice = ptBRVoice;
+    }
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      toast.error('Erro ao reproduzir áudio.');
+    };
+
+    synthRef.current.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  const toggleAutoSpeak = () => {
+    setAutoSpeak(!autoSpeak);
+    if (!autoSpeak) {
+      toast.success('Leitura automática ativada');
+    } else {
+      stopSpeaking();
+      toast.info('Leitura automática desativada');
+    }
+  };
   
   const renderMessageContent = (content) => {
     return (
@@ -390,14 +529,25 @@ export default function Chatbot() {
               {isAuthenticated ? 'Assistente Acadêmico' : 'Coordenador Digital'}
             </CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen(false)}
-            className="text-white hover:bg-white/20"
-          >
-            <X className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleAutoSpeak}
+              className={`text-white hover:bg-white/20 ${autoSpeak ? 'bg-white/20' : ''}`}
+              title={autoSpeak ? 'Desativar leitura automática' : 'Ativar leitura automática'}
+            >
+              {autoSpeak ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+              className="text-white hover:bg-white/20"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
         <p className="text-xs text-green-100 mt-1">
           {isAuthenticated 
@@ -426,9 +576,31 @@ export default function Chatbot() {
                 </div>
               </div>
               
-              <p className="text-xs text-gray-400 mt-1">
-                {new Date(message.created_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-xs text-gray-400">
+                  {new Date(message.created_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+                {message.role === 'assistant' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => isSpeaking ? stopSpeaking() : speakText(message.content)}
+                    className="h-6 px-2 text-xs hover:bg-gray-100"
+                  >
+                    {isSpeaking ? (
+                      <>
+                        <VolumeX className="w-3 h-3 mr-1" />
+                        Parar
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-3 h-3 mr-1" />
+                        Ouvir
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -447,17 +619,28 @@ export default function Chatbot() {
 
       <div className="p-4 border-t bg-white rounded-b-lg">
         <div className="flex gap-2">
+          <Button
+            onClick={startVoiceRecognition}
+            variant="outline"
+            size="icon"
+            className={`${isListening ? 'bg-red-100 border-red-400 animate-pulse' : ''}`}
+            disabled={isLoadingAI}
+            title={isListening ? 'Parar gravação' : 'Gravar áudio'}
+          >
+            <Mic className={`w-4 h-4 ${isListening ? 'text-red-600' : ''}`} />
+          </Button>
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={
-              !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingName ? "Digite seu nome..." :
-              !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingWhatsApp ? "Digite seu WhatsApp..." :
-              "Digite sua pergunta..."
+              isListening ? "Ouvindo..." :
+              !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingName ? "Digite ou fale seu nome..." :
+              !isAuthenticated && !leadInfo.leadCreated && leadInfo.collectingWhatsApp ? "Digite ou fale seu WhatsApp..." :
+              "Digite ou fale sua pergunta..."
             }
             className="flex-1"
-            disabled={isLoadingAI}
+            disabled={isLoadingAI || isListening}
           />
           <Button
             onClick={handleSendMessage}

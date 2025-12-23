@@ -45,6 +45,8 @@ export default function BulkActionsPanel({ type, items = [] }) {
           return base44.entities.Lead.update(id, data);
         } else if (type === 'comentarios') {
           return base44.entities.Comentario.update(id, data);
+        } else if (type === 'depoimentos') {
+          return base44.entities.Depoimento.update(id, data);
         }
       });
       return Promise.all(promises);
@@ -66,6 +68,8 @@ export default function BulkActionsPanel({ type, items = [] }) {
           return base44.entities.Lead.delete(id);
         } else if (type === 'comentarios') {
           return base44.entities.Comentario.delete(id);
+        } else if (type === 'depoimentos') {
+          return base44.entities.Depoimento.delete(id);
         }
       });
       return Promise.all(promises);
@@ -90,10 +94,18 @@ export default function BulkActionsPanel({ type, items = [] }) {
 
     switch (currentAction) {
       case 'approve':
-        bulkUpdateMutation.mutate({ ids: selectedIds, data: { aprovado: true } });
+        if (type === 'depoimentos') {
+          bulkUpdateMutation.mutate({ ids: selectedIds, data: { status: 'Aprovado' } });
+        } else {
+          bulkUpdateMutation.mutate({ ids: selectedIds, data: { aprovado: true } });
+        }
         break;
       case 'reject':
-        bulkUpdateMutation.mutate({ ids: selectedIds, data: { aprovado: false } });
+        if (type === 'depoimentos') {
+          bulkUpdateMutation.mutate({ ids: selectedIds, data: { status: 'Rejeitado' } });
+        } else {
+          bulkUpdateMutation.mutate({ ids: selectedIds, data: { aprovado: false } });
+        }
         break;
       case 'archive':
         bulkUpdateMutation.mutate({ 
@@ -165,7 +177,7 @@ export default function BulkActionsPanel({ type, items = [] }) {
 
           {selectedIds.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {type === 'comentarios' && (
+              {(type === 'comentarios' || type === 'depoimentos') && (
                 <>
                   <Button
                     size="sm"
@@ -247,6 +259,22 @@ export default function BulkActionsPanel({ type, items = [] }) {
                         className={`text-xs mt-1 ${item.aprovado ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
                       >
                         {item.aprovado ? 'Aprovado' : 'Pendente'}
+                      </Badge>
+                    </>
+                  )}
+                  {type === 'depoimentos' && (
+                    <>
+                      <p className="font-semibold text-sm">{item.nome}</p>
+                      <p className="text-xs text-gray-600">{item.profissao} - {item.vinculo_pos_graduacao}</p>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs mt-1 ${
+                          item.status === 'Aprovado' ? 'bg-green-100 text-green-800' : 
+                          item.status === 'Rejeitado' ? 'bg-red-100 text-red-800' : 
+                          'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
+                        {item.status}
                       </Badge>
                     </>
                   )}

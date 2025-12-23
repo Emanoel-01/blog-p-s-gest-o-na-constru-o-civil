@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Star, Check, X, Edit, UserCircle, Trash2, AlertTriangle, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { listAllDepoimentos } from '@/functions/listAllDepoimentos';
+import BulkActionsPanel from './BulkActionsPanel';
 
 export default function DepoimentosManager() {
   const queryClient = useQueryClient();
@@ -167,6 +168,14 @@ export default function DepoimentosManager() {
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-bold">Gerenciar Depoimentos</h3>
+
+      {/* Ações em Massa */}
+      {pendentes.length > 0 && (
+        <BulkActionsPanel 
+          type="depoimentos" 
+          items={pendentes}
+        />
+      )}
 
       {/* Filtros e Busca */}
       <Card className="border-2 border-blue-200 bg-blue-50">

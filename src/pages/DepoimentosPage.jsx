@@ -12,7 +12,7 @@ import { createPageUrl } from '@/utils';
 import { Star, Upload, Mic, Square, Play, Pause, Send, AlertCircle, ThumbsUp, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { optimizeImage, optimizationPresets, formatFileSize, isImageFile } from '@/components/utils/imageOptimization';
+import { optimizeImage, optimizationPresets, formatFileSize, isImageFile } from '../components/utils/imageOptimization';
 
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_AUDIO_SIZE = 10 * 1024 * 1024; // 10MB

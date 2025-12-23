@@ -438,15 +438,23 @@ export default function Homepage() {
 
       {/* Tecnologias Exclusivas */}
       <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 border-2 border-blue-200">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4 sm:mb-6">
-          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-purple-600" />
-          <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 text-center">
-            Tecnologias Exclusivas Desenvolvidas pelo Coordenador
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-purple-600" />
+            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 text-center">
+              Tecnologias Exclusivas Desenvolvidas pelo Coordenador
             </h2>
-            </div>
-            <p className="text-center text-gray-700 mb-4 sm:mb-6 max-w-3xl mx-auto text-xs sm:text-sm md:text-base px-2">
-            Aplicativos inteligentes com IA que transformam a forma de trabalhar na construção civil
-            </p>
+          </div>
+          <Link to={createPageUrl('AplicativosInteligentesPage')} className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto border-purple-300 text-purple-700 hover:bg-purple-100 text-xs sm:text-sm">
+              Ver Todos os Apps
+              <ArrowRight className="ml-2 w-3 h-3 sm:w-4 sm:h-4" />
+            </Button>
+          </Link>
+        </div>
+        <p className="text-center text-gray-700 mb-4 sm:mb-6 max-w-3xl mx-auto text-xs sm:text-sm md:text-base px-2">
+          Aplicativos inteligentes com IA que transformam a forma de trabalhar na construção civil
+        </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto">
           <a href="https://esuda-gpo.base44.app" target="_blank" rel="noopener noreferrer" className="group">

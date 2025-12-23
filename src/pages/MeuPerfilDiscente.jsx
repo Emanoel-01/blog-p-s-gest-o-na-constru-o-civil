@@ -544,6 +544,8 @@ export default function MeuPerfilDiscente() {
           </Card>
         )}
       </div>
+
+      <NavigationAssistant />
     </>
   );
 }

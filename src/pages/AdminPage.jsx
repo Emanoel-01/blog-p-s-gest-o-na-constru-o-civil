@@ -24,6 +24,9 @@ import NotificationCenter from '../components/admin/NotificationCenter';
 import DepoimentosManager from '../components/admin/DepoimentosManager';
 import BulkEnrollStudents from '../components/admin/BulkEnrollStudents';
 import NotificationManager from '../components/admin/NotificationManager';
+import BulkActionsPanel from '../components/admin/BulkActionsPanel';
+import AIOrderSuggestions from '../components/admin/AIOrderSuggestions';
+import SocialMediaGenerator from '../components/admin/SocialMediaGenerator';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -2141,6 +2144,12 @@ Seja detalhado, prático e objetivo na análise.`;
         </Button>
       </div>
 
+      <AIOrderSuggestions
+        entityType="ciclo"
+        items={ciclos}
+        onApplyOrder={() => queryClient.invalidateQueries(['ciclos'])}
+      />
+
       {showCicloForm && (
         <Card className="mb-6 bg-blue-50 border-blue-200">
           <CardHeader>
@@ -2284,6 +2293,12 @@ Seja detalhado, prático e objetivo na análise.`;
           Nova Especialização
         </Button>
       </div>
+
+      <AIOrderSuggestions
+        entityType="especializacao"
+        items={especializacoes}
+        onApplyOrder={() => queryClient.invalidateQueries(['especializacoes'])}
+      />
 
       {showEspecForm && (
         <Card className="mb-6 bg-green-50 border-green-200">
@@ -2658,7 +2673,11 @@ Seja detalhado, prático e objetivo na análise.`;
         </Card>
       )}
 
-      <div className="grid gap-4">
+      <div className="space-y-4">
+        {especializacoes.length > 0 && (
+          <SocialMediaGenerator especializacao={especializacoes[0]} />
+        )}
+        
         {loadingEspec ? (
           <p className="text-gray-600">Carregando especializações...</p>
         ) : especializacoes.length === 0 ? (
@@ -2772,6 +2791,12 @@ Seja detalhado, prático e objetivo na análise.`;
           Novo Parceiro
         </Button>
       </div>
+
+      <AIOrderSuggestions
+        entityType="parceiro"
+        items={parceiros}
+        onApplyOrder={() => queryClient.invalidateQueries(['parceiros'])}
+      />
 
       {showParceiroForm && (
         <Card className="mb-6 bg-orange-50 border-orange-200">
@@ -3130,6 +3155,12 @@ Seja detalhado, prático e objetivo na análise.`;
           Novo Professor
         </Button>
       </div>
+
+      <AIOrderSuggestions
+        entityType="professor"
+        items={professores}
+        onApplyOrder={() => queryClient.invalidateQueries(['professores'])}
+      />
 
       {showProfessorForm && (
         <Card className="mb-6 bg-indigo-50 border-indigo-200">
@@ -4541,11 +4572,18 @@ Seja detalhado, prático e objetivo na análise.`;
           </p>
         </div>
 
-        <LeadCRM 
-          leads={leads} 
-          onUpdate={(id, data) => updateLeadMutation.mutate({ id, data })}
-          especializacoes={especializacoes}
+        <BulkActionsPanel 
+          type="leads" 
+          items={leads.filter(l => l.status !== 'Convertido' && l.status !== 'Perdido')} 
         />
+
+        <div className="mt-6">
+          <LeadCRM 
+            leads={leads} 
+            onUpdate={(id, data) => updateLeadMutation.mutate({ id, data })}
+            especializacoes={especializacoes}
+          />
+        </div>
       </div>
     );
   };
@@ -5221,16 +5259,24 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'relatorios' && renderRelatoriosTab()}
         {activeTab === 'posts' && renderPostsTab()}
         {activeTab === 'comentarios' && (
-          <ComentariosManager
-            comentarios={comentarios}
-            posts={posts}
-            onApprove={(id) => updateComentarioMutation.mutate({ id, data: { aprovado: true } })}
-            onReject={(id) => deleteComentarioMutation.mutate(id)}
-            onReply={(id, resposta) => updateComentarioMutation.mutate({ 
-              id, 
-              data: { resposta_admin: resposta, aprovado: true } 
-            })}
-          />
+          <div>
+            <BulkActionsPanel 
+              type="comentarios" 
+              items={comentarios.filter(c => !c.aprovado)} 
+            />
+            <div className="mt-6">
+              <ComentariosManager
+                comentarios={comentarios}
+                posts={posts}
+                onApprove={(id) => updateComentarioMutation.mutate({ id, data: { aprovado: true } })}
+                onReject={(id) => deleteComentarioMutation.mutate(id)}
+                onReply={(id, resposta) => updateComentarioMutation.mutate({ 
+                  id, 
+                  data: { resposta_admin: resposta, aprovado: true } 
+                })}
+              />
+            </div>
+          </div>
         )}
         {activeTab === 'cronograma' && renderCronogramaTab()}
         {activeTab === 'incubadora' && renderIncubadoraTab()}

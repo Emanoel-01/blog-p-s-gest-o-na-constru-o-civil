@@ -27,6 +27,7 @@ import NotificationManager from '../components/admin/NotificationManager';
 import BulkActionsPanel from '../components/admin/BulkActionsPanel';
 import AIOrderSuggestions from '../components/admin/AIOrderSuggestions';
 import SocialMediaGenerator from '../components/admin/SocialMediaGenerator';
+import AplicativosManager from '../components/admin/AplicativosManager';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -5251,6 +5252,14 @@ Seja detalhado, prático e objetivo na análise.`;
         >
           Notificações
         </Button>
+        <Button
+          onClick={() => setActiveTab('aplicativos')}
+          variant={activeTab === 'aplicativos' ? 'default' : 'outline'}
+          className={activeTab === 'aplicativos' ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Aplicativos Inteligentes
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -5289,6 +5298,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'leads' && renderLeadsTab()}
         {activeTab === 'depoimentos' && <DepoimentosManager />}
         {activeTab === 'notificacoes' && renderNotificacoesTab()}
+        {activeTab === 'aplicativos' && <AplicativosManager />}
       </div>
     </div>
   );

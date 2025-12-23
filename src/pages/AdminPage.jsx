@@ -1742,7 +1742,13 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
 
       // Construir texto dos ciclos COM disciplinas
       const ciclosComDisciplinasTexto = ciclosComDisciplinas.map((c, idx) => {
-        const disciplinasTexto = c.disciplinas.map(d => typeof d === 'string' ? d : d.nome).join(', ');
+        const disciplinasTexto = c.disciplinas
+          .map(d => {
+            if (typeof d === 'string') return d;
+            if (d && typeof d === 'object' && d.nome) return d.nome;
+            return 'Disciplina sem nome';
+          })
+          .join(', ');
         return `\n${idx + 1}. **${c.nome}** (${c.carga_horaria}h)\n   Disciplinas: ${disciplinasTexto}`;
       }).join('\n');
 

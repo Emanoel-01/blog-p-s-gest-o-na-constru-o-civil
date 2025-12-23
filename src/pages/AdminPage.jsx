@@ -859,9 +859,9 @@ export default function AdminPage() {
   const handleDiaAulaCheckboxChange = (dia) => {
     setEspecForm(prev => ({
       ...prev,
-      dias_aulas: prev.dias_aulas.includes(dia)
-        ? prev.dias_aulas.filter(d => d !== dia)
-        : [...prev.dias_aulas, dia]
+      dias_aulas: Array.isArray(prev.dias_aulas) && prev.dias_aulas.includes(dia)
+        ? prev.dias_aulas.filter(diaItem => diaItem !== dia)
+        : [...(Array.isArray(prev.dias_aulas) ? prev.dias_aulas : []), dia]
     }));
   };
 

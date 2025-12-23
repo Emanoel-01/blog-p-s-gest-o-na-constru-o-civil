@@ -425,12 +425,21 @@ export default function Chatbot() {
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'pt-BR';
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
+    utterance.rate = 1.3;
+    utterance.pitch = 0.85;
 
-    // Try to find a Brazilian Portuguese voice
+    // Try to find a male Brazilian Portuguese voice
     const voices = synthRef.current.getVoices();
-    const ptBRVoice = voices.find(voice => voice.lang === 'pt-BR') || 
+    const malePtBRVoice = voices.find(voice => 
+      voice.lang === 'pt-BR' && 
+      (voice.name.toLowerCase().includes('male') || 
+       voice.name.toLowerCase().includes('masculino') ||
+       voice.name.toLowerCase().includes('homme') ||
+       !voice.name.toLowerCase().includes('female'))
+    );
+    
+    const ptBRVoice = malePtBRVoice || 
+                      voices.find(voice => voice.lang === 'pt-BR') || 
                       voices.find(voice => voice.lang.startsWith('pt'));
     
     if (ptBRVoice) {

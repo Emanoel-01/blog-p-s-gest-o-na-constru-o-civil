@@ -2686,41 +2686,42 @@ Seja detalhado, prático e objetivo na análise.`;
           especializacoes.map((espec) => (
             <Card key={espec.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h4 className="font-bold text-gray-800">
-                        {espec.nome} ({espec.carga_horaria_total}h)
-                      </h4>
-                      {espec.link_externo && (
-                        <a href={espec.link_externo} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="w-4 h-4 text-blue-600 hover:text-blue-700" />
-                        </a>
-                      )}
-                       {espec.link_inscricao && (
-                        <a href={espec.link_inscricao} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-800 flex items-center">
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          Inscreva-se
-                        </a>
-                      )}
-                      {espec.link_matricula && (
-                        <a href={espec.link_matricula} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-800 flex items-center">
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          Matricule-se
-                        </a>
-                      )}
-                      {espec.status_inscricao && (
-                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                          espec.status_inscricao === 'Inscrições Abertas' ? 'bg-green-100 text-green-800' :
-                          espec.status_inscricao === 'Matrículas Abertas' ? 'bg-teal-100 text-teal-800' :
-                          espec.status_inscricao === 'Turma Iniciada (Aceitando novos alunos)' ? 'bg-purple-100 text-purple-800' :
-                          espec.status_inscricao === 'Fechado' ? 'bg-red-100 text-red-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {espec.status_inscricao}
-                        </span>
-                      )}
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-bold text-gray-800">
+                          {espec.nome} ({espec.carga_horaria_total}h)
+                        </h4>
+                        {espec.link_externo && (
+                          <a href={espec.link_externo} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4 text-blue-600 hover:text-blue-700" />
+                          </a>
+                        )}
+                         {espec.link_inscricao && (
+                          <a href={espec.link_inscricao} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-800 flex items-center">
+                            <ExternalLink className="w-3 h-3 mr-1" />
+                            Inscreva-se
+                          </a>
+                        )}
+                        {espec.link_matricula && (
+                          <a href={espec.link_matricula} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-800 flex items-center">
+                            <ExternalLink className="w-3 h-3 mr-1" />
+                            Matricule-se
+                          </a>
+                        )}
+                        {espec.status_inscricao && (
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                            espec.status_inscricao === 'Inscrições Abertas' ? 'bg-green-100 text-green-800' :
+                            espec.status_inscricao === 'Matrículas Abertas' ? 'bg-teal-100 text-teal-800' :
+                            espec.status_inscricao === 'Turma Iniciada (Aceitando novos alunos)' ? 'bg-purple-100 text-purple-800' :
+                            espec.status_inscricao === 'Fechado' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {espec.status_inscricao}
+                          </span>
+                        )}
+                      </div>
                     {espec.resumo && (
                       <p className="text-sm text-gray-600 mb-2 line-clamp-2">{espec.resumo}</p>
                     )}
@@ -2752,6 +2753,7 @@ Seja detalhado, prático e objetivo na análise.`;
                       )}
                     </div>
                   </div>
+                  
                   <div className="flex gap-2">
                     <Button
                       size="icon"
@@ -2771,6 +2773,8 @@ Seja detalhado, prático e objetivo na análise.`;
                     </Button>
                   </div>
                 </div>
+                
+                <SocialMediaGenerator especializacao={espec} />
               </CardContent>
             </Card>
           ))

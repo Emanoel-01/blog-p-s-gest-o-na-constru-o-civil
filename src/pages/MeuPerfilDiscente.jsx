@@ -8,8 +8,10 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
-import { User, Save, Upload, Briefcase, Edit, MessageCircle, Linkedin, Instagram, BookOpen, Globe, Mail, GraduationCap, Building2, User as UserIcon } from 'lucide-react';
+import { User, Save, Upload, Briefcase, Edit, MessageCircle, Linkedin, Instagram, BookOpen, Globe, Mail, GraduationCap, Building2, User as UserIcon, Award, Download } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import CourseRecommendations from '../components/student/CourseRecommendations';
+import NavigationAssistant from '../components/student/NavigationAssistant';
 
 export default function MeuPerfilDiscente() {
   const [user, setUser] = useState(null);
@@ -138,6 +140,8 @@ export default function MeuPerfilDiscente() {
   const minhasEspecializacoes = (discente.especializacoes || [])
     .map(id => especializacoes.find(e => e.id === id))
     .filter(Boolean);
+
+  const especializacoesCursadas = minhasEspecializacoes;
 
   return (
     <>

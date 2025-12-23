@@ -2772,9 +2772,10 @@ Seja detalhado, prático e objetivo na análise.`;
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
+                  </div>
+                  
+                  <SocialMediaGenerator especializacao={espec} />
                 </div>
-                
-                <SocialMediaGenerator especializacao={espec} />
               </CardContent>
             </Card>
           ))

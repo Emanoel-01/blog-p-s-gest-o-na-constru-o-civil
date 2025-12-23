@@ -2220,14 +2220,15 @@ Seja detalhado, prático e objetivo na análise.`;
                       {ciclo.nome} ({ciclo.carga_horaria}h)
                     </h4>
                     {ciclo.disciplinas && ciclo.disciplinas.length > 0 && (
-                      <ul className="text-sm text-gray-600 ml-4 list-disc">
-                        {ciclo.disciplinas.slice(0, 3).map((d, i) => (
-                          <li key={i}>{typeof d === 'string' ? d : d.nome}</li>
-                        ))}
-                        {ciclo.disciplinas.length > 3 && (
-                          <li className="italic">+ {ciclo.disciplinas.length - 3} disciplinas</li>
-                        )}
-                      </ul>
+                     <ul className="text-sm text-gray-600 ml-4 list-disc">
+                       {ciclo.disciplinas.slice(0, 3).map((d, i) => {
+                         const nomeDisciplina = typeof d === 'string' ? d : (d?.nome || 'Sem nome');
+                         return <li key={i}>{nomeDisciplina}</li>;
+                       })}
+                       {ciclo.disciplinas.length > 3 && (
+                         <li className="italic">+ {ciclo.disciplinas.length - 3} disciplinas</li>
+                       )}
+                     </ul>
                     )}
                   </div>
                   <div className="flex gap-2">

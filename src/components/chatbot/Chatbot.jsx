@@ -10,6 +10,7 @@ import { createPageUrl } from '@/utils';
 import { MessageCircle, X, Send, ChevronRight, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
+import { useInactivityDetector } from './InactivityHelper';
 
 export default function Chatbot() {
   const location = useLocation();
@@ -21,6 +22,9 @@ export default function Chatbot() {
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const messagesEndRef = useRef(null);
+  
+  const complexPages = ['IncubadoraProfissionalPage', 'AdminPage', 'MeuPerfilDiscente', 'MeuPerfilDocente'];
+  const isComplexPage = complexPages.some(page => location.pathname.includes(page));
   
   // Check authentication status and initialize chatbot flow
   useEffect(() => {

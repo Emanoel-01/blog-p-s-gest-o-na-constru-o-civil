@@ -6,7 +6,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { RadialBarChart, RadialBar, Legend, ResponsiveContainer, PolarAngleAxis } from 'recharts';
 import { Trophy, TrendingUp, Target, Zap, BookOpen, Briefcase } from 'lucide-react';
-import { cacheOptions } from '@/utils/queryClient';
+import { cacheOptions } from '@/components/utils/queryClient';
 
 export default function UserProgressCard({ userEmail }) {
   const { data: ciclos = [] } = useQuery({

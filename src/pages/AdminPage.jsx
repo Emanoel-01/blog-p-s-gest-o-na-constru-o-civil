@@ -2070,21 +2070,7 @@ Seja detalhado, prático e objetivo na análise.`;
   const handleCriarNovaEspecializacao = () => {
     if (!analiseResult) return;
 
-    // Construir descrição completa a partir dos ciclos selecionados
-    const ciclosDetalhes = analiseForm.ciclos_selecionados.map(cicloId => {
-      const ciclo = ciclos.find(c => c.id === cicloId);
-      if (!ciclo) return '';
-      
-      let texto = `**${ciclo.nome}** (${ciclo.carga_horaria}h)\n`;
-      if (ciclo.disciplinas && ciclo.disciplinas.length > 0) {
-        texto += `Disciplinas: ${ciclo.disciplinas.join(', ')}\n\n`;
-      } else {
-        texto += '\n';
-      }
-      return texto;
-    }).join('');
-
-    // Construir texto dos ciclos de forma segura
+    // Construir descrição completa a partir dos ciclos selecionados de forma segura
     const ciclosDetalhes = analiseForm.ciclos_selecionados.map(cicloId => {
       const ciclo = ciclos.find(c => c.id === cicloId);
       if (!ciclo) return '';

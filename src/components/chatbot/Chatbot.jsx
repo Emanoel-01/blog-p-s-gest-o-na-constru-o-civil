@@ -84,7 +84,7 @@ export default function Chatbot() {
 
   // Callback de inatividade
   const handleInactivity = () => {
-    if (!isOpen && isComplexPage && currentUser) {
+    if (!isOpen && isComplexPage && isAuthenticated) {
       const contextualHelp = {
         'IncubadoraProfissionalPage': '💡 Precisa de ajuda para registrar uma nova atividade na Incubadora? Estou aqui para guiá-lo!',
         'AdminPage': '🔧 Navegando pelo painel admin? Posso ajudar você a encontrar a seção que precisa!',
@@ -100,7 +100,8 @@ export default function Chatbot() {
         setIsOpen(true);
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: contextualHelp[helpMessage]
+          content: contextualHelp[helpMessage],
+          created_date: new Date().toISOString()
         }]);
       }
     }

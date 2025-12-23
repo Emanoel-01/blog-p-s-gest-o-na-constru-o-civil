@@ -20,6 +20,7 @@ import {
 import FeedSucesso from '../components/community/FeedSucesso';
 import NotificacoesPanel from '../components/community/NotificacoesPanel';
 import AtalhosComunidade from '../components/community/AtalhosComunidade';
+import UserProgressCard from '../components/student/UserProgressCard';
 
 export default function Homepage() {
   const [user, setUser] = useState(null);
@@ -196,6 +197,11 @@ export default function Homepage() {
 
           {/* Atalhos Rápidos */}
           <AtalhosComunidade profileType={profileType} />
+
+          {/* Dashboard de Progresso - Discentes */}
+          {profileType === 'discente' && (
+            <UserProgressCard userEmail={user.email} />
+          )}
 
           {/* Feed de Sucesso */}
           {incubadoraActivities.length > 0 && (

@@ -2084,6 +2084,28 @@ Seja detalhado, prático e objetivo na análise.`;
       return texto;
     }).join('');
 
+    // Construir texto dos ciclos de forma segura
+    const ciclosDetalhes = analiseForm.ciclos_selecionados.map(cicloId => {
+      const ciclo = ciclos.find(c => c.id === cicloId);
+      if (!ciclo) return '';
+      
+      let texto = `**${ciclo.nome}** (${ciclo.carga_horaria}h)\n`;
+      if (ciclo.disciplinas && ciclo.disciplinas.length > 0) {
+        const disciplinasTexto = ciclo.disciplinas
+          .map(d => {
+            if (typeof d === 'string') return d;
+            if (d && typeof d === 'object' && d.nome) return d.nome;
+            return '';
+          })
+          .filter(Boolean)
+          .join(', ');
+        texto += `Disciplinas: ${disciplinasTexto}\n\n`;
+      } else {
+        texto += '\n';
+      }
+      return texto;
+    }).join('');
+    
     const descricaoCompleta = `${analiseResult.resumo_executivo || ''}\n\n---\n\nCICLOS QUE COMPÕEM ESTA ESPECIALIZAÇÃO:\n\n${ciclosDetalhes}`;
 
     // Pré-preencher formulário de especialização

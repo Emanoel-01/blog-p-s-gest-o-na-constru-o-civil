@@ -78,6 +78,33 @@ export default function Chatbot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Callback de inatividade
+  const handleInactivity = () => {
+    if (!isOpen && isComplexPage && currentUser) {
+      const contextualHelp = {
+        'IncubadoraProfissionalPage': '💡 Precisa de ajuda para registrar uma nova atividade na Incubadora? Estou aqui para guiá-lo!',
+        'AdminPage': '🔧 Navegando pelo painel admin? Posso ajudar você a encontrar a seção que precisa!',
+        'MeuPerfilDiscente': '📝 Quer ajuda para completar ou atualizar seu perfil? Clique aqui!',
+        'MeuPerfilDocente': '👨‍🏫 Precisa de suporte para editar seu perfil de professor? Estou disponível!',
+      };
+      
+      const helpMessage = Object.keys(contextualHelp).find(page => 
+        location.pathname.includes(page)
+      );
+      
+      if (helpMessage) {
+        setIsOpen(true);
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: contextualHelp[helpMessage]
+        }]);
+      }
+    }
+  };
+
+  // Detector de inatividade (60 segundos)
+  useInactivityDetector(handleInactivity, 60000);
+
   // Initialize or resume agent conversation
   const initializeAgentConversation = async (existingConversationId = null, initialPrompt = null) => {
     try {

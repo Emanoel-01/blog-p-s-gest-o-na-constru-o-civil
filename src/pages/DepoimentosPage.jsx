@@ -12,6 +12,7 @@ import { createPageUrl } from '@/utils';
 import { Star, Upload, Mic, Square, Play, Pause, Send, AlertCircle, ThumbsUp, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { optimizeImage, optimizationPresets, formatFileSize, isImageFile } from '@/utils/imageOptimization';
 
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_AUDIO_SIZE = 10 * 1024 * 1024; // 10MB
@@ -226,12 +227,29 @@ export default function DepoimentosPage() {
     createMutation.mutate(formData);
   };
 
-  const handleFileChange = (e, type) => {
+  const handleFileChange = async (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
 
     if (type === 'foto') {
-      setSelectedFoto(file);
+      if (isImageFile(file)) {
+        const originalSize = formatFileSize(file.size);
+        toast.info(`Otimizando imagem... (${originalSize})`);
+        
+        try {
+          const optimizedFile = await optimizeImage(file, optimizationPresets.testimonial);
+          const newSize = formatFileSize(optimizedFile.size);
+          const reduction = Math.round((1 - optimizedFile.size / file.size) * 100);
+          
+          setSelectedFoto(optimizedFile);
+          toast.success(`Imagem otimizada! ${originalSize} → ${newSize} (${reduction}% menor)`);
+        } catch (error) {
+          toast.error('Erro ao otimizar imagem: ' + error.message);
+          setSelectedFoto(file);
+        }
+      } else {
+        setSelectedFoto(file);
+      }
     } else if (type === 'video') {
       if (file.size > MAX_VIDEO_SIZE) {
         toast.error('Vídeo muito grande! Tamanho máximo: 50MB');

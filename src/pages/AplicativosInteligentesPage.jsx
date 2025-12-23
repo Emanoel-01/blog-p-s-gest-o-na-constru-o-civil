@@ -5,9 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { createPageUrl } from '@/utils';
-import { Zap, Building2, Sparkles, Lightbulb, Eye, FileText, Shield, ExternalLink } from 'lucide-react';
+import { Zap, Building2, Sparkles, Lightbulb, Eye, FileText, Shield, ExternalLink, Newspaper, Image as ImageIcon, ArrowRight } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import ReactMarkdown from 'react-markdown';
 
 export default function AplicativosInteligentesPage() {
+  const { data: noticias = [] } = useQuery({
+    queryKey: ['aplicativo-noticias-public'],
+    queryFn: () => base44.entities.AplicativoNoticia.list('-data_publicacao', 10)
+  });
+
+  const noticiasDestaque = noticias.filter(n => n.destaque).slice(0, 3);
+  const outrasNoticias = noticias.filter(n => !n.destaque).slice(0, 6);
+
   const aplicativos = [
     {
       nome: 'GPO 4.0',
@@ -110,6 +121,79 @@ export default function AplicativosInteligentesPage() {
             Aplicativos inteligentes com IA que transformam a forma de trabalhar na construção civil
           </p>
         </div>
+
+        {/* Notícias e Atualizações */}
+        {(noticiasDestaque.length > 0 || outrasNoticias.length > 0) && (
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-green-200">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Newspaper className="w-8 h-8 text-green-600" />
+                <h2 className="text-3xl font-bold text-gray-900">Notícias e Atualizações</h2>
+              </div>
+              <Link to={createPageUrl('GaleriaMidiasAplicativos')}>
+                <Button variant="outline" className="border-green-300 text-green-700 hover:bg-green-100">
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Ver Galeria de Mídias
+                </Button>
+              </Link>
+            </div>
+
+            {/* Notícias em Destaque */}
+            {noticiasDestaque.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">✨ Em Destaque</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {noticiasDestaque.map((noticia) => (
+                    <Card key={noticia.id} className="border-2 border-yellow-300 bg-white hover:shadow-xl transition-all">
+                      <CardContent className="p-5">
+                        {noticia.imagem_destaque && (
+                          <img src={noticia.imagem_destaque} alt={noticia.titulo} className="w-full h-32 object-cover rounded-lg mb-3" />
+                        )}
+                        <div className="flex gap-2 mb-2">
+                          <Badge className="bg-blue-100 text-blue-800 text-xs">{noticia.aplicativo_nome}</Badge>
+                          <Badge className="bg-purple-100 text-purple-800 text-xs">{noticia.tipo}</Badge>
+                        </div>
+                        <h4 className="font-bold text-lg mb-2">{noticia.titulo}</h4>
+                        <p className="text-gray-600 text-sm mb-2 line-clamp-2">{noticia.descricao}</p>
+                        <p className="text-xs text-gray-500">{noticia.data_publicacao}</p>
+                        {noticia.conteudo_completo && (
+                          <details className="mt-3">
+                            <summary className="text-sm text-blue-600 cursor-pointer hover:underline">Ler mais</summary>
+                            <div className="mt-2 text-sm text-gray-700 prose prose-sm max-w-none">
+                              <ReactMarkdown>{noticia.conteudo_completo}</ReactMarkdown>
+                            </div>
+                          </details>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Outras Notícias */}
+            {outrasNoticias.length > 0 && (
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">📰 Recentes</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {outrasNoticias.map((noticia) => (
+                    <Card key={noticia.id} className="border-2 hover:shadow-lg transition-all">
+                      <CardContent className="p-4">
+                        <div className="flex gap-2 mb-2">
+                          <Badge className="bg-blue-100 text-blue-800 text-xs">{noticia.aplicativo_nome}</Badge>
+                          <Badge className="bg-purple-100 text-purple-800 text-xs">{noticia.tipo}</Badge>
+                        </div>
+                        <h4 className="font-bold mb-1">{noticia.titulo}</h4>
+                        <p className="text-gray-600 text-sm line-clamp-2">{noticia.descricao}</p>
+                        <p className="text-xs text-gray-500 mt-2">{noticia.data_publicacao}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Grid de Aplicativos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

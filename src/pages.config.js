@@ -1,4 +1,5 @@
 import AdminPage from './pages/AdminPage';
+import AplicativosInteligentesPage from './pages/AplicativosInteligentesPage';
 import CalendarioDeAula from './pages/CalendarioDeAula';
 import CiclosPage from './pages/CiclosPage';
 import CoordenadorPage from './pages/CoordenadorPage';
@@ -19,12 +20,13 @@ import PerfilDocente from './pages/PerfilDocente';
 import ProfessoresPage from './pages/ProfessoresPage';
 import UpgradePage from './pages/UpgradePage';
 import UserProfilePage from './pages/UserProfilePage';
-import AplicativosInteligentesPage from './pages/AplicativosInteligentesPage';
+import GaleriaMidiasAplicativos from './pages/GaleriaMidiasAplicativos';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminPage": AdminPage,
+    "AplicativosInteligentesPage": AplicativosInteligentesPage,
     "CalendarioDeAula": CalendarioDeAula,
     "CiclosPage": CiclosPage,
     "CoordenadorPage": CoordenadorPage,
@@ -45,7 +47,7 @@ export const PAGES = {
     "ProfessoresPage": ProfessoresPage,
     "UpgradePage": UpgradePage,
     "UserProfilePage": UserProfilePage,
-    "AplicativosInteligentesPage": AplicativosInteligentesPage,
+    "GaleriaMidiasAplicativos": GaleriaMidiasAplicativos,
 }
 
 export const pagesConfig = {

@@ -4,9 +4,35 @@ import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star, LogIn, LogOut, UserCircle } from 'lucide-react';
+import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star, LogIn, LogOut, UserCircle, Moon, Sun } from 'lucide-react';
 import Chatbot from '@/components/chatbot/Chatbot';
 import NotificationBell from '@/components/layout/NotificationBell';
+import { ThemeProvider, useTheme } from 'next-themes';
+
+// Componente de Toggle de Tema para Mobile
+function MobileThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return (
+    <button
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="md:hidden fixed bottom-24 right-6 z-40 bg-gradient-to-r from-gray-700 to-gray-800 dark:from-gray-200 dark:to-gray-300 p-3 rounded-full shadow-lg hover:shadow-xl transition-all"
+    >
+      {theme === 'dark' ? (
+        <Sun className="w-6 h-6 text-yellow-400" />
+      ) : (
+        <Moon className="w-6 h-6 text-white" />
+      )}
+    </button>
+  );
+}
 
 // Componente auxiliar para decidir qual botão de perfil mostrar
 function ProfileButton({ user, location }) {
@@ -150,14 +176,15 @@ export default function Layout({ children }) {
   }
 
   return (
-    <HelmetProvider>
-          <Helmet htmlAttributes={{ lang: 'pt-BR' }}>
-            <meta name="language" content="Portuguese" />
-            <meta httpEquiv="content-language" content="pt-BR" />
-            <link rel="alternate" type="application/rss+xml" title="Blog ESUDA RSS Feed" href="https://posgraduacao-esuda.base44.app/api/generateSitemap" />
-            <link rel="sitemap" type="application/xml" title="Sitemap" href="https://posgraduacao-esuda.base44.app/api/generateSitemap" />
-          </Helmet>
-      <div className="flex min-h-screen bg-gray-50">
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <HelmetProvider>
+            <Helmet htmlAttributes={{ lang: 'pt-BR' }}>
+              <meta name="language" content="Portuguese" />
+              <meta httpEquiv="content-language" content="pt-BR" />
+              <link rel="alternate" type="application/rss+xml" title="Blog ESUDA RSS Feed" href="https://posgraduacao-esuda.base44.app/api/generateSitemap" />
+              <link rel="sitemap" type="application/xml" title="Sitemap" href="https://posgraduacao-esuda.base44.app/api/generateSitemap" />
+            </Helmet>
+        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
         <style>{`
           .esuda-green { background: linear-gradient(135deg, #61b376 0%, #4a9960 100%); }
         `}</style>
@@ -328,10 +355,12 @@ export default function Layout({ children }) {
         <div className="bg-transparent mx-auto p-4 sm:p-6 md:p-8 opacity-100 rounded-2xl max-w-4xl shadow-xl">
           {children}
         </div>
-      </main>
-      
-      <Chatbot />
-      </div>
-    </HelmetProvider>
-  );
-}
+        </main>
+
+        <MobileThemeToggle />
+        <Chatbot />
+        </div>
+        </HelmetProvider>
+        </ThemeProvider>
+        );
+        }

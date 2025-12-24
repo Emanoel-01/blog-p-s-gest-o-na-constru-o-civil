@@ -342,6 +342,7 @@ export default function Chatbot() {
             toast.success('Contato salvo! Agora posso te ajudar melhor.');
           } catch (error) {
             console.error('Erro ao criar lead:', error);
+            toast.error('Erro ao salvar contato. Mas você ainda pode conversar comigo!');
           }
 
           setMessages(prev => [...prev, {

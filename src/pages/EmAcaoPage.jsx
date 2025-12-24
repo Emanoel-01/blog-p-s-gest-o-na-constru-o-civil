@@ -110,7 +110,11 @@ export default function EmAcaoPage() {
     mutationFn: (data) => base44.entities.Comentario.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['comentarios']);
-      toast.success('Comentário enviado! Aguardando aprovação.');
+      toast.success('Comentário enviado! Será publicado após moderação da equipe.');
+    },
+    onError: (error) => {
+      console.error('Erro ao enviar comentário:', error);
+      toast.error('Erro ao enviar comentário. Tente novamente.');
     }
   });
 

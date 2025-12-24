@@ -53,6 +53,18 @@ export default function DepoimentosPage() {
     const dep = depoimentos.find(d => d.id === depId);
     if (!dep) return;
 
+    // Verificar se está logado
+    try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        toast.info('Faça login para reagir aos depoimentos');
+        return;
+      }
+    } catch (error) {
+      toast.info('Faça login para reagir aos depoimentos');
+      return;
+    }
+
     const field = type === 'likes' ? 'reactions_likes' : 'reactions_hearts';
     const newValue = (dep[field] || 0) + 1;
 
@@ -62,6 +74,7 @@ export default function DepoimentosPage() {
       toast.success(type === 'likes' ? '👍 Obrigado!' : '❤️ Obrigado!');
     } catch (error) {
       console.error('Erro ao registrar reação:', error);
+      toast.error('Erro ao registrar reação. Tente novamente.');
     }
   };
 
@@ -99,25 +112,18 @@ export default function DepoimentosPage() {
         audioUrl = audioResponse.file_url;
       }
 
-      // Verificar se existe perfil de usuário com este email
+      // Tentar vincular a perfil existente apenas (não criar novo)
       let userProfileId = null;
       try {
-        const profiles = await base44.entities.UserProfile.filter({ email: data.email });
-        if (profiles.length > 0) {
-          userProfileId = profiles[0].id;
-        } else {
-          // Criar novo perfil
-          const newProfile = await base44.entities.UserProfile.create({
-            nome: data.nome,
-            email: data.email,
-            profissao: data.profissao,
-            foto_url: fotoUrl,
-            total_depoimentos: 1
-          });
-          userProfileId = newProfile.id;
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const profiles = await base44.entities.UserProfile.filter({ email: data.email });
+          if (profiles.length > 0) {
+            userProfileId = profiles[0].id;
+          }
         }
       } catch (error) {
-        console.error('Erro ao gerenciar perfil de usuário:', error);
+        console.log('Perfil não vinculado (usuário não logado ou perfil não existe)');
       }
 
       const newDepoimento = await base44.entities.Depoimento.create({

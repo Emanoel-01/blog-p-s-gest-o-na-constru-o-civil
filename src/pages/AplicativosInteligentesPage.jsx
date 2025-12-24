@@ -103,7 +103,7 @@ export default function AplicativosInteligentesPage() {
     },
     {
       nome: 'InspeçãoIA',
-      categoria: 'Inspeção Predial Inteligente',
+      categoria: 'Laudo de Inspeção Predial',
       descricao: 'Plataforma de inspeção predial inteligente com IA. Realize inspeções completas e gere laudos técnicos profissionais de forma automatizada e eficiente.',
       url: 'https://laudo-de-inspecao.base44.app',
       icon: Shield,
@@ -112,7 +112,7 @@ export default function AplicativosInteligentesPage() {
     },
     {
       nome: 'Avalia Predial ESUDA',
-      categoria: 'Sistema de Avaliação',
+      categoria: 'Feedback',
       descricao: 'Sistema de avaliação para alunos da Pós-Graduação em Engenharia e Gestão da Manutenção Predial. Feedback imediato e plano de estudo com IA.',
       url: 'https://avalia-predial-esuda.base44.app',
       icon: FileText,

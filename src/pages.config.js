@@ -8,6 +8,7 @@ import DepoimentosPage from './pages/DepoimentosPage';
 import Documentation from './pages/Documentation';
 import EmAcaoPage from './pages/EmAcaoPage';
 import EspecializacoesPage from './pages/EspecializacoesPage';
+import GaleriaMidiasAplicativos from './pages/GaleriaMidiasAplicativos';
 import GerenciadorDeMidiaPage from './pages/GerenciadorDeMidiaPage';
 import Home from './pages/Home';
 import Homepage from './pages/Homepage';
@@ -20,7 +21,6 @@ import PerfilDocente from './pages/PerfilDocente';
 import ProfessoresPage from './pages/ProfessoresPage';
 import UpgradePage from './pages/UpgradePage';
 import UserProfilePage from './pages/UserProfilePage';
-import GaleriaMidiasAplicativos from './pages/GaleriaMidiasAplicativos';
 import __Layout from './Layout.jsx';
 
 
@@ -35,6 +35,7 @@ export const PAGES = {
     "Documentation": Documentation,
     "EmAcaoPage": EmAcaoPage,
     "EspecializacoesPage": EspecializacoesPage,
+    "GaleriaMidiasAplicativos": GaleriaMidiasAplicativos,
     "GerenciadorDeMidiaPage": GerenciadorDeMidiaPage,
     "Home": Home,
     "Homepage": Homepage,
@@ -47,7 +48,6 @@ export const PAGES = {
     "ProfessoresPage": ProfessoresPage,
     "UpgradePage": UpgradePage,
     "UserProfilePage": UserProfilePage,
-    "GaleriaMidiasAplicativos": GaleriaMidiasAplicativos,
 }
 
 export const pagesConfig = {

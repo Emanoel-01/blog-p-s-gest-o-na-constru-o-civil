@@ -100,6 +100,24 @@ export default function AplicativosInteligentesPage() {
       icon: FileText,
       gradient: 'from-red-600 to-pink-600',
       badge: 'bg-red-100 text-red-800'
+    },
+    {
+      nome: 'Gestor Predial 4.0',
+      categoria: 'Gestão Predial Inteligente',
+      descricao: 'Sistema inteligente de gestão predial com IA para manutenção preventiva e inspeções automatizadas. Aplicativo gratuito exclusivo para gestores públicos com assistentes de IA para inspeções, diagnósticos e planejamento de manutenção.',
+      url: 'https://gestorpredial-amorimtech.base44.app',
+      icon: Building2,
+      gradient: 'from-cyan-600 to-blue-600',
+      badge: 'bg-cyan-100 text-cyan-800'
+    },
+    {
+      nome: 'InspeçãoIA',
+      categoria: 'Inspeção Predial Inteligente',
+      descricao: 'Plataforma de inspeção predial inteligente com IA. Realize inspeções completas e gere laudos técnicos profissionais de forma automatizada e eficiente.',
+      url: 'https://laudo-de-inspecao.base44.app',
+      icon: Shield,
+      gradient: 'from-slate-600 to-gray-700',
+      badge: 'bg-slate-100 text-slate-800'
     }
   ];
 

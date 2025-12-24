@@ -93,15 +93,6 @@ export default function AplicativosInteligentesPage() {
       badge: 'bg-yellow-100 text-yellow-800'
     },
     {
-      nome: 'Avalia Predial ESUDA',
-      categoria: 'Sistema de Avaliação',
-      descricao: 'Sistema de avaliação para alunos da Pós-Graduação em Engenharia e Gestão da Manutenção Predial. Feedback imediato e plano de estudo com IA.',
-      url: 'https://avalia-predial-esuda.base44.app',
-      icon: FileText,
-      gradient: 'from-red-600 to-pink-600',
-      badge: 'bg-red-100 text-red-800'
-    },
-    {
       nome: 'Gestor Predial 4.0',
       categoria: 'Gestão Predial Inteligente',
       descricao: 'Sistema inteligente de gestão predial com IA para manutenção preventiva e inspeções automatizadas. Aplicativo gratuito exclusivo para gestores públicos com assistentes de IA para inspeções, diagnósticos e planejamento de manutenção.',
@@ -118,6 +109,15 @@ export default function AplicativosInteligentesPage() {
       icon: Shield,
       gradient: 'from-slate-600 to-gray-700',
       badge: 'bg-slate-100 text-slate-800'
+    },
+    {
+      nome: 'Avalia Predial ESUDA',
+      categoria: 'Sistema de Avaliação',
+      descricao: 'Sistema de avaliação para alunos da Pós-Graduação em Engenharia e Gestão da Manutenção Predial. Feedback imediato e plano de estudo com IA.',
+      url: 'https://avalia-predial-esuda.base44.app',
+      icon: FileText,
+      gradient: 'from-red-600 to-pink-600',
+      badge: 'bg-red-100 text-red-800'
     }
   ];
 

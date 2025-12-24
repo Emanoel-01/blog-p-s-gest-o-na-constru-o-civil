@@ -132,7 +132,7 @@ export default function DepoimentosPage() {
         depoimento_video_url: videoUrl,
         depoimento_audio_url: audioUrl,
         user_profile_id: userProfileId,
-        status: 'Pendente',
+        status: 'Aprovado',
       });
 
       // Enviar notificação para admin

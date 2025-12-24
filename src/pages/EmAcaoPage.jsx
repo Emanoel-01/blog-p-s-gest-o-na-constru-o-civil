@@ -110,7 +110,7 @@ export default function EmAcaoPage() {
     mutationFn: (data) => base44.entities.Comentario.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['comentarios']);
-      toast.success('Comentário enviado! Será publicado após moderação da equipe.');
+      toast.success('Comentário publicado com sucesso!');
     },
     onError: (error) => {
       console.error('Erro ao enviar comentário:', error);
@@ -147,17 +147,24 @@ export default function EmAcaoPage() {
 
   const handleSubmitComentario = (postId) => {
     const comentario = novoComentario[postId];
-    if (!comentario?.autor_nome || !comentario?.conteudo) {
-      toast.error('Preencha nome e comentário');
+    if (!comentario?.autor_nome || !comentario?.conteudo || !comentario?.autor_email) {
+      toast.error('Preencha nome, email e comentário');
+      return;
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(comentario.autor_email)) {
+      toast.error('Informe um email válido');
       return;
     }
 
     createComentarioMutation.mutate({
       post_id: postId,
       autor_nome: comentario.autor_nome,
-      autor_email: comentario.autor_email || '',
+      autor_email: comentario.autor_email,
       conteudo: comentario.conteudo,
-      aprovado: false
+      aprovado: true
     });
 
     setNovoComentario(prev => ({ ...prev, [postId]: {} }));
@@ -709,7 +716,7 @@ export default function EmAcaoPage() {
                               className="text-xs sm:text-sm"
                             />
                             <Input
-                              placeholder="Seu email (opcional)"
+                              placeholder="Seu email *"
                               type="email"
                               value={novoComentario[post.id]?.autor_email || ''}
                               onChange={(e) => setNovoComentario(prev => ({
@@ -737,7 +744,7 @@ export default function EmAcaoPage() {
                               Enviar Comentário
                             </Button>
                             <p className="text-xs text-gray-500 italic">
-                              * Seu comentário será publicado após aprovação
+                              * Campos obrigatórios - Seu email não será exibido publicamente
                             </p>
                           </div>
                         </div>

@@ -22,7 +22,7 @@ export default function AplicativosInteligentesPage() {
   const aplicativos = [
     {
       nome: 'GPO 4.0',
-      categoria: 'Gestão de Projetos e Obras',
+      categoria: 'Plano Interativo de Gestão',
       descricao: 'Plano Interativo de Gestão de Projetos e Obras. Transforme sua forma de trabalhar com IA aplicada à gestão de projetos, orçamentos, planejamento e execução de obras.',
       url: 'https://esuda-gpo.base44.app',
       icon: Zap,
@@ -31,7 +31,7 @@ export default function AplicativosInteligentesPage() {
     },
     {
       nome: 'Predial 4.0',
-      categoria: 'Manutenção Predial',
+      categoria: 'Plano Interativo de Manutenção Predial',
       descricao: 'Plano Interativo de Manutenção Predial. Transforme sua forma de trabalhar com IA aplicada à gestão de Manutenção Predial.',
       url: 'https://esuda-predial.base44.app',
       icon: Building2,
@@ -40,7 +40,7 @@ export default function AplicativosInteligentesPage() {
     },
     {
       nome: 'EngenhariaPro AI',
-      categoria: 'Prompt do Mestre',
+      categoria: '500 prompt',
       descricao: 'Assistente inteligente com IA para engenheiros e profissionais da construção civil. Respostas especializadas e soluções técnicas.',
       url: 'https://promptdomestre.base44.app',
       icon: Sparkles,
@@ -58,7 +58,7 @@ export default function AplicativosInteligentesPage() {
     },
     {
       nome: 'Vistoria Cautelar Pro',
-      categoria: 'Vistorias Cautelares',
+      categoria: 'Laudo de Vistorias Cautelares de Vizinhança',
       descricao: 'Sistema especializado em vistorias cautelares. Gerencie, documente e automatize processos de vistoria predial.',
       url: 'https://vistoria-cautelar-pro-34e39a54.base44.app',
       icon: Shield,
@@ -67,7 +67,7 @@ export default function AplicativosInteligentesPage() {
     },
     {
       nome: 'SmartVisto',
-      categoria: 'Vistorias Inteligentes',
+      categoria: 'Laudo de Recebimento de Imóvel',
       descricao: 'Plataforma de vistorias inteligentes com IA. Automatize inspeções e gere relatórios profissionais rapidamente.',
       url: 'https://smart-visto-vistorias-inteligentes-6f115f68.base44.app',
       icon: Eye,
@@ -76,7 +76,7 @@ export default function AplicativosInteligentesPage() {
     },
     {
       nome: 'Amorim Responde',
-      categoria: 'Manutenção Predial Inteligente',
+      categoria: 'Assistente de IA',
       descricao: 'Assistente especializado em manutenção predial. Tire dúvidas e obtenha orientações técnicas com inteligência artificial.',
       url: 'https://amorim-responde-manutencao-predial-afd5910a.base44.app',
       icon: Building2,
@@ -85,7 +85,7 @@ export default function AplicativosInteligentesPage() {
     },
     {
       nome: 'LaudoAcess Pro',
-      categoria: 'Acessibilidade',
+      categoria: 'Laudo de Acessibilidade',
       descricao: 'Sistema profissional para laudos de acessibilidade. Garanta conformidade com normas técnicas e legislação vigente.',
       url: 'https://amorimtech-acessibilidade.base44.app',
       icon: FileText,
@@ -94,7 +94,7 @@ export default function AplicativosInteligentesPage() {
     },
     {
       nome: 'Gestor Predial 4.0',
-      categoria: 'Gestão Predial Inteligente',
+      categoria: 'CMMS para Órgãos Públicos',
       descricao: 'Sistema inteligente de gestão predial com IA para manutenção preventiva e inspeções automatizadas. Aplicativo gratuito exclusivo para gestores públicos com assistentes de IA para inspeções, diagnósticos e planejamento de manutenção.',
       url: 'https://gestorpredial-amorimtech.base44.app',
       icon: Building2,

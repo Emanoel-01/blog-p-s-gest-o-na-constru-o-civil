@@ -135,15 +135,19 @@ export default function DepoimentosPage() {
         status: 'Aprovado',
       });
 
-      // Enviar notificação para admin
+      // Notificar admins
       try {
-        await base44.functions.invoke('sendDepoimentoNotification', {
-          depoimentoId: newDepoimento.id,
-          action: 'new_submission',
-          depoimento: newDepoimento
+        await base44.functions.invoke('notifyAdminNewContent', {
+          tipo: 'depoimento',
+          dados: {
+            autor_nome: data.nome,
+            autor_email: data.email,
+            depoimento: data.depoimento_texto || 'Depoimento em áudio/vídeo',
+            avaliacao: data.avaliacao_estrelas
+          }
         });
       } catch (error) {
-        console.error('Erro ao enviar notificação:', error);
+        console.error('Erro ao notificar admins:', error);
       }
 
       return newDepoimento;

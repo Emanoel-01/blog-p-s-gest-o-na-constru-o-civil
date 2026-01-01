@@ -189,15 +189,16 @@ export default function EmAcaoPage() {
   return (
     <>
       <Helmet>
-        <title>Blog Em Ação ESUDA | Eventos, Workshops e Novidades da Construção Civil</title>
-        <meta name="description" content="Acompanhe eventos, workshops, masterclasses e novidades da comunidade acadêmica ESUDA. Blog com conteúdo sobre Construção Civil, BIM, Gestão de Obras e Tecnologias 4.0." />
+        <title>{postIdFromUrl && posts.length > 0 ? `${posts.find(p => p.id === postIdFromUrl)?.titulo || 'Blog Em Ação ESUDA'}` : 'Blog Em Ação ESUDA | Eventos, Workshops e Novidades da Construção Civil'}</title>
+        <meta name="description" content={postIdFromUrl && posts.length > 0 ? posts.find(p => p.id === postIdFromUrl)?.descricao || 'Acompanhe eventos, workshops, masterclasses e novidades da comunidade acadêmica ESUDA.' : 'Acompanhe eventos, workshops, masterclasses e novidades da comunidade acadêmica ESUDA. Blog com conteúdo sobre Construção Civil, BIM, Gestão de Obras e Tecnologias 4.0.'} />
         <meta name="keywords" content="blog construção civil, eventos ESUDA, workshops BIM, masterclasses engenharia, notícias construção civil, comunidade acadêmica" />
-        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/EmAcaoPage" />
+        <link rel="canonical" href={postIdFromUrl ? `https://posgraduacao-esuda.base44.app/EmAcaoPage?postId=${postIdFromUrl}` : "https://posgraduacao-esuda.base44.app/EmAcaoPage"} />
         
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Blog Em Ação ESUDA | Eventos e Novidades" />
-        <meta property="og:description" content="Fique por dentro dos eventos, workshops e novidades da comunidade ESUDA em Construção Civil." />
-        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/EmAcaoPage" />
+        <meta property="og:type" content={postIdFromUrl ? "article" : "website"} />
+        <meta property="og:title" content={postIdFromUrl && posts.length > 0 ? posts.find(p => p.id === postIdFromUrl)?.titulo || 'Blog Em Ação ESUDA' : 'Blog Em Ação ESUDA | Eventos e Novidades'} />
+        <meta property="og:description" content={postIdFromUrl && posts.length > 0 ? posts.find(p => p.id === postIdFromUrl)?.descricao || 'Fique por dentro dos eventos, workshops e novidades da comunidade ESUDA.' : 'Fique por dentro dos eventos, workshops e novidades da comunidade ESUDA em Construção Civil.'} />
+        <meta property="og:url" content={postIdFromUrl ? `https://posgraduacao-esuda.base44.app/EmAcaoPage?postId=${postIdFromUrl}` : "https://posgraduacao-esuda.base44.app/EmAcaoPage"} />
+        <meta property="og:image" content={postIdFromUrl && posts.length > 0 ? posts.find(p => p.id === postIdFromUrl)?.imagem_destaque || 'https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png' : 'https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png'} />
         
         {/* Schema.org para Blog */}
         <script type="application/ld+json">

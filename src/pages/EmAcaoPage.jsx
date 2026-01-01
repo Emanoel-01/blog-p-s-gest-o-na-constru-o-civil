@@ -107,7 +107,27 @@ export default function EmAcaoPage() {
   });
 
   const createComentarioMutation = useMutation({
-    mutationFn: (data) => base44.entities.Comentario.create(data),
+    mutationFn: async (data) => {
+      const comentario = await base44.entities.Comentario.create(data);
+      
+      // Notificar admins
+      try {
+        const post = posts.find(p => p.id === data.post_id);
+        await base44.functions.invoke('notifyAdminNewContent', {
+          tipo: 'comentario',
+          dados: {
+            autor_nome: data.autor_nome,
+            autor_email: data.autor_email,
+            conteudo: data.conteudo,
+            post_titulo: post?.titulo || 'Post'
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao notificar admins:', error);
+      }
+      
+      return comentario;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['comentarios']);
       toast.success('Comentário publicado com sucesso!');

@@ -1,182 +1,287 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageCircle, Check, X, Reply } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { MessageCircle, CheckCircle, XCircle, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function ComentariosManager({ comentarios, posts, onApprove, onReject, onReply }) {
-  const [selectedStatus, setSelectedStatus] = useState('Pendente');
-  const [replyingTo, setReplyingTo] = useState(null);
-  const [replyText, setReplyText] = useState('');
+export default function ComentariosManager() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('todos');
+  const [sortBy, setSortBy] = useState('-created_date');
+  const [selectedComments, setSelectedComments] = useState([]);
+  const [respostaAdmin, setRespostaAdmin] = useState({});
+  const queryClient = useQueryClient();
+
+  const { data: comentarios = [], isLoading } = useQuery({
+    queryKey: ['admin-comentarios'],
+    queryFn: async () => {
+      const allComments = await base44.asServiceRole.entities.Comentario.list(sortBy);
+      return allComments;
+    }
+  });
+
+  const { data: posts = [] } = useQuery({
+    queryKey: ['posts'],
+    queryFn: () => base44.entities.Post.list('-data')
+  });
+
+  const updateComentarioMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.asServiceRole.entities.Comentario.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-comentarios']);
+      toast.success('Comentário atualizado!');
+    }
+  });
+
+  const deleteComentarioMutation = useMutation({
+    mutationFn: (id) => base44.asServiceRole.entities.Comentario.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-comentarios']);
+      toast.success('Comentário deletado!');
+    }
+  });
+
+  const bulkActionMutation = useMutation({
+    mutationFn: async ({ action, ids }) => {
+      if (action === 'aprovar') {
+        await Promise.all(ids.map(id => 
+          base44.asServiceRole.entities.Comentario.update(id, { aprovado: true })
+        ));
+      } else if (action === 'rejeitar') {
+        await Promise.all(ids.map(id => 
+          base44.asServiceRole.entities.Comentario.update(id, { aprovado: false })
+        ));
+      } else if (action === 'deletar') {
+        await Promise.all(ids.map(id => 
+          base44.asServiceRole.entities.Comentario.delete(id)
+        ));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-comentarios']);
+      setSelectedComments([]);
+      toast.success('Ação em massa executada!');
+    }
+  });
 
   const filteredComentarios = comentarios.filter(c => {
-    if (selectedStatus === 'Pendente') return !c.aprovado;
-    if (selectedStatus === 'Aprovado') return c.aprovado;
-    return true;
+    const matchSearch = !searchTerm || 
+      c.autor_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.conteudo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.autor_email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchStatus = filterStatus === 'todos' || 
+      (filterStatus === 'aprovado' && c.aprovado) ||
+      (filterStatus === 'pendente' && !c.aprovado);
+
+    return matchSearch && matchStatus;
   });
+
+  const toggleSelection = (id) => {
+    setSelectedComments(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
 
   const getPostTitle = (postId) => {
     const post = posts.find(p => p.id === postId);
     return post?.titulo || 'Post não encontrado';
   };
 
-  const handleReply = async (comentarioId) => {
-    if (!replyText.trim()) {
-      toast.error('Digite uma resposta');
-      return;
-    }
-
-    await onReply(comentarioId, replyText);
-    setReplyingTo(null);
-    setReplyText('');
-  };
-
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">Gestão de Comentários</h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Modere e responda aos comentários do blog
-          </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MessageCircle className="w-6 h-6 text-blue-600" />
+          Gerenciar Comentários
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Filtros e Busca */}
+        <div className="flex flex-wrap gap-3">
+          <div className="flex-1 min-w-[200px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Buscar por autor, email ou conteúdo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 border rounded-lg"
+          >
+            <option value="todos">Todos</option>
+            <option value="aprovado">Aprovados</option>
+            <option value="pendente">Pendentes</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-4 py-2 border rounded-lg"
+          >
+            <option value="-created_date">Mais Recentes</option>
+            <option value="created_date">Mais Antigos</option>
+            <option value="autor_nome">Nome (A-Z)</option>
+          </select>
         </div>
-        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Todos">Todos</SelectItem>
-            <SelectItem value="Pendente">Pendentes</SelectItem>
-            <SelectItem value="Aprovado">Aprovados</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
-      <div className="grid gap-4">
-        {filteredComentarios.length === 0 ? (
-          <Card className="bg-gray-50">
-            <CardContent className="p-8 text-center">
-              <p className="text-gray-500 italic">
-                Nenhum comentário {selectedStatus === 'Pendente' ? 'pendente' : selectedStatus === 'Aprovado' ? 'aprovado' : ''} encontrado.
-              </p>
-            </CardContent>
-          </Card>
+        {/* Ações em Massa */}
+        {selectedComments.length > 0 && (
+          <div className="flex gap-2 p-3 bg-blue-50 rounded-lg">
+            <span className="text-sm font-semibold text-gray-700">
+              {selectedComments.length} selecionado(s)
+            </span>
+            <Button
+              size="sm"
+              onClick={() => bulkActionMutation.mutate({ action: 'aprovar', ids: selectedComments })}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Aprovar Todos
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => bulkActionMutation.mutate({ action: 'rejeitar', ids: selectedComments })}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              Rejeitar Todos
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => bulkActionMutation.mutate({ action: 'deletar', ids: selectedComments })}
+            >
+              Deletar Todos
+            </Button>
+          </div>
+        )}
+
+        {/* Lista de Comentários */}
+        {isLoading ? (
+          <p className="text-center py-8 text-gray-500">Carregando comentários...</p>
+        ) : filteredComentarios.length === 0 ? (
+          <p className="text-center py-8 text-gray-500 italic">Nenhum comentário encontrado.</p>
         ) : (
-          filteredComentarios.map((comentario) => (
-            <Card key={comentario.id} className="border-2">
-              <CardContent className="p-5">
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
+          <div className="space-y-3">
+            {filteredComentarios.map((comentario) => (
+              <Card key={comentario.id} className="border-2">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={selectedComments.includes(comentario.id)}
+                      onCheckedChange={() => toggleSelection(comentario.id)}
+                    />
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold">
-                          {comentario.autor_nome.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-gray-900">{comentario.autor_nome}</h4>
-                          {comentario.autor_email && (
-                            <p className="text-xs text-gray-500">{comentario.autor_email}</p>
-                          )}
-                        </div>
-                        <Badge className={comentario.aprovado ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-bold text-gray-800">{comentario.autor_nome}</span>
+                        <Badge variant={comentario.aprovado ? 'default' : 'outline'}>
                           {comentario.aprovado ? 'Aprovado' : 'Pendente'}
                         </Badge>
+                        <span className="text-xs text-gray-500">
+                          {new Date(comentario.created_date).toLocaleString('pt-BR')}
+                        </span>
                       </div>
-
-                      <div className="bg-blue-50 p-3 rounded-lg mb-2">
-                        <p className="text-xs text-gray-600 mb-1">Post:</p>
-                        <p className="text-sm font-semibold text-gray-800">{getPostTitle(comentario.post_id)}</p>
-                      </div>
-
-                      <div className="bg-gray-50 p-3 rounded-lg mb-2">
-                        <p className="text-sm text-gray-700">{comentario.conteudo}</p>
-                      </div>
-
-                      <p className="text-xs text-gray-500">
-                        {new Date(comentario.created_date).toLocaleString('pt-BR')}
+                      <p className="text-sm text-gray-600 mb-1">{comentario.autor_email}</p>
+                      <p className="text-sm font-semibold text-blue-700 mb-2">
+                        Post: {getPostTitle(comentario.post_id)}
                       </p>
+                      <p className="text-gray-700 mb-3">{comentario.conteudo}</p>
 
-                      {comentario.resposta_admin && (
-                        <div className="bg-pink-50 p-3 rounded-lg border-l-2 border-pink-400 mt-3">
-                          <p className="text-xs font-semibold text-pink-800 mb-1">Sua Resposta:</p>
-                          <p className="text-sm text-gray-700">{comentario.resposta_admin}</p>
-                        </div>
-                      )}
+                      {/* Resposta Admin */}
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <label className="text-xs font-semibold text-gray-600 block mb-1">
+                          Resposta da Coordenação:
+                        </label>
+                        <Textarea
+                          placeholder="Digite uma resposta (opcional)..."
+                          value={respostaAdmin[comentario.id] ?? comentario.resposta_admin ?? ''}
+                          onChange={(e) => setRespostaAdmin(prev => ({
+                            ...prev,
+                            [comentario.id]: e.target.value
+                          }))}
+                          rows={2}
+                          className="text-sm mb-2"
+                        />
+                        {(respostaAdmin[comentario.id] !== undefined || comentario.resposta_admin) && (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              updateComentarioMutation.mutate({
+                                id: comentario.id,
+                                data: { resposta_admin: respostaAdmin[comentario.id] ?? comentario.resposta_admin }
+                              });
+                              setRespostaAdmin(prev => {
+                                const newState = { ...prev };
+                                delete newState[comentario.id];
+                                return newState;
+                              });
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Salvar Resposta
+                          </Button>
+                        )}
+                      </div>
 
-                      {replyingTo === comentario.id && (
-                        <div className="bg-green-50 p-3 rounded-lg border border-green-200 mt-3">
-                          <h5 className="text-sm font-semibold text-gray-700 mb-2">Responder ao comentário</h5>
-                          <Textarea
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            rows={3}
-                            placeholder="Digite sua resposta..."
-                            className="text-sm mb-2"
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => handleReply(comentario.id)}
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <Reply className="w-3 h-3 mr-1" />
-                              Enviar Resposta
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                setReplyingTo(null);
-                                setReplyText('');
-                              }}
-                              size="sm"
-                              variant="outline"
-                            >
-                              Cancelar
-                            </Button>
-                          </div>
-                        </div>
-                      )}
+                      {/* Ações */}
+                      <div className="flex gap-2 mt-3">
+                        {!comentario.aprovado && (
+                          <Button
+                            size="sm"
+                            onClick={() => updateComentarioMutation.mutate({ 
+                              id: comentario.id, 
+                              data: { aprovado: true } 
+                            })}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Aprovar
+                          </Button>
+                        )}
+                        {comentario.aprovado && (
+                          <Button
+                            size="sm"
+                            onClick={() => updateComentarioMutation.mutate({ 
+                              id: comentario.id, 
+                              data: { aprovado: false } 
+                            })}
+                            className="bg-orange-600 hover:bg-orange-700"
+                          >
+                            <XCircle className="w-4 h-4 mr-1" />
+                            Rejeitar
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            if (confirm('Tem certeza que deseja deletar este comentário?')) {
+                              deleteComentarioMutation.mutate(comentario.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Deletar
+                        </Button>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex gap-2">
-                    {!comentario.aprovado && (
-                      <Button
-                        onClick={() => onApprove(comentario.id)}
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <Check className="w-3 h-3 mr-1" />
-                        Aprovar
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => onReject(comentario.id)}
-                      size="sm"
-                      variant="outline"
-                      className="border-red-300 text-red-600 hover:bg-red-50"
-                    >
-                      <X className="w-3 h-3 mr-1" />
-                      {comentario.aprovado ? 'Remover' : 'Rejeitar'}
-                    </Button>
-                    <Button
-                      onClick={() => setReplyingTo(comentario.id)}
-                      size="sm"
-                      variant="outline"
-                      disabled={replyingTo === comentario.id}
-                    >
-                      <Reply className="w-3 h-3 mr-1" />
-                      {comentario.resposta_admin ? 'Editar Resposta' : 'Responder'}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

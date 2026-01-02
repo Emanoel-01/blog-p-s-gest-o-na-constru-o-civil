@@ -91,6 +91,9 @@ Deno.serve(async (req) => {
     const cutoffDate = new Date('2024-08-01');
     const stats = { total: 0, imported: 0, skipped: 0 };
     
+    const allExisting = await base44.asServiceRole.entities.Inscrito.list();
+    const toCreate = [];
+    
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       
@@ -122,40 +125,39 @@ Deno.serve(async (req) => {
       const telefoneOriginal = tel03;
       const telefoneSanitizado = sanitizePhone(tel03);
       
-      const inscritoData = {
-        ano,
-        mes,
-        dia,
-        data_inscricao: dataInscricao,
-        nome_curso: nomeCurso,
-        nome_completo: nomeCompleto,
-        telefone_principal: telefoneOriginal,
-        telefone_sanitizado: telefoneSanitizado,
-        telefone_secundario: tel01,
-        telefone_terciario: tel02,
-        email,
-        vinculo_curso: vinculoCurso,
-        inscricao_paga: inscricaoPaga,
-        grupo_monitoramento: 'Historico_Pre_Ago2024',
-        curso_e_legacy: isLegacy,
-        ultima_sincronizacao: new Date().toISOString(),
-        status_crm: 'Novo',
-        observacoes: 'Importado do histórico (pré-agosto/2024)'
-      };
+      const existing = allExisting.find(e => e.email === email && e.nome_curso === nomeCurso);
       
-      const existingInscritos = await base44.asServiceRole.entities.Inscrito.filter({
-        email: email,
-        nome_curso: nomeCurso
-      });
-      
-      if (existingInscritos.length === 0) {
-        await base44.asServiceRole.entities.Inscrito.create(inscritoData);
+      if (!existing) {
+        toCreate.push({
+          ano,
+          mes,
+          dia,
+          data_inscricao: dataInscricao,
+          nome_curso: nomeCurso,
+          nome_completo: nomeCompleto,
+          telefone_principal: telefoneOriginal,
+          telefone_sanitizado: telefoneSanitizado,
+          telefone_secundario: tel01,
+          telefone_terciario: tel02,
+          email,
+          vinculo_curso: vinculoCurso,
+          inscricao_paga: inscricaoPaga,
+          grupo_monitoramento: 'Historico_Pre_Ago2024',
+          curso_e_legacy: isLegacy,
+          ultima_sincronizacao: new Date().toISOString(),
+          status_crm: 'Novo',
+          observacoes: 'Importado do histórico (pré-agosto/2024)'
+        });
         stats.imported++;
       } else {
         stats.skipped++;
       }
       
       stats.total++;
+    }
+    
+    if (toCreate.length > 0) {
+      await base44.asServiceRole.entities.Inscrito.bulkCreate(toCreate);
     }
     
     return Response.json({

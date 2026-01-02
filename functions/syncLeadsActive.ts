@@ -97,6 +97,10 @@ Deno.serve(async (req) => {
     const cutoffDate = new Date('2024-08-01');
     const stats = { total: 0, g1: 0, g2: 0, skipped: 0, updated: 0, created: 0 };
     
+    const allExisting = await base44.asServiceRole.entities.Inscrito.list();
+    const toCreate = [];
+    const toUpdate = [];
+    
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       
@@ -156,20 +160,26 @@ Deno.serve(async (req) => {
         status_crm: 'Novo'
       };
       
-      const existingInscritos = await base44.asServiceRole.entities.Inscrito.filter({
-        email: email,
-        nome_curso: nomeCurso
-      });
+      const existing = allExisting.find(e => e.email === email && e.nome_curso === nomeCurso);
       
-      if (existingInscritos.length > 0) {
-        await base44.asServiceRole.entities.Inscrito.update(existingInscritos[0].id, inscritoData);
+      if (existing) {
+        toUpdate.push({ id: existing.id, ...inscritoData });
         stats.updated++;
       } else {
-        await base44.asServiceRole.entities.Inscrito.create(inscritoData);
+        toCreate.push(inscritoData);
         stats.created++;
       }
       
       stats.total++;
+    }
+    
+    if (toCreate.length > 0) {
+      await base44.asServiceRole.entities.Inscrito.bulkCreate(toCreate);
+    }
+    
+    for (const item of toUpdate) {
+      const { id, ...data } = item;
+      await base44.asServiceRole.entities.Inscrito.update(id, data);
     }
     
     return Response.json({

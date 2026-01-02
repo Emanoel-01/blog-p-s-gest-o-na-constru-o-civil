@@ -28,6 +28,10 @@ import BulkActionsPanel from '../components/admin/BulkActionsPanel';
 import AIOrderSuggestions from '../components/admin/AIOrderSuggestions';
 import SocialMediaGenerator from '../components/admin/SocialMediaGenerator';
 import AplicativosManager from '../components/admin/AplicativosManager';
+import CRMDashboard from '../components/admin/crm/CRMDashboard';
+import LeadsTable from '../components/admin/crm/LeadsTable';
+import MarketingStudio from '../components/admin/crm/MarketingStudio';
+import BulkActions from '../components/admin/crm/BulkActions';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -306,6 +310,16 @@ export default function AdminPage() {
   const { data: allNotificacoes = [] } = useQuery({
     queryKey: ['admin-notificacoes'],
     queryFn: () => base44.entities.Notificacao.list('-created_date')
+  });
+
+  const { data: inscritos = [] } = useQuery({
+    queryKey: ['inscritos'],
+    queryFn: () => base44.entities.Inscrito.list('-data_inscricao')
+  });
+
+  const { data: campanhas = [] } = useQuery({
+    queryKey: ['campanhas'],
+    queryFn: () => base44.entities.CampanhaMarketing.list('-created_date')
   });
 
   // Auto-calcular carga horária quando ciclos mudam
@@ -618,6 +632,22 @@ export default function AdminPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       toast.success('Lead removido com sucesso!');
+    }
+  });
+
+  const updateInscritoMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Inscrito.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inscritos'] });
+      toast.success('Inscrito atualizado!');
+    }
+  });
+
+  const deleteInscritoMutation = useMutation({
+    mutationFn: (id) => base44.entities.Inscrito.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inscritos'] });
+      toast.success('Inscrito removido!');
     }
   });
 
@@ -4864,6 +4894,91 @@ Seja detalhado, prático e objetivo na análise.`;
     return <NotificationManager allNotificacoes={allNotificacoes} />;
   };
 
+  const renderCRMTab = () => {
+    const [crmSubTab, setCrmSubTab] = useState('dashboard');
+
+    const leadsAtivos = inscritos.filter(i => 
+      i.grupo_monitoramento === 'G1_Cursos_Atuais' || 
+      i.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024'
+    );
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">CRM & Marketing Studio</h3>
+          <p className="text-sm text-gray-600">
+            Gerencie leads ativos, crie campanhas com IA e execute ações em massa
+          </p>
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            onClick={() => setCrmSubTab('dashboard')}
+            variant={crmSubTab === 'dashboard' ? 'default' : 'outline'}
+            size="sm"
+            className={crmSubTab === 'dashboard' ? 'bg-blue-600' : ''}
+          >
+            Dashboard
+          </Button>
+          <Button
+            onClick={() => setCrmSubTab('leads')}
+            variant={crmSubTab === 'leads' ? 'default' : 'outline'}
+            size="sm"
+            className={crmSubTab === 'leads' ? 'bg-indigo-600' : ''}
+          >
+            Lista de Leads
+          </Button>
+          <Button
+            onClick={() => setCrmSubTab('marketing')}
+            variant={crmSubTab === 'marketing' ? 'default' : 'outline'}
+            size="sm"
+            className={crmSubTab === 'marketing' ? 'bg-purple-600' : ''}
+          >
+            Studio de Marketing IA
+          </Button>
+          <Button
+            onClick={() => setCrmSubTab('acoes')}
+            variant={crmSubTab === 'acoes' ? 'default' : 'outline'}
+            size="sm"
+            className={crmSubTab === 'acoes' ? 'bg-orange-600' : ''}
+          >
+            Ações em Massa
+          </Button>
+          <Button
+            onClick={async () => {
+              try {
+                toast.info('Iniciando sincronização...');
+                const { data } = await base44.functions.invoke('syncLeadsActive');
+                if (data.success) {
+                  toast.success(`Sincronização concluída! ${data.stats.total} registros processados`);
+                  queryClient.invalidateQueries(['inscritos']);
+                }
+              } catch (error) {
+                toast.error('Erro na sincronização');
+              }
+            }}
+            variant="outline"
+            size="sm"
+            className="border-green-600 text-green-700 hover:bg-green-50"
+          >
+            🔄 Sincronizar Agora
+          </Button>
+        </div>
+
+        {crmSubTab === 'dashboard' && <CRMDashboard inscritos={leadsAtivos} />}
+        {crmSubTab === 'leads' && (
+          <LeadsTable 
+            inscritos={leadsAtivos}
+            onUpdate={(id, data) => updateInscritoMutation.mutate({ id, data })}
+            onDelete={(id) => deleteInscritoMutation.mutate(id)}
+          />
+        )}
+        {crmSubTab === 'marketing' && <MarketingStudio inscritos={leadsAtivos} />}
+        {crmSubTab === 'acoes' && <BulkActions inscritos={leadsAtivos} />}
+      </div>
+    );
+  };
+
   const renderPostsTab = () => (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -5260,6 +5375,14 @@ Seja detalhado, prático e objetivo na análise.`;
           <Sparkles className="w-4 h-4 mr-2" />
           Aplicativos Inteligentes
         </Button>
+        <Button
+          onClick={() => setActiveTab('crm')}
+          variant={activeTab === 'crm' ? 'default' : 'outline'}
+          className={activeTab === 'crm' ? 'bg-gradient-to-r from-emerald-600 to-teal-600' : ''}
+        >
+          <Mail className="w-4 h-4 mr-2" />
+          CRM & Marketing
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -5299,6 +5422,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'depoimentos' && <DepoimentosManager />}
         {activeTab === 'notificacoes' && renderNotificacoesTab()}
         {activeTab === 'aplicativos' && <AplicativosManager />}
+        {activeTab === 'crm' && renderCRMTab()}
       </div>
     </div>
   );

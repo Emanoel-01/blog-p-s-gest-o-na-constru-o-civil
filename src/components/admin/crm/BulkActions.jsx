@@ -155,14 +155,34 @@ export default function BulkActions({ inscritos }) {
             </Badge>
           </div>
 
-          <div className="flex gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Button
               onClick={handleExportCSV}
               variant="outline"
-              className="flex-1"
             >
               <Download className="w-4 h-4 mr-2" />
               Exportar CSV WhatsApp
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!window.confirm('⚠️ ATENÇÃO: Esta ação importará TODOS os dados históricos (pré-Agosto/2024) da planilha Google Sheets. Execute apenas UMA VEZ. Continuar?')) {
+                  return;
+                }
+                
+                toast.info('Importando histórico... Isso pode levar alguns minutos.');
+                try {
+                  const { data } = await base44.functions.invoke('importLegacyHistory');
+                  if (data.success) {
+                    toast.success(`Histórico importado! ${data.stats.imported} registros adicionados`);
+                  }
+                } catch (error) {
+                  toast.error('Erro na importação');
+                }
+              }}
+              variant="outline"
+              className="border-amber-600 text-amber-700 hover:bg-amber-50"
+            >
+              📚 Importar Histórico (Única Vez)
             </Button>
           </div>
 

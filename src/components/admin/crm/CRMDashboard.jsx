@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, TrendingUp, DollarSign, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Users, TrendingUp, DollarSign, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 
 export default function CRMDashboard({ inscritos }) {
   const stats = {
@@ -78,7 +78,7 @@ export default function CRMDashboard({ inscritos }) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-purple-700 flex items-center gap-1">
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4" />
                 Pagos
               </span>
               <span className="font-bold text-purple-900">{stats.pagos}</span>

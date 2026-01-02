@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Trash2, Search, Filter } from 'lucide-react';
+import { Edit, Trash2, Search, Filter, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
@@ -175,7 +175,7 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
                         </Badge>
                         {inscrito.inscricao_paga && (
                           <Badge className="bg-green-100 text-green-800">
-                            <CheckCircle className="w-3 h-3 mr-1" />
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
                             Pago
                           </Badge>
                         )}

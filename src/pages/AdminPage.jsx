@@ -4299,6 +4299,9 @@ Seja detalhado, prático e objetivo na análise.`;
   // Leads state
   const [editingLead, setEditingLead] = useState(null);
   const [leadStatusFilter, setLeadStatusFilter] = useState('Todos');
+  
+  // CRM Tab state
+  const [crmSubTab, setCrmSubTab] = useState('dashboard');
 
 
 
@@ -4895,8 +4898,6 @@ Seja detalhado, prático e objetivo na análise.`;
   };
 
   const renderCRMTab = () => {
-    const [crmSubTab, setCrmSubTab] = useState('dashboard');
-
     const leadsAtivos = inscritos.filter(i => 
       i.grupo_monitoramento === 'G1_Cursos_Atuais' || 
       i.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024'

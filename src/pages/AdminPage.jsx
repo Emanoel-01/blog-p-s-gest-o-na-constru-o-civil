@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Shield, Plus, Edit, Trash2, Save, X, ExternalLink, Upload, Sparkles, Star, CheckCircle, Calendar, Download, Mail } from 'lucide-react';
+import { Shield, Plus, Edit, Trash2, Save, X, ExternalLink, Upload, Sparkles, Star, CheckCircle2, Calendar, Download, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 import DetailedReport from '../components/admin/DetailedReport';
@@ -3640,7 +3640,7 @@ Seja detalhado, prático e objetivo na análise.`;
                   onClick={handleCriarNovaEspecializacao}
                   className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-8 text-lg"
                 >
-                  <CheckCircle className="w-6 h-6 mr-2" />
+                  <CheckCircle2 className="w-6 h-6 mr-2" />
                   Criar Nova Especialização
                 </Button>
               </CardContent>
@@ -3671,7 +3671,7 @@ Seja detalhado, prático e objetivo na análise.`;
             <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
               <CardHeader>
                 <CardTitle className="text-lg text-green-800 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5" />
+                  <CheckCircle2 className="w-5 h-5" />
                   Sinergia Geral
                 </CardTitle>
               </CardHeader>
@@ -3822,7 +3822,7 @@ Seja detalhado, prático e objetivo na análise.`;
                             </>
                           ) : (
                             <>
-                              <CheckCircle className="w-4 h-4 mr-2" />
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
                               Incluir Disciplinas Selecionadas neste Ciclo
                             </>
                           )}

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MessageCircle, CheckCircle, XCircle, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
+import { MessageCircle, CheckCircle2, XCircle, Trash2, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ComentariosManager() {
@@ -244,7 +244,7 @@ export default function ComentariosManager() {
                             })}
                             className="bg-green-600 hover:bg-green-700"
                           >
-                            <CheckCircle className="w-4 h-4 mr-1" />
+                            <CheckCircle2 className="w-4 h-4 mr-1" />
                             Aprovar
                           </Button>
                         )}

@@ -37,6 +37,12 @@ Deno.serve(async (req) => {
     allG1.forEach(i => {
       const key = normalize(i.nome_curso);
       if (stats[key]) {
+        // Excluir "Matriculado Turma Antiga" apenas do curso Manutenção Predial 4.0
+        const isManutencao = key === normalize("PÓS-GRADUAÇÃO - ENGENHARIA E GESTÃO DE MANUTENÇÃO PREDIAL NA CONSTRUÇÃO 4.0");
+        if (isManutencao && i.status_crm === 'Matriculado Turma Antiga') {
+          return; // Ignora este lead
+        }
+        
         stats[key].inscritos++;
         totalInscritos++;
         if (i.inscricao_paga) {

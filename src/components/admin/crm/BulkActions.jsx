@@ -77,6 +77,22 @@ export default function BulkActions({ inscritos, currentUser }) {
       });
 
       if (data.success) {
+        // Registrar no log de atividades
+        try {
+          await base44.entities.CRMActivityLog.create({
+            user_email: currentUser?.email,
+            user_name: currentUser?.full_name,
+            action_type: 'email_em_massa',
+            details: {
+              destinatarios: `${data.stats.enviados} lead(s)`,
+              assunto: emailForm.assunto
+            },
+            timestamp: new Date().toISOString()
+          });
+        } catch (logError) {
+          console.error('Erro ao registrar log:', logError);
+        }
+        
         toast.success(`${data.stats.enviados} email(s) enviado(s) com sucesso!`);
         if (data.stats.falhas > 0) {
           toast.warning(`${data.stats.falhas} email(s) falharam`);

@@ -137,21 +137,22 @@ Deno.serve(async (req) => {
       const isCurrent = CURRENT_COURSES.includes(nomeCurso);
       const isLegacy = LEGACY_COURSES.includes(nomeCurso);
       
-      let grupoMonitoramento = 'Historico_Pre_Ago2024';
+      let grupoMonitoramento = null;
       
+      // G1: Cursos Atuais com data >= 01/08/2024
       if (inscricaoDate >= cutoffDate && isCurrent) {
         grupoMonitoramento = 'G1_Cursos_Atuais';
-      } else if (inscricaoDate < cutoffDate && isLegacy) {
+        stats.g1++;
+      } 
+      // G2: Cursos Legados com data < 01/08/2024
+      else if (inscricaoDate < cutoffDate && isLegacy) {
         grupoMonitoramento = 'G2_Cursos_Legacy_Pos_Ago2024';
-      } else {
+        stats.g2++;
+      }
+      // Ignorar cursos que não se encaixam em G1 ou G2
+      else {
         stats.skipped++;
         continue;
-      }
-      
-      if (grupoMonitoramento === 'G1_Cursos_Atuais') {
-        stats.g1++;
-      } else {
-        stats.g2++;
       }
       
       const telefoneOriginal = tel03;
@@ -180,7 +181,12 @@ Deno.serve(async (req) => {
       const existing = allExisting.find(e => e.email === email && e.nome_curso === nomeCurso);
       
       if (existing) {
-        toUpdate.push({ id: existing.id, ...inscritoData });
+        // Preservar status de "Matriculado" se já foi definido manualmente
+        const status_crm = (existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova')
+          ? existing.status_crm
+          : inscritoData.status_crm;
+
+        toUpdate.push({ id: existing.id, ...inscritoData, status_crm });
         stats.updated++;
       } else {
         toCreate.push(inscritoData);
@@ -201,7 +207,7 @@ Deno.serve(async (req) => {
     
     return Response.json({
       success: true,
-      message: `Sincronização concluída com sucesso`,
+      message: `Sincronização concluída: ${stats.created} criados, ${stats.updated} atualizados, ${stats.skipped} ignorados`,
       stats: stats,
       timestamp: new Date().toISOString()
     });

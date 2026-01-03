@@ -171,7 +171,7 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
                           {inscrito.status_crm}
                         </Badge>
                         <Badge className={getGrupoColor(inscrito.grupo_monitoramento)}>
-                          {inscrito.grupo_monitoramento === 'G1_Cursos_Atuais' ? 'G1' : 'G2'}
+                          Curso Atual
                         </Badge>
                         {inscrito.inscricao_paga && (
                           <Badge className="bg-green-100 text-green-800">

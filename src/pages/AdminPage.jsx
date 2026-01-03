@@ -4947,21 +4947,24 @@ Seja detalhado, prático e objetivo na análise.`;
           <Button
             onClick={async () => {
               try {
-                toast.info('Iniciando sincronização...');
+                toast.info('Sincronizando leads dos cursos atuais (G1)...');
                 const { data } = await base44.functions.invoke('syncLeadsActive');
                 if (data.success) {
-                  toast.success(`Sincronização concluída! ${data.stats.total} registros processados`);
+                  const msg = `✅ ${data.stats.created} novos leads | ${data.stats.updated} atualizados | ${data.stats.total} total processados (G1)`;
+                  toast.success(msg, { duration: 5000 });
                   queryClient.invalidateQueries(['inscritos']);
+                } else {
+                  toast.error(data.error || 'Erro na sincronização');
                 }
               } catch (error) {
-                toast.error('Erro na sincronização');
+                toast.error('Erro: ' + error.message);
               }
             }}
             variant="outline"
             size="sm"
-            className="border-green-600 text-green-700 hover:bg-green-50"
+            className="border-green-600 text-green-700 hover:bg-green-50 font-semibold"
           >
-            🔄 Sincronizar Agora
+            🔄 Sincronizar Leads G1
           </Button>
         </div>
 

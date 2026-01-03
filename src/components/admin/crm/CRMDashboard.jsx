@@ -6,8 +6,6 @@ import { Users, TrendingUp, DollarSign, AlertCircle, CheckCircle2, Clock } from 
 export default function CRMDashboard({ inscritos }) {
   const stats = {
     total: inscritos.length,
-    g1: inscritos.filter(i => i.grupo_monitoramento === 'G1_Cursos_Atuais').length,
-    g2: inscritos.filter(i => i.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024').length,
     novos: inscritos.filter(i => i.status_crm === 'Novo').length,
     contatados: inscritos.filter(i => i.status_crm === 'Contatado').length,
     em_negociacao: inscritos.filter(i => i.status_crm === 'Em Negociação').length,
@@ -29,10 +27,9 @@ export default function CRMDashboard({ inscritos }) {
         </CardHeader>
         <CardContent>
           <div className="text-3xl font-bold text-blue-900">{stats.total}</div>
-          <div className="flex gap-2 mt-2">
-            <Badge className="bg-blue-600 text-white text-xs">G1: {stats.g1}</Badge>
-            <Badge className="bg-indigo-600 text-white text-xs">G2: {stats.g2}</Badge>
-          </div>
+          <p className="text-xs text-blue-700 mt-2">
+            Leads ativos (Cursos Atuais - Pós Ago/2024)
+          </p>
         </CardContent>
       </Card>
 

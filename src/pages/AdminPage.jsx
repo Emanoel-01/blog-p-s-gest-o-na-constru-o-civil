@@ -5096,19 +5096,6 @@ Seja detalhado, prático e objetivo na análise.`;
           >
             🧹 Limpar Duplicatas
           </Button>
-          <a 
-            href={base44.agents.getWhatsAppConnectURL('gpo_intelligence')} 
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-green-600 text-green-700 hover:bg-green-50 font-semibold"
-            >
-              💬 GPO Intelligence (WhatsApp)
-            </Button>
-          </a>
         </div>
 
         {crmSubTab === 'dashboard' && <CRMDashboard inscritos={leadsG1Dashboard} />}

@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
     }
 
     const cutoffDate = new Date('2024-08-01');
-    const stats = { total: 0, g1: 0, g2: 0, skipped: 0, updated: 0, created: 0 };
+    const stats = { total: 0, g1: 0, g2: 0, skipped: 0, updated: 0, created: 0, debug_samples: [] };
 
     const allExisting = await base44.asServiceRole.entities.Inscrito.list();
     const toCreate = [];
@@ -129,6 +129,23 @@ Deno.serve(async (req) => {
       const email = (row[9] || '').trim().toLowerCase();
       const vinculoCurso = row[10] || '';
       const inscricaoPaga = row[12] === 'SIM';
+
+      // Debug: guardar amostra dos primeiros 5 registros
+      if (stats.debug_samples.length < 5) {
+        stats.debug_samples.push({
+          row: i,
+          nomeCurso,
+          nomeCompleto,
+          email,
+          dataInscricao,
+          validations: {
+            hasNome: !!nomeCompleto,
+            hasData: !!dataInscricao,
+            hasEmail: !!email,
+            hasCurso: !!nomeCurso
+          }
+        });
+      }
 
       // Validações básicas
       if (!nomeCompleto || !dataInscricao || !email || !nomeCurso) {
@@ -154,6 +171,15 @@ Deno.serve(async (req) => {
       // Ignorar cursos que não se encaixam em G1 ou G2
       else {
         stats.skipped++;
+        // Debug: guardar amostra de cursos ignorados
+        if (stats.debug_samples.length < 10) {
+          stats.debug_samples.push({
+            row: i,
+            nomeCurso,
+            email,
+            reason: `Curso não está nas listas. isCurrent: ${isCurrent}, isLegacy: ${isLegacy}, data: ${dataInscricao}`
+          });
+        }
         continue;
       }
 

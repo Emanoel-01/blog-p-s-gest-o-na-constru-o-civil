@@ -143,9 +143,43 @@ Deno.serve(async (req) => {
     }
 
     const cutoffDate = new Date('2024-08-01');
-    const stats = { total: 0, g1: 0, g2: 0, skipped: 0, updated: 0, created: 0, debug_samples: [] };
+    const stats = { total: 0, g1: 0, g2: 0, skipped: 0, updated: 0, created: 0, deleted_duplicates: 0, debug_samples: [] };
 
     const allExisting = await base44.asServiceRole.entities.Inscrito.list();
+    
+    // LIMPAR DUPLICATAS EXISTENTES NO BANCO
+    const duplicatesMap = new Map();
+    const toDelete = [];
+    
+    for (const lead of allExisting) {
+      const key = `${lead.email?.toLowerCase()}|${normalizarNomeCurso(lead.nome_curso || '')}`;
+      
+      if (duplicatesMap.has(key)) {
+        const existing = duplicatesMap.get(key);
+        const existingDate = new Date(existing.data_inscricao);
+        const currentDate = new Date(lead.data_inscricao);
+        
+        // Manter apenas o mais recente
+        if (currentDate > existingDate) {
+          toDelete.push(existing.id);
+          duplicatesMap.set(key, lead);
+        } else {
+          toDelete.push(lead.id);
+        }
+      } else {
+        duplicatesMap.set(key, lead);
+      }
+    }
+    
+    // Deletar duplicatas
+    for (const id of toDelete) {
+      await base44.asServiceRole.entities.Inscrito.delete(id);
+      stats.deleted_duplicates++;
+    }
+    
+    // Recarregar lista após limpeza
+    const cleanedExisting = await base44.asServiceRole.entities.Inscrito.list();
+    
     const toCreate = [];
     const toUpdate = [];
 
@@ -310,9 +344,9 @@ Deno.serve(async (req) => {
 
     // Processar leads deduplicados
     for (const inscritoData of processedLeads.values()) {
-      const existing = allExisting.find(e => 
+      const existing = cleanedExisting.find(e => 
         e.email?.toLowerCase() === inscritoData.email.toLowerCase() && 
-        e.nome_curso === inscritoData.nome_curso
+        normalizarNomeCurso(e.nome_curso || '') === normalizarNomeCurso(inscritoData.nome_curso)
       );
 
       if (existing) {
@@ -325,9 +359,12 @@ Deno.serve(async (req) => {
 
           toUpdate.push({ id: existing.id, ...inscritoData, status_crm });
           stats.updated++;
+        } else {
+          // G2 existente: não atualizar mas contar para estatísticas
+          // (já existe no banco, não precisa fazer nada)
         }
-        // G2 existente: não atualizar, apenas contar
       } else {
+        // Criar novo lead (tanto G1 quanto G2)
         toCreate.push(inscritoData);
         stats.created++;
       }
@@ -353,7 +390,7 @@ Deno.serve(async (req) => {
     
     return Response.json({
       success: true,
-      message: `Sincronização concluída: ${stats.created} criados, ${stats.updated} atualizados, ${stats.skipped} ignorados`,
+      message: `Sincronização concluída: ${stats.created} criados, ${stats.updated} atualizados, ${stats.deleted_duplicates} duplicatas removidas, ${stats.skipped} ignorados`,
       stats: stats,
       timestamp: new Date().toISOString()
     });

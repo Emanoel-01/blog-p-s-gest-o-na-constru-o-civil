@@ -15,11 +15,6 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
   const [editForm, setEditForm] = useState({});
 
   const filtered = inscritos.filter(inscrito => {
-    // Mostrar G1 e G2, excluir "Matriculado Turma Antiga"
-    const isValidGroup = (inscrito.grupo_monitoramento === 'G1_Cursos_Atuais' || 
-                          inscrito.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024') &&
-                         inscrito.status_crm !== 'Matriculado Turma Antiga';
-    
     const matchesSearch = !searchTerm || 
       inscrito.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscrito.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -28,7 +23,7 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
     const matchesStatus = statusFilter === 'Todos' || inscrito.status_crm === statusFilter;
     const matchesGrupo = grupoFilter === 'Todos' || inscrito.grupo_monitoramento === grupoFilter;
     
-    return isValidGroup && matchesSearch && matchesStatus && matchesGrupo;
+    return matchesSearch && matchesStatus && matchesGrupo;
   });
 
   const handleEdit = (inscrito) => {

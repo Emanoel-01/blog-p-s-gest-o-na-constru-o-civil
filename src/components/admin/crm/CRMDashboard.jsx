@@ -4,19 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Users, TrendingUp, DollarSign, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 
 export default function CRMDashboard({ inscritos }) {
-  // Filtrar G1 e G2, excluindo "Matriculado Turma Antiga"
+  // Dashboard mostra APENAS G1, excluindo "Matriculado Turma Antiga"
   const leadsAtivos = inscritos.filter(i => 
-    (i.grupo_monitoramento === 'G1_Cursos_Atuais' || i.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024') && 
-    i.status_crm !== 'Matriculado Turma Antiga'
-  );
-  
-  const leadsG1 = inscritos.filter(i => 
     i.grupo_monitoramento === 'G1_Cursos_Atuais' && 
-    i.status_crm !== 'Matriculado Turma Antiga'
-  );
-  
-  const leadsG2 = inscritos.filter(i => 
-    i.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024' && 
     i.status_crm !== 'Matriculado Turma Antiga'
   );
 
@@ -44,7 +34,7 @@ export default function CRMDashboard({ inscritos }) {
         <CardContent>
           <div className="text-3xl font-bold text-blue-900">{stats.total}</div>
                   <p className="text-xs text-blue-700 mt-2">
-                    {leadsG1.length} leads G1 + {leadsG2.length} leads G2
+                    Leads G1 (Cursos Atuais - Pós Ago/2024)
                   </p>
         </CardContent>
       </Card>

@@ -4,6 +4,16 @@ const SPREADSHEET_ID = '1VdfOYBmHV8RnveUmpGPgWTGkTxJmQAi5lWDPpquIU30';
 const SHEET_NAME = 'listagem';
 const RANGE = 'listagem!A:M';
 
+// Função auxiliar para normalizar nome do curso
+function normalizarNomeCurso(nome) {
+  return nome
+    .replace(/^PÓS-GRADUAÇÃO - /i, '')
+    .replace(/^MBA - /i, '')
+    .replace(/^ESPECIALIZAÇÃO EM /i, '')
+    .trim()
+    .toUpperCase();
+}
+
 const CURRENT_COURSES = [
   "Tecnologia BIM na Construção Civil",
   "Neuroarquitetura",
@@ -12,7 +22,7 @@ const CURRENT_COURSES = [
   "Acústica Arquitetônica e Iluminação",
   "Design de Interiores Contemporâneo",
   "Engenharia Legal e Perícias: Avaliações e Desempenho"
-];
+].map(normalizarNomeCurso);
 
 const LEGACY_COURSES = [
   "Acústica Arquitetônica e Iluminação",
@@ -35,7 +45,7 @@ const LEGACY_COURSES = [
   "Perícias Técnicas Aplicadas às Engenharias",
   "Projetos de Arquitetura e Design: Da Edificação ao Interior",
   "Tecnologia BIM na Construção Civil"
-];
+].map(normalizarNomeCurso);
 
 function sanitizePhone(phone) {
   if (!phone) return '';
@@ -157,8 +167,11 @@ Deno.serve(async (req) => {
 
       const inscricaoDate = new Date(dataInscricao);
 
-      const isCurrent = CURRENT_COURSES.includes(nomeCurso);
-      const isLegacy = LEGACY_COURSES.includes(nomeCurso);
+      // Normalizar o nome do curso da planilha para comparação
+      const nomeCursoNormalizado = normalizarNomeCurso(nomeCurso);
+
+      const isCurrent = CURRENT_COURSES.includes(nomeCursoNormalizado);
+      const isLegacy = LEGACY_COURSES.includes(nomeCursoNormalizado);
 
       let grupoMonitoramento = null;
 
@@ -185,8 +198,8 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Chave única: email + curso
-      const uniqueKey = `${email}|${nomeCurso}`;
+      // Chave única: email + curso normalizado (para evitar duplicações por diferenças de case/espaços)
+      const uniqueKey = `${email}|${nomeCursoNormalizado}`;
 
       // Deduplicação: pegar apenas a inscrição mais recente
       if (processedLeads.has(uniqueKey)) {

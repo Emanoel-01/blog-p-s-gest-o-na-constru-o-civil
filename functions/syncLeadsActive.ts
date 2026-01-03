@@ -4,6 +4,16 @@ const SPREADSHEET_ID = '1VdfOYBmHV8RnveUmpGPgWTGkTxJmQAi5lWDPpquIU30';
 const SHEET_NAME = 'listagem';
 const RANGE = 'listagem!A:M';
 
+const CURRENT_COURSES = [
+  "Tecnologia BIM na Construção Civil",
+  "Neuroarquitetura",
+  "Gestão de Projetos e Obras",
+  "Engenharia e Gestão de Manutenção Predial na Construção 4.0",
+  "Acústica Arquitetônica e Iluminação",
+  "Design de Interiores Contemporâneo",
+  "Engenharia Legal e Perícias: Avaliações e Desempenho"
+];
+
 const LEGACY_COURSES = [
   "Acústica Arquitetônica e Iluminação",
   "Design de Interiores Contemporâneo",
@@ -123,13 +133,20 @@ Deno.serve(async (req) => {
       }
       
       const inscricaoDate = new Date(dataInscricao);
-      if (inscricaoDate < cutoffDate) {
+      
+      const isCurrent = CURRENT_COURSES.includes(nomeCurso);
+      const isLegacy = LEGACY_COURSES.includes(nomeCurso);
+      
+      let grupoMonitoramento = 'Historico_Pre_Ago2024';
+      
+      if (inscricaoDate >= cutoffDate && isCurrent) {
+        grupoMonitoramento = 'G1_Cursos_Atuais';
+      } else if (inscricaoDate < cutoffDate && isLegacy) {
+        grupoMonitoramento = 'G2_Cursos_Legacy_Pos_Ago2024';
+      } else {
         stats.skipped++;
         continue;
       }
-      
-      const isLegacy = LEGACY_COURSES.includes(nomeCurso);
-      const grupoMonitoramento = isLegacy ? 'G2_Cursos_Legacy_Pos_Ago2024' : 'G1_Cursos_Atuais';
       
       if (grupoMonitoramento === 'G1_Cursos_Atuais') {
         stats.g1++;

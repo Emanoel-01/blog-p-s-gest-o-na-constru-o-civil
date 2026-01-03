@@ -106,67 +106,100 @@ Deno.serve(async (req) => {
 
     const cutoffDate = new Date('2024-08-01');
     const stats = { total: 0, g1: 0, g2: 0, skipped: 0, updated: 0, created: 0 };
-    
+
     const allExisting = await base44.asServiceRole.entities.Inscrito.list();
     const toCreate = [];
     const toUpdate = [];
-    
+
+    // Map para deduplicação: key = email + nome_curso
+    const processedLeads = new Map();
+
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      
+
       const ano = parseInt(row[0]) || null;
       const mes = parseInt(row[1]) || null;
       const dia = parseInt(row[2]) || null;
       const dataInscricao = parseDate(row[3]);
-      const nomeCurso = row[4] || '';
-      const nomeCompleto = row[5] || '';
+      const nomeCurso = (row[4] || '').trim();
+      const nomeCompleto = (row[5] || '').trim();
       const tel03 = row[6] || '';
       const tel01 = row[7] || '';
       const tel02 = row[8] || '';
-      const email = row[9] || '';
+      const email = (row[9] || '').trim().toLowerCase();
       const vinculoCurso = row[10] || '';
       const inscricaoPaga = row[12] === 'SIM';
-      
-      if (!nomeCompleto || !dataInscricao) {
+
+      // Validações básicas
+      if (!nomeCompleto || !dataInscricao || !email || !nomeCurso) {
         stats.skipped++;
         continue;
       }
-      
+
       const inscricaoDate = new Date(dataInscricao);
-      
+
       const isCurrent = CURRENT_COURSES.includes(nomeCurso);
       const isLegacy = LEGACY_COURSES.includes(nomeCurso);
-      
+
       let grupoMonitoramento = null;
-      
+
       // G1: Cursos Atuais com data >= 01/08/2024
       if (inscricaoDate >= cutoffDate && isCurrent) {
         grupoMonitoramento = 'G1_Cursos_Atuais';
-        stats.g1++;
       } 
-      // G2: Cursos Legados com data < 01/08/2024
-      else if (inscricaoDate < cutoffDate && isLegacy) {
+      // G2: Cursos Legados independente da data (post Aug 2024 legacy courses)
+      else if (isLegacy) {
         grupoMonitoramento = 'G2_Cursos_Legacy_Pos_Ago2024';
-        stats.g2++;
       }
       // Ignorar cursos que não se encaixam em G1 ou G2
       else {
         stats.skipped++;
         continue;
       }
-      
-      const telefoneOriginal = tel03;
-      const telefoneSanitizado = sanitizePhone(tel03);
-      
-      const inscritoData = {
+
+      // Chave única: email + curso
+      const uniqueKey = `${email}|${nomeCurso}`;
+
+      // Deduplicação: pegar apenas a inscrição mais recente
+      if (processedLeads.has(uniqueKey)) {
+        const existing = processedLeads.get(uniqueKey);
+        const existingDate = new Date(existing.data_inscricao);
+
+        // Manter apenas a inscrição mais recente
+        if (inscricaoDate > existingDate) {
+          processedLeads.set(uniqueKey, {
+            ano,
+            mes,
+            dia,
+            data_inscricao: dataInscricao,
+            nome_curso: nomeCurso,
+            nome_completo: nomeCompleto,
+            telefone_principal: tel03,
+            telefone_sanitizado: sanitizePhone(tel03),
+            telefone_secundario: tel01,
+            telefone_terciario: tel02,
+            email,
+            vinculo_curso: vinculoCurso,
+            inscricao_paga: inscricaoPaga,
+            grupo_monitoramento: grupoMonitoramento,
+            curso_e_legacy: isLegacy,
+            ultima_sincronizacao: new Date().toISOString(),
+            status_crm: 'Novo'
+          });
+        }
+        continue;
+      }
+
+      // Adicionar ao map
+      processedLeads.set(uniqueKey, {
         ano,
         mes,
         dia,
         data_inscricao: dataInscricao,
         nome_curso: nomeCurso,
         nome_completo: nomeCompleto,
-        telefone_principal: telefoneOriginal,
-        telefone_sanitizado: telefoneSanitizado,
+        telefone_principal: tel03,
+        telefone_sanitizado: sanitizePhone(tel03),
         telefone_secundario: tel01,
         telefone_terciario: tel02,
         email,
@@ -176,10 +209,16 @@ Deno.serve(async (req) => {
         curso_e_legacy: isLegacy,
         ultima_sincronizacao: new Date().toISOString(),
         status_crm: 'Novo'
-      };
-      
-      const existing = allExisting.find(e => e.email === email && e.nome_curso === nomeCurso);
-      
+      });
+    }
+
+    // Processar leads deduplicados
+    for (const inscritoData of processedLeads.values()) {
+      const existing = allExisting.find(e => 
+        e.email?.toLowerCase() === inscritoData.email.toLowerCase() && 
+        e.nome_curso === inscritoData.nome_curso
+      );
+
       if (existing) {
         // Preservar status de "Matriculado" se já foi definido manualmente
         const status_crm = (existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova')
@@ -192,7 +231,14 @@ Deno.serve(async (req) => {
         toCreate.push(inscritoData);
         stats.created++;
       }
-      
+
+      // Incrementar contadores de grupo
+      if (inscritoData.grupo_monitoramento === 'G1_Cursos_Atuais') {
+        stats.g1++;
+      } else if (inscritoData.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024') {
+        stats.g2++;
+      }
+
       stats.total++;
     }
     

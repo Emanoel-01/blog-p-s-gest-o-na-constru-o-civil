@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -205,6 +206,29 @@ export default function AdminPage() {
   const [disciplinasEditaveis, setDisciplinasEditaveis] = useState({});
   const [disciplinasSelecionadas, setDisciplinasSelecionadas] = useState({});
   const [incluindoDisciplinas, setIncluindoDisciplinas] = useState({});
+
+  // Estado para edição de atividades
+  const [editingAtividade, setEditingAtividade] = useState(null);
+  const [atividadeEditTipo, setAtividadeEditTipo] = useState(null);
+
+  // Chatbot FAQs state
+  const [editingFAQ, setEditingFAQ] = useState(null);
+  const [showFAQForm, setShowFAQForm] = useState(false);
+  const [faqForm, setFaqForm] = useState({
+    pergunta: '',
+    resposta: '',
+    pagina_destino: '',
+    categoria: 'Informações Gerais',
+    ativo: true,
+    ordem: 0
+  });
+
+  // Leads state
+  const [editingLead, setEditingLead] = useState(null);
+  const [leadStatusFilter, setLeadStatusFilter] = useState('Todos');
+  
+  // CRM Tab state
+  const [crmSubTab, setCrmSubTab] = useState('dashboard');
 
   // Queries
   const { data: ciclos = [], isLoading: loadingCiclos } = useQuery({
@@ -651,7 +675,6 @@ export default function AdminPage() {
     }
   });
 
-  // ========== MUTATIONS PARA PERGUNTAS SEM RESPOSTA ==========
   const updatePerguntaSemRespostaMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.PerguntaSemResposta.update(id, data),
     onSuccess: () => {
@@ -1734,7 +1757,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     setAnaliseForm(prev => ({
       ...prev,
       ciclos_selecionados: prev.ciclos_selecionados.includes(cicloId)
-        ? prev.ciclos_selecionados.filter(id => id !== cicloId)
+        ? prev.ciclos.filter(id => id !== cicloId)
         : [...prev.ciclos_selecionados, cicloId]
     }));
   };
@@ -4280,31 +4303,6 @@ Seja detalhado, prático e objetivo na análise.`;
     />
   );
 
-  // Estado para edição de atividades
-  const [editingAtividade, setEditingAtividade] = useState(null);
-  const [atividadeEditTipo, setAtividadeEditTipo] = useState(null);
-
-  // Chatbot FAQs state
-  const [editingFAQ, setEditingFAQ] = useState(null);
-  const [showFAQForm, setShowFAQForm] = useState(false);
-  const [faqForm, setFaqForm] = useState({
-    pergunta: '',
-    resposta: '',
-    pagina_destino: '',
-    categoria: 'Informações Gerais',
-    ativo: true,
-    ordem: 0
-  });
-
-  // Leads state
-  const [editingLead, setEditingLead] = useState(null);
-  const [leadStatusFilter, setLeadStatusFilter] = useState('Todos');
-  
-  // CRM Tab state
-  const [crmSubTab, setCrmSubTab] = useState('dashboard');
-
-
-
   const renderIncubadoraTab = () => {
     return (
       <div className="space-y-6">
@@ -4898,7 +4896,14 @@ Seja detalhado, prático e objetivo na análise.`;
   };
 
   const renderCRMTab = () => {
-    const leadsAtivos = inscritos.filter(i => 
+    // Filtrar apenas G1, excluindo "Matriculado Turma Antiga" para o dashboard e marketing
+    const leadsG1Dashboard = inscritos.filter(i => 
+      i.grupo_monitoramento === 'G1_Cursos_Atuais' && 
+      i.status_crm !== 'Matriculado Turma Antiga'
+    );
+
+    // Para a lista de leads, mostrar todos os G1 (sem filtro de status_crm)
+    const leadsG1Completo = inscritos.filter(i => 
       i.grupo_monitoramento === 'G1_Cursos_Atuais'
     );
 
@@ -4950,8 +4955,8 @@ Seja detalhado, prático e objetivo na análise.`;
                 toast.info('Sincronizando leads dos cursos atuais (G1)...');
                 const { data } = await base44.functions.invoke('syncLeadsActive');
                 if (data.success) {
-                  const msg = `✅ ${data.stats.created} novos leads | ${data.stats.updated} atualizados | ${data.stats.total} total processados (G1)`;
-                  toast.success(msg, { duration: 5000 });
+                  const msg = `✅ ${data.stats.g1} leads G1 | ${data.stats.g2} leads G2 | ${data.stats.created} criados | ${data.stats.updated} atualizados | ${data.stats.skipped} ignorados`;
+                  toast.success(msg, { duration: 6000 });
                   queryClient.invalidateQueries(['inscritos']);
                 } else {
                   toast.error(data.error || 'Erro na sincronização');
@@ -4968,16 +4973,16 @@ Seja detalhado, prático e objetivo na análise.`;
           </Button>
         </div>
 
-        {crmSubTab === 'dashboard' && <CRMDashboard inscritos={leadsAtivos} />}
+        {crmSubTab === 'dashboard' && <CRMDashboard inscritos={leadsG1Dashboard} />}
         {crmSubTab === 'leads' && (
           <LeadsTable 
-            inscritos={leadsAtivos}
+            inscritos={leadsG1Completo}
             onUpdate={(id, data) => updateInscritoMutation.mutate({ id, data })}
             onDelete={(id) => deleteInscritoMutation.mutate(id)}
           />
         )}
-        {crmSubTab === 'marketing' && <MarketingStudio inscritos={leadsAtivos} />}
-        {crmSubTab === 'acoes' && <BulkActions inscritos={leadsAtivos} />}
+        {crmSubTab === 'marketing' && <MarketingStudio inscritos={leadsG1Dashboard} />}
+        {crmSubTab === 'acoes' && <BulkActions inscritos={leadsG1Dashboard} />}
       </div>
     );
   };
@@ -5125,30 +5130,6 @@ Seja detalhado, prático e objetivo na análise.`;
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">Tags</label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {postForm.tags.map((tag, index) => (
-                  <span key={index} className="bg-pink-100 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                    {tag}
-                    <button onClick={() => handleRemoveTag(index)} className="text-red-600 hover:text-red-800">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <Input
-                placeholder="Digite uma tag e pressione Enter"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddTag(e.target.value.trim());
-                    e.target.value = '';
-                  }
-                }}
-              />
             </div>
 
             <div>

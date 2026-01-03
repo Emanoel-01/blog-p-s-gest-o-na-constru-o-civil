@@ -4899,8 +4899,7 @@ Seja detalhado, prático e objetivo na análise.`;
 
   const renderCRMTab = () => {
     const leadsAtivos = inscritos.filter(i => 
-      i.grupo_monitoramento === 'G1_Cursos_Atuais' || 
-      i.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024'
+      i.grupo_monitoramento === 'G1_Cursos_Atuais'
     );
 
     return (

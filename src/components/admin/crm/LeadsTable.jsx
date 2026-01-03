@@ -15,6 +15,11 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
   const [editForm, setEditForm] = useState({});
 
   const filtered = inscritos.filter(inscrito => {
+    // Mostrar G1 e G2, excluir "Matriculado Turma Antiga"
+    const isValidGroup = (inscrito.grupo_monitoramento === 'G1_Cursos_Atuais' || 
+                          inscrito.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024') &&
+                         inscrito.status_crm !== 'Matriculado Turma Antiga';
+    
     const matchesSearch = !searchTerm || 
       inscrito.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscrito.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -23,7 +28,7 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
     const matchesStatus = statusFilter === 'Todos' || inscrito.status_crm === statusFilter;
     const matchesGrupo = grupoFilter === 'Todos' || inscrito.grupo_monitoramento === grupoFilter;
     
-    return matchesSearch && matchesStatus && matchesGrupo;
+    return isValidGroup && matchesSearch && matchesStatus && matchesGrupo;
   });
 
   const handleEdit = (inscrito) => {
@@ -59,6 +64,14 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
       case 'G1_Cursos_Atuais': return 'bg-emerald-100 text-emerald-800';
       case 'G2_Cursos_Legacy_Pos_Ago2024': return 'bg-indigo-100 text-indigo-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const getGrupoLabel = (grupo) => {
+    switch(grupo) {
+      case 'G1_Cursos_Atuais': return 'G1 - Atual';
+      case 'G2_Cursos_Legacy_Pos_Ago2024': return 'G2 - Legacy';
+      default: return 'N/A';
     }
   };
 
@@ -174,7 +187,7 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
                           {inscrito.status_crm}
                         </Badge>
                         <Badge className={getGrupoColor(inscrito.grupo_monitoramento)}>
-                          Curso Atual
+                          {getGrupoLabel(inscrito.grupo_monitoramento)}
                         </Badge>
                         {inscrito.inscricao_paga && (
                           <Badge className="bg-green-100 text-green-800">

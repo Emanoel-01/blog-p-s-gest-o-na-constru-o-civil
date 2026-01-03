@@ -14,6 +14,23 @@ function normalizarNomeCurso(nome) {
     .toUpperCase();
 }
 
+// Função auxiliar para normalizar nome de pessoa
+function normalizarNomePessoa(nome) {
+  return nome
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, ' ');
+}
+
+// Lista de alunos G1 isentos de pagamento
+const ALUNOS_ISENTOS_G1 = [
+  "LAVINEA SILVA NASCIMENTO",
+  "LUANA GABRIELLA DE ARAÚJO GOMES",
+  "MATEUS HENRIQUE SANTOS DE SOUZA",
+  "RAYANNE SILVEIRA DE ARAÚJO",
+  "SÂMELLA VARELA DE SOUZA"
+].map(normalizarNomePessoa);
+
 // Lista completa de cursos G1 (Cursos Atuais)
 const CURRENT_COURSES = [
   "PÓS-GRADUAÇÃO - ACÚSTICA ARQUITETÔNICA E ILUMINAÇÃO",
@@ -189,6 +206,7 @@ Deno.serve(async (req) => {
 
       // Normalizar o nome do curso da planilha para comparação
       const nomeCursoNormalizado = normalizarNomeCurso(nomeCurso);
+      const nomeCompletoNormalizado = normalizarNomePessoa(nomeCompleto);
 
       const isCurrent = CURRENT_COURSES.includes(nomeCursoNormalizado);
       const isLegacy = LEGACY_COURSES.includes(nomeCursoNormalizado);
@@ -263,6 +281,11 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Verificar se é aluno isento G1 (marcar como pago)
+      const isIsentoG1 = grupoMonitoramento === 'G1_Cursos_Atuais' && 
+                         ALUNOS_ISENTOS_G1.includes(nomeCompletoNormalizado);
+      const inscricaoPagaFinal = isIsentoG1 ? true : inscricaoPaga;
+
       // Adicionar ao map
       processedLeads.set(uniqueKey, {
         ano,
@@ -277,7 +300,7 @@ Deno.serve(async (req) => {
         telefone_terciario: tel02,
         email,
         vinculo_curso: vinculoCurso,
-        inscricao_paga: inscricaoPaga,
+        inscricao_paga: inscricaoPagaFinal,
         grupo_monitoramento: grupoMonitoramento,
         curso_e_legacy: isLegacy,
         ultima_sincronizacao: new Date().toISOString(),
@@ -293,13 +316,17 @@ Deno.serve(async (req) => {
       );
 
       if (existing) {
-        // Preservar status de "Matriculado" se já foi definido manualmente
-        const status_crm = (existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova')
-          ? existing.status_crm
-          : inscritoData.status_crm;
+        // Atualizar apenas leads G1 (não atualizar G2)
+        if (inscritoData.grupo_monitoramento === 'G1_Cursos_Atuais') {
+          // Preservar status de "Matriculado" se já foi definido manualmente
+          const status_crm = (existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova')
+            ? existing.status_crm
+            : inscritoData.status_crm;
 
-        toUpdate.push({ id: existing.id, ...inscritoData, status_crm });
-        stats.updated++;
+          toUpdate.push({ id: existing.id, ...inscritoData, status_crm });
+          stats.updated++;
+        }
+        // G2 existente: não atualizar, apenas contar
       } else {
         toCreate.push(inscritoData);
         stats.created++;

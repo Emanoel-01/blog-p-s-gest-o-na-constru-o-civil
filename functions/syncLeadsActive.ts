@@ -357,7 +357,10 @@ Deno.serve(async (req) => {
             ? existing.status_crm
             : inscritoData.status_crm;
 
-          toUpdate.push({ id: existing.id, ...inscritoData, status_crm });
+          // IMPORTANTE: Atualizar inscricao_paga se mudou na planilha (de não pago para pago)
+          const inscricao_paga = inscritoData.inscricao_paga || existing.inscricao_paga;
+
+          toUpdate.push({ id: existing.id, ...inscritoData, status_crm, inscricao_paga });
           stats.updated++;
         } else {
           // G2 existente: não atualizar mas contar para estatísticas

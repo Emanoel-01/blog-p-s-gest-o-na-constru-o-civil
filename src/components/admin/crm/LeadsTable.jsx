@@ -1,18 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Trash2, Search, Filter, CheckCircle2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Edit, Trash2, Search, Filter, CheckCircle2, CalendarIcon, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
   const [grupoFilter, setGrupoFilter] = useState('Todos');
+  const [cursoFilter, setCursoFilter] = useState('Todos');
+  const [dataInicio, setDataInicio] = useState(null);
+  const [dataFim, setDataFim] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
+
+  // Extrair lista única de cursos
+  const cursosUnicos = useMemo(() => {
+    const cursos = new Set(inscritos.map(i => i.nome_curso).filter(Boolean));
+    return Array.from(cursos).sort();
+  }, [inscritos]);
 
   const filtered = inscritos.filter(inscrito => {
     const matchesSearch = !searchTerm || 
@@ -22,8 +35,14 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
     
     const matchesStatus = statusFilter === 'Todos' || inscrito.status_crm === statusFilter;
     const matchesGrupo = grupoFilter === 'Todos' || inscrito.grupo_monitoramento === grupoFilter;
+    const matchesCurso = cursoFilter === 'Todos' || inscrito.nome_curso === cursoFilter;
     
-    return matchesSearch && matchesStatus && matchesGrupo;
+    // Filtro de data
+    const inscricaoDate = inscrito.data_inscricao ? new Date(inscrito.data_inscricao) : null;
+    const matchesDataInicio = !dataInicio || !inscricaoDate || inscricaoDate >= dataInicio;
+    const matchesDataFim = !dataFim || !inscricaoDate || inscricaoDate <= dataFim;
+    
+    return matchesSearch && matchesStatus && matchesGrupo && matchesCurso && matchesDataInicio && matchesDataFim;
   });
 
   const handleEdit = (inscrito) => {
@@ -111,6 +130,68 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
             <SelectItem value="G2_Cursos_Legacy_Pos_Ago2024">G2 - Legacy</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select value={cursoFilter} onValueChange={setCursoFilter}>
+          <SelectTrigger className="w-56">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Todos">Todos Cursos</SelectItem>
+            {cursosUnicos.map(curso => (
+              <SelectItem key={curso} value={curso}>{curso}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-64">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dataInicio && dataFim ? (
+                `${format(dataInicio, 'dd/MM/yyyy')} - ${format(dataFim, 'dd/MM/yyyy')}`
+              ) : dataInicio ? (
+                `A partir de ${format(dataInicio, 'dd/MM/yyyy')}`
+              ) : dataFim ? (
+                `Até ${format(dataFim, 'dd/MM/yyyy')}`
+              ) : (
+                'Filtrar por período'
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <div className="p-3 space-y-2">
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1">Data Início</label>
+                <Calendar
+                  mode="single"
+                  selected={dataInicio}
+                  onSelect={setDataInicio}
+                  locale={ptBR}
+                  className="rounded-md border"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1">Data Fim</label>
+                <Calendar
+                  mode="single"
+                  selected={dataFim}
+                  onSelect={setDataFim}
+                  locale={ptBR}
+                  className="rounded-md border"
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => { setDataInicio(null); setDataFim(null); }}
+                className="w-full"
+              >
+                <X className="w-3 h-3 mr-1" />
+                Limpar período
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
 
         <Badge variant="outline" className="text-sm">
           {filtered.length} lead(s)

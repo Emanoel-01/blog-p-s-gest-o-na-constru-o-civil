@@ -46,7 +46,8 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
       case 'Novo': return 'bg-blue-100 text-blue-800';
       case 'Contatado': return 'bg-yellow-100 text-yellow-800';
       case 'Em Negociação': return 'bg-orange-100 text-orange-800';
-      case 'Matriculado': return 'bg-green-100 text-green-800';
+      case 'Matriculado Turma Antiga': return 'bg-indigo-100 text-indigo-800';
+      case 'Matriculado Turma Nova': return 'bg-green-100 text-green-800';
       case 'Desistente': return 'bg-red-100 text-red-800';
       case 'Sem Resposta': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -85,7 +86,8 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
             <SelectItem value="Novo">Novo</SelectItem>
             <SelectItem value="Contatado">Contatado</SelectItem>
             <SelectItem value="Em Negociação">Em Negociação</SelectItem>
-            <SelectItem value="Matriculado">Matriculado</SelectItem>
+            <SelectItem value="Matriculado Turma Antiga">Matriculado Turma Antiga</SelectItem>
+            <SelectItem value="Matriculado Turma Nova">Matriculado Turma Nova</SelectItem>
             <SelectItem value="Desistente">Desistente</SelectItem>
             <SelectItem value="Sem Resposta">Sem Resposta</SelectItem>
           </SelectContent>
@@ -145,7 +147,8 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
                           <SelectItem value="Novo">Novo</SelectItem>
                           <SelectItem value="Contatado">Contatado</SelectItem>
                           <SelectItem value="Em Negociação">Em Negociação</SelectItem>
-                          <SelectItem value="Matriculado">Matriculado</SelectItem>
+                          <SelectItem value="Matriculado Turma Antiga">Matriculado Turma Antiga</SelectItem>
+                          <SelectItem value="Matriculado Turma Nova">Matriculado Turma Nova</SelectItem>
                           <SelectItem value="Desistente">Desistente</SelectItem>
                           <SelectItem value="Sem Resposta">Sem Resposta</SelectItem>
                         </SelectContent>

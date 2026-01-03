@@ -4,14 +4,20 @@ import { Badge } from '@/components/ui/badge';
 import { Users, TrendingUp, DollarSign, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 
 export default function CRMDashboard({ inscritos }) {
+  // Filtrar apenas G1 excluindo "Matriculado Turma Antiga"
+  const leadsAtivos = inscritos.filter(i => 
+    i.grupo_monitoramento === 'G1_Cursos_Atuais' && 
+    i.status_crm !== 'Matriculado Turma Antiga'
+  );
+
   const stats = {
-    total: inscritos.length,
-    novos: inscritos.filter(i => i.status_crm === 'Novo').length,
-    contatados: inscritos.filter(i => i.status_crm === 'Contatado').length,
-    em_negociacao: inscritos.filter(i => i.status_crm === 'Em Negociação').length,
-    matriculados: inscritos.filter(i => i.status_crm === 'Matriculado').length,
-    pagos: inscritos.filter(i => i.inscricao_paga).length,
-    nao_pagos: inscritos.filter(i => !i.inscricao_paga).length
+    total: leadsAtivos.length,
+    novos: leadsAtivos.filter(i => i.status_crm === 'Novo').length,
+    contatados: leadsAtivos.filter(i => i.status_crm === 'Contatado').length,
+    em_negociacao: leadsAtivos.filter(i => i.status_crm === 'Em Negociação').length,
+    matriculados: leadsAtivos.filter(i => i.status_crm === 'Matriculado Turma Nova').length,
+    pagos: leadsAtivos.filter(i => i.inscricao_paga).length,
+    nao_pagos: leadsAtivos.filter(i => !i.inscricao_paga).length
   };
 
   const taxaConversao = stats.total > 0 ? ((stats.matriculados / stats.total) * 100).toFixed(1) : 0;
@@ -28,7 +34,7 @@ export default function CRMDashboard({ inscritos }) {
         <CardContent>
           <div className="text-3xl font-bold text-blue-900">{stats.total}</div>
           <p className="text-xs text-blue-700 mt-2">
-            Leads ativos (Cursos Atuais - Pós Ago/2024)
+            Leads G1 (Cursos Atuais - Pós Ago/2024)
           </p>
         </CardContent>
       </Card>
@@ -43,7 +49,7 @@ export default function CRMDashboard({ inscritos }) {
         <CardContent>
           <div className="text-3xl font-bold text-green-900">{taxaConversao}%</div>
           <p className="text-xs text-green-700 mt-1">
-            {stats.matriculados} matriculados de {stats.total} leads
+            {stats.matriculados} matriculados turma nova de {stats.total} leads
           </p>
         </CardContent>
       </Card>

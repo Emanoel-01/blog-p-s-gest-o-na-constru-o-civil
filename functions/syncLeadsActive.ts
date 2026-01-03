@@ -14,37 +14,48 @@ function normalizarNomeCurso(nome) {
     .toUpperCase();
 }
 
+// Lista completa de cursos G1 (Cursos Atuais)
 const CURRENT_COURSES = [
-  "Tecnologia BIM na Construção Civil",
-  "Neuroarquitetura",
-  "Gestão de Projetos e Obras",
-  "Engenharia e Gestão de Manutenção Predial na Construção 4.0",
-  "Acústica Arquitetônica e Iluminação",
-  "Design de Interiores Contemporâneo",
-  "Engenharia Legal e Perícias: Avaliações e Desempenho"
+  "PÓS-GRADUAÇÃO - ACÚSTICA ARQUITETÔNICA E ILUMINAÇÃO",
+  "PÓS-GRADUAÇÃO - DESIGN DE INTERIORES CONTEMPORÂNEO",
+  "PÓS-GRADUAÇÃO - ENGENHARIA E GESTÃO DE MANUTENÇÃO PREDIAL NA CONSTRUÇÃO 4.0",
+  "PÓS-GRADUAÇÃO - GESTÃO DE PROJETOS E OBRAS",
+  "PÓS-GRADUAÇÃO - NEUROARQUITETURA",
+  "PÓS-GRADUAÇÃO - NEUROARQUITETURA (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - TECNOLOGIA BIM NA CONSTRUÇÃO CIVIL",
+  "PÓS-GRADUAÇÃO - Engenharia Legal e Perícias: Avaliações e Desempenho"
 ].map(normalizarNomeCurso);
 
+// Lista completa de cursos G2 (Cursos Legacy)
 const LEGACY_COURSES = [
-  "Acústica Arquitetônica e Iluminação",
-  "Design de Interiores Contemporâneo",
-  "Energia Solar Fotovoltaica",
-  "Engenharia de Combate a Incêndio e Pânico",
-  "Engenharia de Irrigação e Drenagem",
-  "Engenharia de Produção, Gestão da Qualidade e Eficiência Operacional",
-  "Engenharia de Segurança no Trabalho",
-  "Gestão da Engenharia de Segurança do Trabalho",
-  "Engenharia e Gestão das Energias Renováveis",
-  "Engenharia e Gestão de Manutenção Predial na Construção 4.0",
-  "Gestão da Engenharia de Produção e Operações",
-  "Gestão de Projetos e Obras",
-  "Gestão de Projetos e Obras: Orçamento e Perícia",
-  "Gestão e Tratamento de Resíduos Sólidos e Efluentes",
-  "MBA em Gestão da Mobilidade Urbana",
-  "Neuroarquitetura",
-  "Paisagismo",
-  "Perícias Técnicas Aplicadas às Engenharias",
-  "Projetos de Arquitetura e Design: Da Edificação ao Interior",
-  "Tecnologia BIM na Construção Civil"
+  "PÓS-GRADUAÇÃO - ACÚSTICA ARQUITETÔNICA E ILUMINAÇÃO",
+  "PÓS-GRADUAÇÃO - ACÚSTICA ARQUITETÔNICA E ILUMINAÇÃO (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - DESIGN DE INTERIORES CONTEMPORÂNEO",
+  "PÓS-GRADUAÇÃO - ENERGIA SOLAR FOTOVOLTAICA (CONECTADA)",
+  "PÓS-GRADUAÇÃO - ENERGIA SOLAR FOTOVOLTAICA (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - ENGENHARIA DE COMBATE A INCÊNDIO E PÂNICO",
+  "PÓS-GRADUAÇÃO - ENGENHARIA DE COMBATE A INCÊNDIO E PÂNICO (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - ENGENHARIA DE IRRIGAÇÃO E DRENAGEM (CONECTADA)",
+  "PÓS-GRADUAÇÃO - ENGENHARIA DE IRRIGAÇÃO E DRENAGEM (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - ENGENHARIA DE PRODUÇÃO, GESTÃO DA QUALIDADE E EFICIÊNCIA OPERACIONAL (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - ENGENHARIA DE SEGURANÇA NO TRABALHO",
+  "PÓS-GRADUAÇÃO - ENGENHARIA DE SEGURANÇA NO TRABALHO (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - ENGENHARIA DE SOFTWARE, INTELIGÊNCIA ARTIFICIAL E IOT",
+  "PÓS-GRADUAÇÃO - ENGENHARIA E GESTÃO DAS ENERGIAS RENOVÁVEIS",
+  "PÓS-GRADUAÇÃO - ENGENHARIA E GESTÃO DE MANUTENÇÃO PREDIAL NA CONSTRUÇÃO 4.0",
+  "PÓS-GRADUAÇÃO - GESTÃO DA ENGENHARIA DE PRODUÇÃO E OPERAÇÕES",
+  "PÓS-GRADUAÇÃO - GESTÃO DA ENGENHARIA DE SEGURANÇA DO TRABALHO (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - GESTÃO DE PROJETOS E OBRAS",
+  "PÓS-GRADUAÇÃO - GESTÃO DE PROJETOS E OBRAS: ORÇAMENTO E PERÍCIA (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - GESTÃO DE PROJETOS E OBRAS: ORÇAMENTO E PERÍCIA - UNIDADE CARUARU",
+  "PÓS-GRADUAÇÃO - GESTÃO E TRATAMENTO DE RESÍDUOS SÓLIDOS E EFLUENTES (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - NEUROARQUITETURA",
+  "PÓS-GRADUAÇÃO - NEUROARQUITETURA (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - PAISAGISMO",
+  "PÓS-GRADUAÇÃO - PERÍCIAS TÉCNICAS APLICADAS ÀS ENGENHARIAS (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - PROJETOS DE ARQUITETURA E DESIGN: DA EDIFICAÇÃO AO INTERIOR",
+  "PÓS-GRADUAÇÃO - PROJETOS DE ARQUITETURA E DESIGN: DA EDIFICAÇÃO AO INTERIOR (CONVENCIONAL)",
+  "PÓS-GRADUAÇÃO - TECNOLOGIA BIM NA CONSTRUÇÃO CIVIL"
 ].map(normalizarNomeCurso);
 
 function sanitizePhone(phone) {
@@ -123,6 +134,9 @@ Deno.serve(async (req) => {
 
     // Map para deduplicação: key = email + nome_curso
     const processedLeads = new Map();
+    
+    // Variável para lembrar a última data válida (células mescladas)
+    let lastValidDate = null;
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
@@ -130,10 +144,16 @@ Deno.serve(async (req) => {
       const ano = parseInt(row[0]) || null;
       const mes = parseInt(row[1]) || null;
       const dia = parseInt(row[2]) || null;
-      const dataInscricao = parseDate(row[3]);
-      // Remover prefixo "PÓS-GRADUAÇÃO - " do nome do curso
+      
+      // Tratar células de data mescladas
+      let dataInscricao = parseDate(row[3]);
+      if (!dataInscricao && lastValidDate) {
+        dataInscricao = lastValidDate;
+      } else if (dataInscricao) {
+        lastValidDate = dataInscricao;
+      }
+      
       let nomeCurso = (row[4] || '').trim();
-      nomeCurso = nomeCurso.replace(/^PÓS-GRADUAÇÃO - /i, '');
       const nomeCompleto = (row[5] || '').trim();
       const tel03 = row[6] || '';
       const tel01 = row[7] || '';
@@ -175,24 +195,36 @@ Deno.serve(async (req) => {
 
       let grupoMonitoramento = null;
 
-      // G1: Cursos Atuais com data >= 01/08/2024
-      if (inscricaoDate >= cutoffDate && isCurrent) {
+      // Lógica de categorização G1 vs G2:
+      // - Se o curso está em CURRENT_COURSES E a data >= 01/08/2024 -> G1
+      // - Se o curso está em LEGACY_COURSES E a data < 01/08/2024 -> G2
+      // - Cursos podem estar em ambas listas, a data é o fator decisivo
+      
+      if (isCurrent && inscricaoDate >= cutoffDate) {
         grupoMonitoramento = 'G1_Cursos_Atuais';
-      } 
-      // G2: Cursos Legados independente da data (post Aug 2024 legacy courses)
-      else if (isLegacy) {
+      } else if (isLegacy && inscricaoDate < cutoffDate) {
         grupoMonitoramento = 'G2_Cursos_Legacy_Pos_Ago2024';
-      }
-      // Ignorar cursos que não se encaixam em G1 ou G2
-      else {
+      } else if (!isCurrent && !isLegacy) {
+        // Curso não está em nenhuma lista
         stats.skipped++;
-        // Debug: guardar amostra de cursos ignorados
         if (stats.debug_samples.length < 10) {
           stats.debug_samples.push({
             row: i,
             nomeCurso,
             email,
             reason: `Curso não está nas listas. isCurrent: ${isCurrent}, isLegacy: ${isLegacy}, data: ${dataInscricao}`
+          });
+        }
+        continue;
+      } else {
+        // Curso está numa lista mas não atende critério de data
+        stats.skipped++;
+        if (stats.debug_samples.length < 10) {
+          stats.debug_samples.push({
+            row: i,
+            nomeCurso,
+            email,
+            reason: `Curso na lista mas fora do período. isCurrent: ${isCurrent}, isLegacy: ${isLegacy}, data: ${dataInscricao}, cutoff: 2024-08-01`
           });
         }
         continue;

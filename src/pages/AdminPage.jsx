@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -4902,9 +4901,10 @@ Seja detalhado, prático e objetivo na análise.`;
       i.status_crm !== 'Matriculado Turma Antiga'
     );
 
-    // Para a lista de leads, mostrar todos os G1 (sem filtro de status_crm)
-    const leadsG1Completo = inscritos.filter(i => 
-      i.grupo_monitoramento === 'G1_Cursos_Atuais'
+    // Para a lista de leads, mostrar TODOS (G1 + G2)
+    const todosLeads = inscritos.filter(i => 
+      i.grupo_monitoramento === 'G1_Cursos_Atuais' || 
+      i.grupo_monitoramento === 'G2_Cursos_Legacy_Pos_Ago2024'
     );
 
     return (
@@ -4971,12 +4971,34 @@ Seja detalhado, prático e objetivo na análise.`;
           >
             🔄 Sincronizar Leads G1
           </Button>
+          <Button
+            onClick={async () => {
+              if (!window.confirm('Remover duplicatas do banco de dados? Isso manterá apenas a inscrição mais recente de cada aluno por curso.')) return;
+              try {
+                toast.info('Removendo duplicatas...');
+                const { data } = await base44.functions.invoke('cleanDuplicates');
+                if (data.success) {
+                  toast.success(`✅ ${data.duplicatas_removidas} duplicatas removidas!`, { duration: 4000 });
+                  queryClient.invalidateQueries(['inscritos']);
+                } else {
+                  toast.error(data.error || 'Erro na limpeza');
+                }
+              } catch (error) {
+                toast.error('Erro: ' + error.message);
+              }
+            }}
+            variant="outline"
+            size="sm"
+            className="border-red-600 text-red-700 hover:bg-red-50 font-semibold"
+          >
+            🧹 Limpar Duplicatas
+          </Button>
         </div>
 
         {crmSubTab === 'dashboard' && <CRMDashboard inscritos={leadsG1Dashboard} />}
         {crmSubTab === 'leads' && (
           <LeadsTable 
-            inscritos={leadsG1Completo}
+            inscritos={todosLeads}
             onUpdate={(id, data) => updateInscritoMutation.mutate({ id, data })}
             onDelete={(id) => deleteInscritoMutation.mutate(id)}
           />

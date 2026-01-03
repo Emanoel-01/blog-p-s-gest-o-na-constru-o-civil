@@ -8,7 +8,7 @@ import { Sparkles, Send, Download, Image as ImageIcon, Mail, MessageCircle } fro
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-export default function MarketingStudio({ inscritos }) {
+export default function MarketingStudio({ inscritos, currentUser }) {
   const [activeStudio, setActiveStudio] = useState('texto');
   const [prompt, setPrompt] = useState('');
   const [tipo, setTipo] = useState('email');

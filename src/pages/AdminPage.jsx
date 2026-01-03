@@ -32,10 +32,29 @@ import CRMDashboard from '../components/admin/crm/CRMDashboard';
 import LeadsTable from '../components/admin/crm/LeadsTable';
 import MarketingStudio from '../components/admin/crm/MarketingStudio';
 import BulkActions from '../components/admin/crm/BulkActions';
+import ActivityLog from '../components/admin/crm/ActivityLog';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('ciclos');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [hasCrmAccess, setHasCrmAccess] = useState(false);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const user = await base44.auth.me();
+        setCurrentUser(user);
+        const superAdmin = user.email === 'emanoel.s.amorim@gmail.com';
+        setIsSuperAdmin(superAdmin);
+        setHasCrmAccess(superAdmin || user.role === 'admin' || user.crm_access === true);
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
+      }
+    }
+    loadUser();
+  }, []);
 
   // Incubadora state
   const [showProjetoForm, setShowProjetoForm] = useState(false);
@@ -343,6 +362,12 @@ export default function AdminPage() {
   const { data: campanhas = [] } = useQuery({
     queryKey: ['campanhas'],
     queryFn: () => base44.entities.CampanhaMarketing.list('-created_date')
+  });
+
+  const { data: activityLogs = [] } = useQuery({
+    queryKey: ['crm-activity-log'],
+    queryFn: () => base44.entities.CRMActivityLog.list('-created_date', 100),
+    enabled: hasCrmAccess
   });
 
   // Auto-calcular carga horária quando ciclos mudam
@@ -659,7 +684,26 @@ export default function AdminPage() {
   });
 
   const updateInscritoMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Inscrito.update(id, data),
+    mutationFn: async ({ id, data, logDetails }) => {
+      await base44.entities.Inscrito.update(id, data);
+      
+      // Registrar no log de atividades
+      if (logDetails && currentUser) {
+        try {
+          await base44.entities.CRMActivityLog.create({
+            user_email: currentUser.email,
+            user_name: currentUser.full_name,
+            action_type: 'lead_atualizado',
+            lead_id: id,
+            lead_nome: logDetails.lead_nome,
+            details: logDetails.details,
+            timestamp: new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Erro ao registrar log:', error);
+        }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inscritos'] });
       toast.success('Inscrito atualizado!');
@@ -667,7 +711,25 @@ export default function AdminPage() {
   });
 
   const deleteInscritoMutation = useMutation({
-    mutationFn: (id) => base44.entities.Inscrito.delete(id),
+    mutationFn: async ({ id, inscrito }) => {
+      await base44.entities.Inscrito.delete(id);
+      
+      // Registrar no log de atividades
+      if (currentUser) {
+        try {
+          await base44.entities.CRMActivityLog.create({
+            user_email: currentUser.email,
+            user_name: currentUser.full_name,
+            action_type: 'lead_excluido',
+            lead_id: id,
+            lead_nome: inscrito?.nome_completo,
+            timestamp: new Date().toISOString()
+          });
+        } catch (error) {
+          console.error('Erro ao registrar log:', error);
+        }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inscritos'] });
       toast.success('Inscrito removido!');
@@ -4950,11 +5012,37 @@ Seja detalhado, prático e objetivo na análise.`;
             Ações em Massa
           </Button>
           <Button
+            onClick={() => setCrmSubTab('log')}
+            variant={crmSubTab === 'log' ? 'default' : 'outline'}
+            size="sm"
+            className={crmSubTab === 'log' ? 'bg-teal-600' : ''}
+          >
+            Log de Atividades
+          </Button>
+          <Button
             onClick={async () => {
               try {
                 toast.info('Sincronizando leads dos cursos atuais (G1)...');
                 const { data } = await base44.functions.invoke('syncLeadsActive');
                 if (data.success) {
+                  // Registrar no log de atividades
+                  try {
+                    await base44.entities.CRMActivityLog.create({
+                      user_email: currentUser?.email,
+                      user_name: currentUser?.full_name,
+                      action_type: 'sincronizacao_planilha',
+                      details: {
+                        g1: data.stats.g1,
+                        g2: data.stats.g2,
+                        criados: data.stats.created,
+                        atualizados: data.stats.updated
+                      },
+                      timestamp: new Date().toISOString()
+                    });
+                  } catch (logError) {
+                    console.error('Erro ao registrar log:', logError);
+                  }
+                  
                   const msg = `✅ ${data.stats.g1} leads G1 | ${data.stats.g2} leads G2 | ${data.stats.created} criados | ${data.stats.updated} atualizados | ${data.stats.skipped} ignorados`;
                   toast.success(msg, { duration: 6000 });
                   queryClient.invalidateQueries(['inscritos']);
@@ -4978,6 +5066,21 @@ Seja detalhado, prático e objetivo na análise.`;
                 toast.info('Removendo duplicatas...');
                 const { data } = await base44.functions.invoke('cleanDuplicates');
                 if (data.success) {
+                  // Registrar no log de atividades
+                  try {
+                    await base44.entities.CRMActivityLog.create({
+                      user_email: currentUser?.email,
+                      user_name: currentUser?.full_name,
+                      action_type: 'duplicatas_removidas',
+                      details: {
+                        quantidade: data.duplicatas_removidas
+                      },
+                      timestamp: new Date().toISOString()
+                    });
+                  } catch (logError) {
+                    console.error('Erro ao registrar log:', logError);
+                  }
+                  
                   toast.success(`✅ ${data.duplicatas_removidas} duplicatas removidas!`, { duration: 4000 });
                   queryClient.invalidateQueries(['inscritos']);
                 } else {
@@ -4999,12 +5102,27 @@ Seja detalhado, prático e objetivo na análise.`;
         {crmSubTab === 'leads' && (
           <LeadsTable 
             inscritos={todosLeads}
-            onUpdate={(id, data) => updateInscritoMutation.mutate({ id, data })}
-            onDelete={(id) => deleteInscritoMutation.mutate(id)}
+            currentUser={currentUser}
+            onUpdate={(id, data) => {
+              const inscrito = todosLeads.find(i => i.id === id);
+              updateInscritoMutation.mutate({ 
+                id, 
+                data,
+                logDetails: {
+                  lead_nome: inscrito?.nome_completo,
+                  details: { campo: 'status_crm', de: inscrito?.status_crm, para: data.status_crm }
+                }
+              });
+            }}
+            onDelete={(id) => {
+              const inscrito = todosLeads.find(i => i.id === id);
+              deleteInscritoMutation.mutate({ id, inscrito });
+            }}
           />
         )}
-        {crmSubTab === 'marketing' && <MarketingStudio inscritos={leadsG1Dashboard} />}
-        {crmSubTab === 'acoes' && <BulkActions inscritos={leadsG1Dashboard} />}
+        {crmSubTab === 'marketing' && <MarketingStudio inscritos={leadsG1Dashboard} currentUser={currentUser} />}
+        {crmSubTab === 'acoes' && <BulkActions inscritos={todosLeads} currentUser={currentUser} />}
+        {crmSubTab === 'log' && <ActivityLog />}
       </div>
     );
   };
@@ -5252,14 +5370,24 @@ Seja detalhado, prático e objetivo na análise.`;
         </p>
       </div>
 
-      <div className="flex gap-2 mb-6 flex-wrap">
-        <Button
-          onClick={() => setActiveTab('ciclos')}
-          variant={activeTab === 'ciclos' ? 'default' : 'outline'}
-          className={activeTab === 'ciclos' ? 'bg-blue-600' : ''}
-        >
-          Ciclos de Conhecimento
-        </Button>
+      {/* Mostrar apenas a aba CRM & Marketing para usuários com crm_access mas não super admin */}
+      {hasCrmAccess && !isSuperAdmin && (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          {renderCRMTab()}
+        </div>
+      )}
+
+      {/* Mostrar tudo para super admin */}
+      {isSuperAdmin && (
+        <>
+          <div className="flex gap-2 mb-6 flex-wrap">
+            <Button
+              onClick={() => setActiveTab('ciclos')}
+              variant={activeTab === 'ciclos' ? 'default' : 'outline'}
+              className={activeTab === 'ciclos' ? 'bg-blue-600' : ''}
+            >
+              Ciclos de Conhecimento
+            </Button>
         <Button
           onClick={() => setActiveTab('especializacoes')}
           variant={activeTab === 'especializacoes' ? 'default' : 'outline'}
@@ -5430,6 +5558,8 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'aplicativos' && <AplicativosManager />}
         {activeTab === 'crm' && renderCRMTab()}
       </div>
+        </>
+      )}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
+export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
   const [grupoFilter, setGrupoFilter] = useState('Todos');
@@ -55,7 +55,28 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete }) {
   };
 
   const handleSave = async (id) => {
+    const inscrito = inscritos.find(i => i.id === id);
     await onUpdate(id, editForm);
+    
+    // Registrar no log de atividades
+    try {
+      await base44.entities.CRMActivityLog.create({
+        user_email: currentUser?.email,
+        user_name: currentUser?.full_name,
+        action_type: 'lead_atualizado',
+        lead_id: id,
+        lead_nome: inscrito?.nome_completo,
+        details: {
+          campo: 'status_crm',
+          de: inscrito?.status_crm,
+          para: editForm.status_crm
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Erro ao registrar log:', error);
+    }
+    
     setEditingId(null);
     toast.success('Lead atualizado!');
   };

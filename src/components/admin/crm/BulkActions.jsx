@@ -9,7 +9,7 @@ import { Mail, Download, Send, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-export default function BulkActions({ inscritos }) {
+export default function BulkActions({ inscritos, currentUser }) {
   const [filtros, setFiltros] = useState({
     grupo_monitoramento: '',
     status_crm: '',

@@ -121,7 +121,9 @@ Deno.serve(async (req) => {
       const mes = parseInt(row[1]) || null;
       const dia = parseInt(row[2]) || null;
       const dataInscricao = parseDate(row[3]);
-      const nomeCurso = (row[4] || '').trim();
+      // Remover prefixo "PÓS-GRADUAÇÃO - " do nome do curso
+      let nomeCurso = (row[4] || '').trim();
+      nomeCurso = nomeCurso.replace(/^PÓS-GRADUAÇÃO - /i, '');
       const nomeCompleto = (row[5] || '').trim();
       const tel03 = row[6] || '';
       const tel01 = row[7] || '';

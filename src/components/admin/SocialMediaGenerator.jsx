@@ -39,10 +39,22 @@ export default function SocialMediaGenerator({ especializacao }) {
   const generateMutation = useMutation({
     mutationFn: async (platform) => {
       let modeloText = null;
+      let modeloImageUrl = null;
       
-      // Ler arquivo de modelo se fornecido
+      // Processar arquivo de modelo se fornecido
       if (customOptions.modeloFile) {
-        modeloText = await customOptions.modeloFile.text();
+        const fileType = customOptions.modeloFile.type;
+        
+        if (fileType.startsWith('image/')) {
+          // Upload da imagem
+          const uploadResponse = await base44.integrations.Core.UploadFile({
+            file: customOptions.modeloFile
+          });
+          modeloImageUrl = uploadResponse.file_url;
+        } else {
+          // Arquivo de texto
+          modeloText = await customOptions.modeloFile.text();
+        }
       }
       
       const response = await base44.functions.invoke('generateSocialMediaPost', {
@@ -51,7 +63,8 @@ export default function SocialMediaGenerator({ especializacao }) {
         tone: customOptions.tone,
         keywords: customOptions.keywords,
         cta: customOptions.cta,
-        modelo: modeloText
+        modelo: modeloText,
+        modeloImageUrl: modeloImageUrl
       });
       
       // Salvar no banco de dados
@@ -186,15 +199,16 @@ export default function SocialMediaGenerator({ especializacao }) {
           </div>
 
           <div>
-            <Label className="text-sm font-semibold">Modelo de Publicação (arquivo .txt)</Label>
+            <Label className="text-sm font-semibold">Modelo de Publicação (texto ou imagem)</Label>
             <Input
               type="file"
-              accept=".txt"
+              accept=".txt,.jpg,.jpeg,.png,.gif,.webp"
               onChange={(e) => setCustomOptions({...customOptions, modeloFile: e.target.files[0]})}
             />
             {customOptions.modeloFile && (
               <p className="text-xs text-green-600 mt-1">✓ {customOptions.modeloFile.name}</p>
             )}
+            <p className="text-xs text-gray-500 mt-1">Aceita texto (.txt) ou imagens (.jpg, .png)</p>
           </div>
         </div>
 

@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     const { payload } = await req.json();
-    const { especializacao, platform, tone = 'profissional', keywords = '', cta = '', modelo = null } = payload;
+    const { especializacao, platform, tone = 'profissional', keywords = '', cta = '', modelo = null, modeloImageUrl = null } = payload;
 
     const platformSpecs = {
       instagram: {
@@ -59,7 +59,7 @@ ESPECIFICAÇÕES DA PLATAFORMA:
 CUSTOMIZAÇÕES SOLICITADAS:
 - Tom: ${toneDescriptions[tone]}${cta ? `\n- CTA específico: "${cta}"` : ''}${keywords ? `\n- Palavras-chave obrigatórias: ${keywords}` : ''}
 
-${modelo ? `\nMODELO DE REFERÊNCIA (siga esta estrutura):\n${modelo}\n` : ''}
+${modelo ? `\nMODELO DE REFERÊNCIA (siga esta estrutura):\n${modelo}\n` : ''}${modeloImageUrl ? `\n⚠️ IMAGEM DE MODELO ANEXADA: Analise a imagem fornecida e siga o estilo, estrutura e formato visual do post mostrado na imagem.\n` : ''}
 
 DIRETRIZES:
 1. Use o tom especificado: ${tone}
@@ -71,7 +71,7 @@ DIRETRIZES:
 
 Retorne o post completo, pronto para publicar.`;
 
-    const response = await base44.integrations.Core.InvokeLLM({
+    const llmParams = {
       prompt,
       response_json_schema: {
         type: "object",
@@ -107,7 +107,14 @@ Retorne o post completo, pronto para publicar.`;
           }
         }
       }
-    });
+    };
+
+    // Adicionar imagem se fornecida
+    if (modeloImageUrl) {
+      llmParams.file_urls = [modeloImageUrl];
+    }
+
+    const response = await base44.integrations.Core.InvokeLLM(llmParams);
 
     return Response.json({
       success: true,

@@ -21,6 +21,7 @@ import PerfilDocente from './pages/PerfilDocente';
 import ProfessoresPage from './pages/ProfessoresPage';
 import UpgradePage from './pages/UpgradePage';
 import UserProfilePage from './pages/UserProfilePage';
+import PostDetail from './pages/PostDetail';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +49,7 @@ export const PAGES = {
     "ProfessoresPage": ProfessoresPage,
     "UpgradePage": UpgradePage,
     "UserProfilePage": UserProfilePage,
+    "PostDetail": PostDetail,
 }
 
 export const pagesConfig = {

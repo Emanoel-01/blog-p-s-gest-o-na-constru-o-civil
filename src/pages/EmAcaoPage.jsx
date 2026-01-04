@@ -15,16 +15,7 @@ import ImageViewer from '../components/blog/ImageViewer';
 import { toast } from 'sonner';
 
 export default function EmAcaoPage() {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const postIdFromUrl = searchParams.get('postId');
-  
-  const [expandedPost, setExpandedPost] = useState(postIdFromUrl);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [comentarios, setComentarios] = useState({});
-  const [novoComentario, setNovoComentario] = useState({});
 
   const queryClient = useQueryClient();
 
@@ -73,70 +64,9 @@ export default function EmAcaoPage() {
     };
   };
 
-  // Auto-expandir e rolar para o post se vier de URL
-  useEffect(() => {
-    if (postIdFromUrl && posts.length > 0) {
-      setExpandedPost(postIdFromUrl);
-      setTimeout(() => {
-        const postElement = document.getElementById(`post-${postIdFromUrl}`);
-        if (postElement) {
-          postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 300);
-    }
-  }, [postIdFromUrl, posts]);
 
-  const { data: allComentarios = [] } = useQuery({
-    queryKey: ['comentarios'],
-    queryFn: () => base44.entities.Comentario.list('-created_date')
-  });
 
-  const { data: discentes = [] } = useQuery({
-    queryKey: ['discentes'],
-    queryFn: () => base44.entities.Discente.list('nome')
-  });
 
-  const { data: professores = [] } = useQuery({
-    queryKey: ['professores'],
-    queryFn: () => base44.entities.Professor.list('nome')
-  });
-
-  const { data: parceiros = [] } = useQuery({
-    queryKey: ['parceiros'],
-    queryFn: () => base44.entities.Parceiro.list('nome')
-  });
-
-  const createComentarioMutation = useMutation({
-    mutationFn: async (data) => {
-      const comentario = await base44.entities.Comentario.create(data);
-      
-      // Notificar admins
-      try {
-        const post = posts.find(p => p.id === data.post_id);
-        await base44.functions.invoke('notifyAdminNewContent', {
-          tipo: 'comentario',
-          dados: {
-            autor_nome: data.autor_nome,
-            autor_email: data.autor_email,
-            conteudo: data.conteudo,
-            post_titulo: post?.titulo || 'Post'
-          }
-        });
-      } catch (error) {
-        console.error('Erro ao notificar admins:', error);
-      }
-      
-      return comentario;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['comentarios']);
-      toast.success('Comentário publicado com sucesso!');
-    },
-    onError: (error) => {
-      console.error('Erro ao enviar comentário:', error);
-      toast.error('Erro ao enviar comentário. Tente novamente.');
-    }
-  });
 
   const filteredPosts = posts.filter(post => {
     if (!searchTerm) return true;
@@ -149,76 +79,21 @@ export default function EmAcaoPage() {
     );
   });
 
-  const togglePost = (postId) => {
-    setExpandedPost(expandedPost === postId ? null : postId);
-  };
 
-  const getComentariosAprovados = (postId) => {
-    return allComentarios.filter(c => c.post_id === postId && c.aprovado);
-  };
-
-  const getPostsRelacionados = (currentPost) => {
-    if (!currentPost.tags || currentPost.tags.length === 0) return [];
-    
-    return posts
-      .filter(p => p.id !== currentPost.id && p.tags?.some(tag => currentPost.tags.includes(tag)))
-      .slice(0, 3);
-  };
-
-  const handleSubmitComentario = (postId) => {
-    const comentario = novoComentario[postId];
-    if (!comentario?.autor_nome || !comentario?.conteudo || !comentario?.autor_email) {
-      toast.error('Preencha nome, email e comentário');
-      return;
-    }
-
-    // Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(comentario.autor_email)) {
-      toast.error('Informe um email válido');
-      return;
-    }
-
-    createComentarioMutation.mutate({
-      post_id: postId,
-      autor_nome: comentario.autor_nome,
-      autor_email: comentario.autor_email,
-      conteudo: comentario.conteudo,
-      aprovado: true
-    });
-
-    setNovoComentario(prev => ({ ...prev, [postId]: {} }));
-  };
-
-  const handleImageClick = (imageUrl, allImages) => {
-    const index = allImages.indexOf(imageUrl);
-    setSelectedImages(allImages);
-    setSelectedImageIndex(index >= 0 ? index : 0);
-  };
-
-  const getMidiaIcon = (tipo) => {
-    switch(tipo) {
-      case 'imagem': return <ImageIcon className="w-4 h-4" />;
-      case 'video': return <Video className="w-4 h-4" />;
-      case 'pdf': return <FileText className="w-4 h-4" />;
-      case 'link': return <ExternalLink className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
-    }
-  };
 
   return (
     <>
       <Helmet>
-        <title>{postIdFromUrl && posts.length > 0 ? `${posts.find(p => p.id === postIdFromUrl)?.titulo || 'Blog Em Ação ESUDA'}` : 'Blog Em Ação ESUDA | Eventos, Workshops e Novidades da Construção Civil'}</title>
-        <meta name="description" content={postIdFromUrl && posts.length > 0 ? posts.find(p => p.id === postIdFromUrl)?.descricao || 'Acompanhe eventos, workshops, masterclasses e novidades da comunidade acadêmica ESUDA.' : 'Acompanhe eventos, workshops, masterclasses e novidades da comunidade acadêmica ESUDA. Blog com conteúdo sobre Construção Civil, BIM, Gestão de Obras e Tecnologias 4.0.'} />
+        <title>Blog Em Ação ESUDA | Eventos, Workshops e Novidades da Construção Civil</title>
+        <meta name="description" content="Acompanhe eventos, workshops, masterclasses e novidades da comunidade acadêmica ESUDA. Blog com conteúdo sobre Construção Civil, BIM, Gestão de Obras e Tecnologias 4.0." />
         <meta name="keywords" content="blog construção civil, eventos ESUDA, workshops BIM, masterclasses engenharia, notícias construção civil, comunidade acadêmica" />
-        <link rel="canonical" href={postIdFromUrl ? `https://posgraduacao-esuda.base44.app/EmAcaoPage?postId=${postIdFromUrl}` : "https://posgraduacao-esuda.base44.app/EmAcaoPage"} />
+        <link rel="canonical" href="https://posgraduacao-esuda.base44.app/EmAcaoPage" />
         
-        <meta property="og:type" content={postIdFromUrl ? "article" : "website"} />
-        <meta property="og:title" content={postIdFromUrl && posts.length > 0 ? posts.find(p => p.id === postIdFromUrl)?.titulo || 'Blog Em Ação ESUDA' : 'Blog Em Ação ESUDA | Eventos e Novidades'} />
-        <meta property="og:description" content={postIdFromUrl && posts.length > 0 ? posts.find(p => p.id === postIdFromUrl)?.descricao || 'Fique por dentro dos eventos, workshops e novidades da comunidade ESUDA.' : 'Fique por dentro dos eventos, workshops e novidades da comunidade ESUDA em Construção Civil.'} />
-        <meta property="og:url" content={postIdFromUrl ? `https://posgraduacao-esuda.base44.app/EmAcaoPage?postId=${postIdFromUrl}` : "https://posgraduacao-esuda.base44.app/EmAcaoPage"} />
-        <meta property="og:image" content={postIdFromUrl && posts.length > 0 ? posts.find(p => p.id === postIdFromUrl)?.imagem_destaque || 'https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png' : 'https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png'} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Blog Em Ação ESUDA | Eventos e Novidades" />
+        <meta property="og:description" content="Fique por dentro dos eventos, workshops e novidades da comunidade ESUDA em Construção Civil." />
+        <meta property="og:url" content="https://posgraduacao-esuda.base44.app/EmAcaoPage" />
+        <meta property="og:image" content="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" />
         
         {/* Schema.org para Blog */}
         <script type="application/ld+json">
@@ -247,14 +122,6 @@ export default function EmAcaoPage() {
       </Helmet>
       
       <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
-        {selectedImages.length > 0 && (
-          <ImageViewer 
-            images={selectedImages} 
-            initialIndex={selectedImageIndex}
-            onClose={() => setSelectedImages([])} 
-          />
-        )}
-        
         <div className="text-center">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
             Blog Em Ação
@@ -347,43 +214,31 @@ export default function EmAcaoPage() {
       ) : (
         <div className="space-y-6 max-w-5xl mx-auto">
           {filteredPosts.map((post) => {
-            const postUrl = `${window.location.origin}${createPageUrl('EmAcaoPage')}?postId=${post.id}`;
-
-            const isExpanded = expandedPost === post.id;
-
             return (
-              <Card key={post.id} id={`post-${post.id}`} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
-                {/* Schema.org individual para cada post */}
-                <script type="application/ld+json">
-                  {JSON.stringify(generateBlogSchema(post))}
-                </script>
-                
+              <Card key={post.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
                 {post.imagem_destaque && (
-                  <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
-                    <img
-                      src={post.imagem_destaque}
-                      alt={post.titulo}
-                      loading="lazy"
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      onClick={() => {
-                        const allImages = [
-                          post.imagem_destaque,
-                          ...(post.midias || [])
-                            .filter(m => m.tipo === 'imagem' && m.url)
-                            .map(m => m.url)
-                        ];
-                        handleImageClick(post.imagem_destaque, allImages);
-                      }}
-                    />
+                  <Link to={createPageUrl('PostDetail') + '?id=' + post.id}>
+                    <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden cursor-pointer">
+                      <img
+                        src={post.imagem_destaque}
+                        alt={post.titulo}
+                        loading="lazy"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      />
                     <div className="absolute top-4 right-4 bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg">
                       <Calendar className="w-4 h-4" />
                       {post.data}
                     </div>
-                  </div>
-                )}
+                    </div>
+                    </Link>
+                    )}
                 <CardContent className="p-5 sm:p-6 md:p-8">
                   <div className="mb-4">
-                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3">{post.titulo}</h3>
+                    <Link to={createPageUrl('PostDetail') + '?id=' + post.id}>
+                      <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 hover:text-pink-600 transition-colors cursor-pointer">
+                        {post.titulo}
+                      </h3>
+                    </Link>
                     <p className="text-gray-600 text-sm sm:text-base md:text-lg leading-relaxed">{post.descricao}</p>
                     
                     {/* Tags */}
@@ -398,103 +253,14 @@ export default function EmAcaoPage() {
                       </div>
                     )}
 
-                    {/* Marcações de Pessoas */}
-                    {((post.discentes && post.discentes.length > 0) || 
-                      (post.professores && post.professores.length > 0) || 
-                      (post.parceiros && post.parceiros.length > 0)) && (
-                      <div className="mt-4 space-y-3">
-                        <p className="text-sm font-semibold text-gray-700">Marcações:</p>
-                        
-                        {/* Alunos Marcados */}
-                        {post.discentes && post.discentes.length > 0 && (
-                          <div className="flex flex-wrap gap-2 items-center">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300 text-xs flex items-center gap-1">
-                              <User className="w-3 h-3" />
-                              Alunos
-                            </Badge>
-                            {post.discentes.map(discenteId => {
-                              const discente = discentes.find(d => d.id === discenteId);
-                              if (!discente) return null;
-                              return (
-                                <Link 
-                                  key={discenteId} 
-                                  to={createPageUrl('PerfilDiscente') + '?id=' + discenteId}
-                                  className="hover:scale-105 transition-transform"
-                                >
-                                  <Badge className="bg-blue-100 text-blue-800 border-blue-300 cursor-pointer hover:bg-blue-200 text-xs">
-                                    {discente.nome}
-                                  </Badge>
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        )}
+                    </div>
 
-                        {/* Professores Marcados */}
-                        {post.professores && post.professores.length > 0 && (
-                          <div className="flex flex-wrap gap-2 items-center">
-                            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-300 text-xs flex items-center gap-1">
-                              <Users className="w-3 h-3" />
-                              Professores
-                            </Badge>
-                            {post.professores.map(professorId => {
-                              const professor = professores.find(p => p.id === professorId);
-                              if (!professor) return null;
-                              return (
-                                <Link 
-                                  key={professorId} 
-                                  to={createPageUrl('PerfilDocente') + '?id=' + professorId}
-                                  className="hover:scale-105 transition-transform"
-                                >
-                                  <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300 cursor-pointer hover:bg-indigo-200 text-xs">
-                                    {professor.nome}
-                                  </Badge>
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        )}
+                    <Link to={createPageUrl('PostDetail') + '?id=' + post.id}>
+                      <Button className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 text-base">
+                        Ler Post Completo <ChevronDown className="ml-2 w-5 h-5" />
+                      </Button>
+                    </Link>
 
-                        {/* Parceiros Marcados */}
-                        {post.parceiros && post.parceiros.length > 0 && (
-                          <div className="flex flex-wrap gap-2 items-center">
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300 text-xs flex items-center gap-1">
-                              <Handshake className="w-3 h-3" />
-                              Parceiros
-                            </Badge>
-                            {post.parceiros.map(parceiroId => {
-                              const parceiro = parceiros.find(p => p.id === parceiroId);
-                              if (!parceiro) return null;
-                              return (
-                                <Badge key={parceiroId} className="bg-green-100 text-green-800 border-green-300 text-xs">
-                                  {parceiro.nome}
-                                </Badge>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <Button
-                    onClick={() => togglePost(post.id)}
-                    className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 text-base"
-                  >
-                    {isExpanded ? (
-                      <>
-                        Ver Menos <ChevronUp className="ml-2 w-5 h-5" />
-                      </>
-                    ) : (
-                      <>
-                        Ver Mais <ChevronDown className="ml-2 w-5 h-5" />
-                      </>
-                    )}
-                  </Button>
-
-                  {isExpanded && (
-                    <div className="space-y-6 pt-6 mt-6 border-t-2 border-pink-200">
-                      {/* Botões de Compartilhamento */}
                       <div className="flex flex-wrap items-center gap-3 bg-gradient-to-r from-pink-50 to-rose-50 p-4 rounded-lg">
                         <Share2 className="w-5 h-5 text-pink-600" />
                         <span className="font-semibold text-gray-700">Compartilhar:</span>

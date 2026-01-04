@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
+import { useLocation, Link, Navigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,7 +26,10 @@ const generateSlug = (titulo) => {
 };
 
 export default function PostPage() {
-  const { slug } = useParams();
+  const location = useLocation();
+  const urlParams = new URLSearchParams(location.search);
+  const slug = urlParams.get('slug');
+  
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [novoComentario, setNovoComentario] = useState({});
@@ -40,8 +43,8 @@ export default function PostPage() {
   });
 
   const post = posts.find(p => {
-    const postSlug = generateSlug(p.titulo);
-    return slug === `${postSlug}-${p.id.slice(-8)}`;
+    const postSlug = generateSlug(p.titulo, p.id);
+    return slug === postSlug;
   });
 
   const { data: allComentarios = [] } = useQuery({

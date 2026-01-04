@@ -229,7 +229,7 @@ export default function EmAcaoPage() {
             return (
               <Card key={post.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
                 {post.imagem_destaque && (
-                  <Link to={`/blog/${postSlug}`}>
+                  <Link to={createPageUrl('PostPage') + '?slug=' + postSlug}>
                     <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden cursor-pointer">
                       <img
                         src={post.imagem_destaque}
@@ -246,7 +246,7 @@ export default function EmAcaoPage() {
                     )}
                 <CardContent className="p-5 sm:p-6 md:p-8">
                   <div className="mb-4">
-                    <Link to={`/blog/${postSlug}`}>
+                    <Link to={createPageUrl('PostPage') + '?slug=' + postSlug}>
                       <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 hover:text-pink-600 transition-colors cursor-pointer">
                         {post.titulo}
                       </h3>
@@ -267,7 +267,7 @@ export default function EmAcaoPage() {
 
                   </div>
 
-                  <Link to={`/blog/${postSlug}`}>
+                  <Link to={createPageUrl('PostPage') + '?slug=' + postSlug}>
                     <Button className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 text-base">
                       Ler Post Completo <ChevronDown className="ml-2 w-5 h-5" />
                     </Button>

@@ -18,10 +18,11 @@ import MeuPerfilDocente from './pages/MeuPerfilDocente';
 import ParceirosPage from './pages/ParceirosPage';
 import PerfilDiscente from './pages/PerfilDiscente';
 import PerfilDocente from './pages/PerfilDocente';
+import PostDetail from './pages/PostDetail';
 import ProfessoresPage from './pages/ProfessoresPage';
 import UpgradePage from './pages/UpgradePage';
 import UserProfilePage from './pages/UserProfilePage';
-import PostDetail from './pages/PostDetail';
+import PostPage from './pages/PostPage';
 import __Layout from './Layout.jsx';
 
 
@@ -46,10 +47,11 @@ export const PAGES = {
     "ParceirosPage": ParceirosPage,
     "PerfilDiscente": PerfilDiscente,
     "PerfilDocente": PerfilDocente,
+    "PostDetail": PostDetail,
     "ProfessoresPage": ProfessoresPage,
     "UpgradePage": UpgradePage,
     "UserProfilePage": UserProfilePage,
-    "PostDetail": PostDetail,
+    "PostPage": PostPage,
 }
 
 export const pagesConfig = {

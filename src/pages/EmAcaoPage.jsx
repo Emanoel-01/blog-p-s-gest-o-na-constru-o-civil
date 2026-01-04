@@ -164,12 +164,45 @@ export default function EmAcaoPage() {
               type="text"
               placeholder="Buscar por palavra-chave, título, descrição ou tag..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="pl-9 sm:pl-10 py-4 sm:py-6 text-sm sm:text-base"
             />
           </div>
-          {searchTerm && (
-            <p className="text-xs sm:text-sm text-gray-600 mt-2">
+
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm font-semibold text-gray-700">Filtrar por categoria:</span>
+            <Button
+              variant={filtroTag === 'todas' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setFiltroTag('todas');
+                setCurrentPage(1);
+              }}
+              className={filtroTag === 'todas' ? 'bg-pink-600' : ''}
+            >
+              Todas
+            </Button>
+            {allTags.slice(0, 8).map(tag => (
+              <Button
+                key={tag}
+                variant={filtroTag === tag ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setFiltroTag(tag);
+                  setCurrentPage(1);
+                }}
+                className={filtroTag === tag ? 'bg-pink-600' : ''}
+              >
+                {tag}
+              </Button>
+            ))}
+          </div>
+
+          {(searchTerm || filtroTag !== 'todas') && (
+            <p className="text-xs sm:text-sm text-gray-600">
               {filteredPosts.length} post(s) encontrado(s)
             </p>
           )}
@@ -191,7 +224,8 @@ export default function EmAcaoPage() {
         </Card>
       ) : (
         <div className="space-y-6 max-w-5xl mx-auto">
-          {filteredPosts.map((post) => {
+          {currentPosts.map((post) => {
+            const postSlug = generateSlug(post.titulo, post.id);
             return (
               <Card key={post.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
                 {post.imagem_destaque && (

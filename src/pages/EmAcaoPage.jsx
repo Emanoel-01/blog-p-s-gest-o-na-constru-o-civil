@@ -229,7 +229,7 @@ export default function EmAcaoPage() {
             return (
               <Card key={post.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
                 {post.imagem_destaque && (
-                  <Link to={createPageUrl('PostDetail') + '?id=' + post.id}>
+                  <Link to={`/blog/${postSlug}`}>
                     <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden cursor-pointer">
                       <img
                         src={post.imagem_destaque}
@@ -246,7 +246,7 @@ export default function EmAcaoPage() {
                     )}
                 <CardContent className="p-5 sm:p-6 md:p-8">
                   <div className="mb-4">
-                    <Link to={createPageUrl('PostDetail') + '?id=' + post.id}>
+                    <Link to={`/blog/${postSlug}`}>
                       <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 hover:text-pink-600 transition-colors cursor-pointer">
                         {post.titulo}
                       </h3>
@@ -267,7 +267,7 @@ export default function EmAcaoPage() {
 
                   </div>
 
-                  <Link to={createPageUrl('PostDetail') + '?id=' + post.id}>
+                  <Link to={`/blog/${postSlug}`}>
                     <Button className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 text-base">
                       Ler Post Completo <ChevronDown className="ml-2 w-5 h-5" />
                     </Button>
@@ -276,6 +276,40 @@ export default function EmAcaoPage() {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            Anterior
+          </Button>
+          
+          <div className="flex gap-1">
+            {[...Array(totalPages)].map((_, i) => (
+              <Button
+                key={i + 1}
+                variant={currentPage === i + 1 ? 'default' : 'outline'}
+                onClick={() => setCurrentPage(i + 1)}
+                className={currentPage === i + 1 ? 'bg-pink-600' : ''}
+              >
+                {i + 1}
+              </Button>
+            ))}
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Próxima
+          </Button>
         </div>
       )}
 

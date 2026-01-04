@@ -253,19 +253,19 @@ export default function EmAcaoPage() {
                       </div>
                     )}
 
-                    </div>
+                  </div>
 
-                    <Link to={createPageUrl('PostDetail') + '?id=' + post.id}>
-                      <Button className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 text-base">
-                        Ler Post Completo <ChevronDown className="ml-2 w-5 h-5" />
-                      </Button>
-                    </Link>
-                      </CardContent>
-                      </Card>
-                      );
-                      })}
-                      </div>
-                      )}
+                  <Link to={createPageUrl('PostDetail') + '?id=' + post.id}>
+                    <Button className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 text-base">
+                      Ler Post Completo <ChevronDown className="ml-2 w-5 h-5" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 sm:mt-8">
         <Link to={createPageUrl('ParceirosPage')} className="w-full sm:w-auto">

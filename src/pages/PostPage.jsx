@@ -37,6 +37,10 @@ export default function PostPage() {
 
   const queryClient = useQueryClient();
 
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
+
   const { data: posts = [], isLoading: loadingPosts } = useQuery({
     queryKey: ['posts'],
     queryFn: () => base44.entities.Post.list('-data')

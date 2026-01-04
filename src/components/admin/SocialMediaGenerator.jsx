@@ -27,16 +27,20 @@ export default function SocialMediaGenerator({ especializacao }) {
       });
       
       // Salvar no banco de dados
-      await base44.entities.SocialMediaPost.create({
-        especializacao_id: especializacao.id,
-        especializacao_nome: especializacao.nome,
-        platform,
-        post_text: response.data.content.post_text,
-        image_suggestions: response.data.content.image_suggestions || [],
-        best_time_to_post: response.data.content.best_time_to_post || '',
-        hashtags: response.data.content.hashtags || [],
-        alternative_versions: response.data.content.alternative_versions || []
-      });
+      try {
+        await base44.entities.SocialMediaPost.create({
+          especializacao_id: especializacao.id,
+          especializacao_nome: especializacao.nome,
+          platform,
+          post_text: response.data.content.post_text || '',
+          image_suggestions: response.data.content.image_suggestions || [],
+          best_time_to_post: response.data.content.best_time_to_post || '',
+          hashtags: response.data.content.hashtags || [],
+          alternative_versions: response.data.content.alternative_versions || []
+        });
+      } catch (saveError) {
+        console.error('Erro ao salvar post:', saveError);
+      }
       
       return { platform, data: response.data };
     },
@@ -45,6 +49,7 @@ export default function SocialMediaGenerator({ especializacao }) {
       toast.success(`Post para ${platform} gerado e salvo!`);
     },
     onError: (error) => {
+      console.error('Erro ao gerar post:', error);
       toast.error('Erro ao gerar post: ' + error.message);
     }
   });

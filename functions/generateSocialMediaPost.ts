@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     const { payload } = await req.json();
-    const { especializacao, platform } = payload; // platform: 'instagram', 'linkedin', 'twitter'
+    const { especializacao, platform, tone = 'profissional', keywords = '', cta = '', modelo = null } = payload;
 
     const platformSpecs = {
       instagram: {
@@ -35,26 +35,39 @@ Deno.serve(async (req) => {
 
     const spec = platformSpecs[platform];
 
-    const prompt = `Você é um especialista em marketing digital para educação. Crie um post para ${platform.toUpperCase()} promovendo a seguinte especialização:
+    const toneDescriptions = {
+      profissional: 'Profissional, corporativo, sério e confiável',
+      informal: 'Descontraído, próximo, amigável e acessível',
+      persuasivo: 'Convincente, motivador, focado em benefícios e urgência',
+      inspirador: 'Motivacional, transformador, aspiracional',
+      tecnico: 'Técnico, detalhado, focado em especificações e dados'
+    };
+
+    let prompt = `Você é um especialista em marketing digital para educação. Crie um post para ${platform.toUpperCase()} promovendo a seguinte especialização:
 
 ESPECIALIZAÇÃO: ${especializacao.nome}
-DESCRIÇÃO: ${especializacao.descricao || 'Curso de pós-graduação em Construção Civil'}
-CARGA HORÁRIA: ${especializacao.carga_horaria || 360}h
-PÚBLICO-ALVO: ${especializacao.publico_alvo || 'Engenheiros e Arquitetos'}
-DIFERENCIAIS: ${especializacao.diferenciais?.join(', ') || 'Metodologia prática, professores experientes'}
+DESCRIÇÃO: ${especializacao.descricao || especializacao.resumo || 'Curso de pós-graduação em Construção Civil'}
+CARGA HORÁRIA: ${especializacao.carga_horaria_total || 360}h
+PÚBLICO-ALVO: Engenheiros, Arquitetos e Profissionais da Construção Civil
 
 ESPECIFICAÇÕES DA PLATAFORMA:
 - Limite de caracteres: ${spec.limite_caracteres}
 - Estilo: ${spec.estilo}
 - Quantidade de hashtags: até ${spec.hashtags}
-- CTA: ${spec.cta}
+- CTA padrão: ${spec.cta}
+
+CUSTOMIZAÇÕES SOLICITADAS:
+- Tom: ${toneDescriptions[tone]}${cta ? `\n- CTA específico: "${cta}"` : ''}${keywords ? `\n- Palavras-chave obrigatórias: ${keywords}` : ''}
+
+${modelo ? `\nMODELO DE REFERÊNCIA (siga esta estrutura):\n${modelo}\n` : ''}
 
 DIRETRIZES:
-1. Use linguagem persuasiva e profissional
+1. Use o tom especificado: ${tone}
 2. Destaque benefícios concretos (ROI, empregabilidade, reconhecimento)
-3. Inclua estatísticas ou dados se relevante
-4. Crie senso de urgência ou exclusividade
+3. ${keywords ? `Inclua obrigatoriamente as palavras-chave: ${keywords}` : 'Use palavras-chave relevantes'}
+4. ${cta ? `Use este CTA: "${cta}"` : 'Crie um CTA forte'}
 5. Use hashtags estratégicas focadas em: construção civil, engenharia, BIM, pós-graduação
+6. Seja autêntico e crie conexão emocional com o público
 
 Retorne o post completo, pronto para publicar.`;
 

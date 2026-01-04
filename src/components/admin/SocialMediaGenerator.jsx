@@ -25,11 +25,24 @@ export default function SocialMediaGenerator({ especializacao }) {
         especializacao,
         platform
       });
+      
+      // Salvar no banco de dados
+      await base44.entities.SocialMediaPost.create({
+        especializacao_id: especializacao.id,
+        especializacao_nome: especializacao.nome,
+        platform,
+        post_text: response.data.content.post_text,
+        image_suggestions: response.data.content.image_suggestions || [],
+        best_time_to_post: response.data.content.best_time_to_post || '',
+        hashtags: response.data.content.hashtags || [],
+        alternative_versions: response.data.content.alternative_versions || []
+      });
+      
       return { platform, data: response.data };
     },
     onSuccess: ({ platform, data }) => {
       setGeneratedContent(prev => ({ ...prev, [platform]: data.content }));
-      toast.success(`Post para ${platform} gerado!`);
+      toast.success(`Post para ${platform} gerado e salvo!`);
     },
     onError: (error) => {
       toast.error('Erro ao gerar post: ' + error.message);

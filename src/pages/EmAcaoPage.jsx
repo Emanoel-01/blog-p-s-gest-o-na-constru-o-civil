@@ -14,8 +14,23 @@ import ReactMarkdown from 'react-markdown';
 import ImageViewer from '../components/blog/ImageViewer';
 import { toast } from 'sonner';
 
+// Função para gerar slug a partir do título
+const generateSlug = (titulo, id) => {
+  if (!titulo) return '';
+  const slug = titulo
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `${slug}-${id.slice(-8)}`;
+};
+
 export default function EmAcaoPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [filtroTag, setFiltroTag] = useState('todas');
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 6;
 
   const queryClient = useQueryClient();
 

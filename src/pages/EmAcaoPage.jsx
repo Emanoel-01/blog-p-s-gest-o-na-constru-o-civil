@@ -83,16 +83,28 @@ export default function EmAcaoPage() {
 
 
 
+  // Extrair todas as tags únicas
+  const allTags = [...new Set(posts.flatMap(p => p.tags || []))].sort();
+
+  // Filtrar posts
   const filteredPosts = posts.filter(post => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      post.titulo?.toLowerCase().includes(term) ||
-      post.descricao?.toLowerCase().includes(term) ||
-      post.conteudo_completo?.toLowerCase().includes(term) ||
-      post.tags?.some(tag => tag.toLowerCase().includes(term))
+    const termMatch = !searchTerm || (
+      post.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.conteudo_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+    
+    const tagMatch = filtroTag === 'todas' || post.tags?.includes(filtroTag);
+    
+    return termMatch && tagMatch;
   });
+
+  // Paginação
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
 
 
 
@@ -145,56 +157,7 @@ export default function EmAcaoPage() {
           Acompanhe eventos, workshops, masterclasses e novidades da nossa comunidade acadêmica
         </p>
 
-        {/* Vídeos do Instagram e LinkedIn em Destaque */}
-        <div className="max-w-4xl mx-auto mb-8 space-y-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-4">
-            Últimas Postagens nas Redes Sociais
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white rounded-lg overflow-hidden shadow-md">
-              <iframe
-                src="https://www.instagram.com/reel/DPkKSFJke6X/embed"
-                className="w-full h-96 sm:h-[500px]"
-                frameBorder="0"
-                scrolling="no"
-                allowTransparency={true}
-                allow="encrypted-media"
-              />
-            </div>
-            <div className="bg-white rounded-lg overflow-hidden shadow-md">
-              <iframe
-                src="https://www.instagram.com/reel/DPMARgDDhM8/embed"
-                className="w-full h-96 sm:h-[500px]"
-                frameBorder="0"
-                scrolling="no"
-                allowTransparency={true}
-                allow="encrypted-media"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <div className="bg-white rounded-lg overflow-hidden shadow-md">
-              <iframe
-                src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7386641164558360576?compact=1"
-                className="w-full h-96 sm:h-[500px]"
-                frameBorder="0"
-                allowFullScreen={true}
-                title="Publicação incorporada"
-              />
-            </div>
-            <div className="bg-white rounded-lg overflow-hidden shadow-md">
-              <iframe
-                src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7371274943013048321?compact=1"
-                className="w-full h-96 sm:h-[500px]"
-                frameBorder="0"
-                allowFullScreen={true}
-                title="Publicação incorporada"
-              />
-            </div>
-          </div>
-        </div>
-        
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <Input

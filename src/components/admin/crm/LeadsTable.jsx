@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Edit, Trash2, Search, Filter, CheckCircle2, CalendarIcon, X } from 'lucide-react';
+import { Edit, Trash2, Search, Filter, CheckCircle2, CalendarIcon, X, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -308,6 +308,22 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
                     </div>
 
                     <div className="flex gap-2">
+                      {inscrito.telefone_sanitizado && (
+                        <a
+                          href={`https://wa.me/${inscrito.telefone_sanitizado}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="text-green-600 hover:text-green-700"
+                            title="Abrir WhatsApp"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                        </a>
+                      )}
                       <Button
                         size="icon"
                         variant="ghost"

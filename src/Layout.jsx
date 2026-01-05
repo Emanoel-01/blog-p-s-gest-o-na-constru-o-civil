@@ -7,6 +7,7 @@ import { createPageUrl } from '@/utils';
 import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star, LogIn, LogOut, UserCircle } from 'lucide-react';
 import Chatbot from '@/components/chatbot/Chatbot';
 import NotificationBell from '@/components/layout/NotificationBell';
+import CommentNotifications from '@/components/notifications/CommentNotifications';
 
 // Componente auxiliar para decidir qual botão de perfil mostrar
 function ProfileButton({ user, location }) {
@@ -213,8 +214,9 @@ export default function Layout({ children }) {
 
           {/* Notificações (apenas para usuários logados) */}
           {user && (
-            <div className="px-2 lg:px-4 mb-2">
+            <div className="px-2 lg:px-4 mb-2 space-y-2">
               <NotificationBell userEmail={user.email} />
+              <CommentNotifications />
             </div>
           )}
 
@@ -289,8 +291,9 @@ export default function Layout({ children }) {
 
               {/* Notificações Mobile */}
               {user && (
-                <div className="px-4 mb-2">
+                <div className="px-4 mb-2 space-y-2">
                   <NotificationBell userEmail={user.email} />
+                  <CommentNotifications />
                 </div>
               )}
 

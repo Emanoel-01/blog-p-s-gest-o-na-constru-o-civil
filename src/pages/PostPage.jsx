@@ -12,6 +12,7 @@ import { createPageUrl } from '@/utils';
 import { ArrowLeft, Share2, Calendar, Tag, MessageCircle, Send, User, Users, Handshake, Image as ImageIcon, Video, FileText, ExternalLink, ThumbsUp, Reply } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ImageViewer from '../components/blog/ImageViewer';
+import PDFGallery from '../components/blog/PDFGallery';
 import { toast } from 'sonner';
 
 // Função para gerar slug a partir do título
@@ -190,6 +191,7 @@ export default function PostPage() {
     switch(tipo) {
       case 'imagem': return <ImageIcon className="w-4 h-4" />;
       case 'video': return <Video className="w-4 h-4" />;
+      case 'audio': return <span className="w-4 h-4">🎵</span>;
       case 'pdf': return <FileText className="w-4 h-4" />;
       case 'link': return <ExternalLink className="w-4 h-4" />;
       default: return <FileText className="w-4 h-4" />;
@@ -415,8 +417,20 @@ export default function PostPage() {
                   <ImageIcon className="w-6 h-6 text-pink-600" />
                   Mídias Anexadas
                 </h3>
+
+                {/* Galeria de PDFs */}
+                {post.midias.filter(m => m.tipo === 'pdf').length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-red-600" />
+                      Documentos PDF
+                    </h4>
+                    <PDFGallery pdfs={post.midias.filter(m => m.tipo === 'pdf')} />
+                  </div>
+                )}
+
                 <div className="space-y-6">
-                  {post.midias.map((midia, idx) => {
+                  {post.midias.filter(m => m.tipo !== 'pdf').map((midia, idx) => {
                     const isYouTube = midia.url?.includes('youtube.com') || midia.url?.includes('youtu.be');
                     const isInstagram = midia.url?.includes('instagram.com');
                     
@@ -477,7 +491,38 @@ export default function PostPage() {
                             )}
                           </>
                         )}
+
+                        {midia.tipo === 'audio' && midia.url && (
+                          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border-2 border-purple-200">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
+                                <span className="text-2xl">🎵</span>
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-purple-900">Podcast / Áudio</p>
+                                <p className="text-xs text-purple-700">{midia.titulo || 'Reproduzir áudio'}</p>
+                              </div>
+                            </div>
+                            <audio controls className="w-full" preload="metadata">
+                              <source src={midia.url} type="audio/mpeg" />
+                              <source src={midia.url} type="audio/wav" />
+                              <source src={midia.url} type="audio/ogg" />
+                              Seu navegador não suporta o elemento de áudio.
+                            </audio>
+                          </div>
+                        )}
                         
+                        {midia.tipo === 'audio' && midia.url && (
+                          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-2 border-purple-200">
+                            <audio controls className="w-full" preload="metadata">
+                              <source src={midia.url} type="audio/mpeg" />
+                              <source src={midia.url} type="audio/wav" />
+                              <source src={midia.url} type="audio/ogg" />
+                              Seu navegador não suporta o elemento de áudio.
+                            </audio>
+                          </div>
+                        )}
+
                         {midia.tipo === 'link' && midia.url && (
                           <>
                             {isInstagram ? (
@@ -501,20 +546,9 @@ export default function PostPage() {
                                 Abrir Link <ExternalLink className="w-5 h-5" />
                               </a>
                             )}
-                          </>
-                        )}
-                        
-                        {midia.tipo === 'pdf' && midia.url && (
-                          <a
-                            href={midia.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all font-semibold"
-                          >
-                            Abrir PDF <ExternalLink className="w-5 h-5" />
-                          </a>
-                        )}
-                      </div>
+                            </>
+                            )}
+                            </div>
                     );
                   })}
                 </div>

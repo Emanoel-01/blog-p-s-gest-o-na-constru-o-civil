@@ -5238,15 +5238,21 @@ Seja detalhado, prático e objetivo na análise.`;
                       <SelectContent>
                         <SelectItem value="imagem">Imagem</SelectItem>
                         <SelectItem value="video">Vídeo</SelectItem>
+                        <SelectItem value="audio">Áudio/Podcast</SelectItem>
                         <SelectItem value="pdf">PDF</SelectItem>
                         <SelectItem value="link">Link Externo</SelectItem>
                       </SelectContent>
                     </Select>
-                    {(midia.tipo === 'imagem' || midia.tipo === 'video' || midia.tipo === 'pdf') && (
+                    {(midia.tipo === 'imagem' || midia.tipo === 'video' || midia.tipo === 'audio' || midia.tipo === 'pdf') && (
                       <div className="flex gap-2">
                         <Input
                           type="file"
-                          accept={midia.tipo === 'imagem' ? 'image/*' : midia.tipo === 'video' ? 'video/*' : 'application/pdf'}
+                          accept={
+                            midia.tipo === 'imagem' ? 'image/*' : 
+                            midia.tipo === 'video' ? 'video/*' : 
+                            midia.tipo === 'audio' ? 'audio/*' :
+                            'application/pdf'
+                          }
                           onChange={(e) => handleUploadMidiaFile(e, index)}
                           disabled={uploadingMidia}
                           className="flex-1 text-sm"

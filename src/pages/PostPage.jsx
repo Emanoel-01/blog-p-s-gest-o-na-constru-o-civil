@@ -218,20 +218,55 @@ export default function PostPage() {
     <>
       <Helmet>
         <title>{post.titulo} | Blog Em Ação ESUDA</title>
-        <meta name="description" content={post.descricao} />
-        <meta name="keywords" content={post.tags?.join(', ') || 'blog construção civil, eventos ESUDA'} />
+        <meta name="description" content={post.meta_description || post.descricao} />
+        <meta name="keywords" content={post.palavra_chave_principal ? `${post.palavra_chave_principal}, ${post.tags?.join(', ') || ''}` : post.tags?.join(', ') || 'blog construção civil, eventos ESUDA'} />
         <link rel="canonical" href={postUrl} />
         
         <meta property="og:type" content="article" />
         <meta property="og:title" content={post.titulo} />
-        <meta property="og:description" content={post.descricao} />
+        <meta property="og:description" content={post.meta_description || post.descricao} />
         <meta property="og:url" content={postUrl} />
         <meta property="og:image" content={post.imagem_destaque || 'https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png'} />
+        <meta property="og:image:alt" content={post.titulo} />
+        <meta property="article:published_time" content={post.created_date} />
+        <meta property="article:modified_time" content={post.updated_date || post.created_date} />
+        {post.tags?.map(tag => (
+          <meta key={tag} property="article:tag" content={tag} />
+        ))}
         
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={post.titulo} />
-        <meta name="twitter:description" content={post.descricao} />
+        <meta name="twitter:description" content={post.meta_description || post.descricao} />
         <meta name="twitter:image" content={post.imagem_destaque || 'https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png'} />
+        
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": post.titulo,
+            "description": post.meta_description || post.descricao,
+            "image": post.imagem_destaque || "https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png",
+            "datePublished": post.created_date,
+            "dateModified": post.updated_date || post.created_date,
+            "author": {
+              "@type": "Organization",
+              "name": "ESUDA"
+            },
+            "publisher": {
+              "@type": "EducationalOrganization",
+              "name": "ESUDA",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png"
+              }
+            },
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": postUrl
+            },
+            "keywords": post.palavra_chave_principal || post.tags?.join(', ') || ''
+          })}
+        </script>
       </Helmet>
 
       <div className="space-y-6 px-2 sm:px-0">
@@ -263,6 +298,8 @@ export default function PostPage() {
               <img
                 src={post.imagem_destaque}
                 alt={post.titulo}
+                loading="eager"
+                decoding="async"
                 className="w-full h-full object-cover cursor-pointer"
                 onClick={() => {
                   const allImages = [
@@ -459,6 +496,8 @@ export default function PostPage() {
                           <img 
                             src={midia.url} 
                             alt={midia.titulo || 'Imagem'}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-gray-300" 
                             onClick={() => {
                               const allImages = [
@@ -485,7 +524,7 @@ export default function PostPage() {
                                 />
                               </div>
                             ) : (
-                              <video controls preload="metadata" className="w-full rounded-lg">
+                              <video controls preload="metadata" loading="lazy" className="w-full rounded-lg">
                                 <source src={midia.url} />
                                 Seu navegador não suporta o elemento de vídeo.
                               </video>

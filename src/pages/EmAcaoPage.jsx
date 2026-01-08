@@ -29,14 +29,15 @@ const generateSlug = (titulo, id) => {
 export default function EmAcaoPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroTag, setFiltroTag] = useState('todas');
+  const [ordenacao, setOrdenacao] = useState('-data');
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 6;
 
   const queryClient = useQueryClient();
 
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ['posts'],
-    queryFn: () => base44.entities.Post.list('-data')
+    queryKey: ['posts', ordenacao],
+    queryFn: () => base44.entities.Post.list(ordenacao)
   });
 
   // Schema.org para BlogPosting individual
@@ -172,33 +173,63 @@ export default function EmAcaoPage() {
             />
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm font-semibold text-gray-700">Filtrar por categoria:</span>
-            <Button
-              variant={filtroTag === 'todas' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => {
-                setFiltroTag('todas');
-                setCurrentPage(1);
-              }}
-              className={filtroTag === 'todas' ? 'bg-pink-600' : ''}
-            >
-              Todas
-            </Button>
-            {allTags.slice(0, 8).map(tag => (
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-sm font-semibold text-gray-700">Filtrar por categoria:</span>
               <Button
-                key={tag}
-                variant={filtroTag === tag ? 'default' : 'outline'}
+                variant={filtroTag === 'todas' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
-                  setFiltroTag(tag);
+                  setFiltroTag('todas');
                   setCurrentPage(1);
                 }}
-                className={filtroTag === tag ? 'bg-pink-600' : ''}
+                className={filtroTag === 'todas' ? 'bg-pink-600' : ''}
               >
-                {tag}
+                Todas
               </Button>
-            ))}
+              {allTags.slice(0, 8).map(tag => (
+                <Button
+                  key={tag}
+                  variant={filtroTag === tag ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setFiltroTag(tag);
+                    setCurrentPage(1);
+                  }}
+                  className={filtroTag === tag ? 'bg-pink-600' : ''}
+                >
+                  {tag}
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-sm font-semibold text-gray-700">Ordenar por:</span>
+              <Button
+                variant={ordenacao === '-data' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setOrdenacao('-data')}
+                className={ordenacao === '-data' ? 'bg-pink-600' : ''}
+              >
+                Mais Recentes
+              </Button>
+              <Button
+                variant={ordenacao === 'data' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setOrdenacao('data')}
+                className={ordenacao === 'data' ? 'bg-pink-600' : ''}
+              >
+                Mais Antigos
+              </Button>
+              <Button
+                variant={ordenacao === 'titulo' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setOrdenacao('titulo')}
+                className={ordenacao === 'titulo' ? 'bg-pink-600' : ''}
+              >
+                A-Z
+              </Button>
+            </div>
           </div>
 
           {(searchTerm || filtroTag !== 'todas') && (
@@ -235,6 +266,7 @@ export default function EmAcaoPage() {
                         src={post.imagem_destaque}
                         alt={post.titulo}
                         loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />
                     <div className="absolute top-4 right-4 bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg">

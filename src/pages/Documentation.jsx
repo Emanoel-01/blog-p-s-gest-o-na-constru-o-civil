@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Download, FileText, Lock } from 'lucide-react';
+import { Download, FileText, Lock, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { generateDocumentation } from '@/functions/generateDocumentation';
+import { toast } from 'sonner';
 
 // Página standalone sem Layout - acessível apenas via Base44 Dev Menu
 export default function Documentation() {
   const [showRaw, setShowRaw] = useState(false);
-
-  const markdownContent = `# Documentação Técnica e Arquitetural
+  const [loading, setLoading] = useState(false);
+  const [markdownContent, setMarkdownContent] = useState(`# Documentação Técnica e Arquitetural
 ## Sistema de Gestão de Pós-Graduações (GPO) - ESUDA
 
 ---
@@ -902,7 +904,24 @@ O sistema está pronto para suportar o crescimento do portfólio de pós-gradua�
 **Fim da Documentação**
 
 *Gerado em: ${new Date().toLocaleString('pt-BR')}*
-`;
+`);
+
+  const handleUpdate = async () => {
+    setLoading(true);
+    try {
+      const { data } = await generateDocumentation();
+      if (data.success) {
+        setMarkdownContent(data.markdown);
+        toast.success(\`Documentação atualizada! \${data.entities_count} entidades encontradas.\`);
+      } else {
+        toast.error(data.error || 'Erro ao gerar documentação');
+      }
+    } catch (error) {
+      toast.error('Erro: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const downloadMarkdown = () => {
     const blob = new Blob([markdownContent], { type: 'text/markdown' });
@@ -935,7 +954,24 @@ O sistema está pronto para suportar o crescimento do portfólio de pós-gradua�
                 </p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                onClick={handleUpdate}
+                disabled={loading}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Atualizando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Atualizar
+                  </>
+                )}
+              </Button>
               <Button
                 onClick={() => setShowRaw(!showRaw)}
                 variant="outline"

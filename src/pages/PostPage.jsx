@@ -543,18 +543,7 @@ export default function PostPage() {
                                 <p className="text-xs text-purple-700">{midia.titulo || 'Reproduzir áudio'}</p>
                               </div>
                             </div>
-                            <audio controls className="w-full" preload="metadata">
-                              <source src={midia.url} type="audio/mpeg" />
-                              <source src={midia.url} type="audio/wav" />
-                              <source src={midia.url} type="audio/ogg" />
-                              Seu navegador não suporta o elemento de áudio.
-                            </audio>
-                          </div>
-                        )}
-                        
-                        {midia.tipo === 'audio' && midia.url && (
-                          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-2 border-purple-200">
-                            <audio controls className="w-full" preload="metadata">
+                            <audio controls className="w-full" preload="none">
                               <source src={midia.url} type="audio/mpeg" />
                               <source src={midia.url} type="audio/wav" />
                               <source src={midia.url} type="audio/ogg" />

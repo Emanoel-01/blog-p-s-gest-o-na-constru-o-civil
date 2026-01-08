@@ -912,7 +912,7 @@ O sistema está pronto para suportar o crescimento do portfólio de pós-gradua�
       const { data } = await generateDocumentation();
       if (data.success) {
         setMarkdownContent(data.markdown);
-        toast.success(\`Documentação atualizada! \${data.entities_count} entidades encontradas.\`);
+        toast.success('Documentação atualizada! ' + data.entities_count + ' entidades encontradas.');
       } else {
         toast.error(data.error || 'Erro ao gerar documentação');
       }

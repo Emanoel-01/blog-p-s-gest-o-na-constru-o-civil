@@ -15,15 +15,16 @@ import ImageViewer from '../components/blog/ImageViewer';
 import PDFGallery from '../components/blog/PDFGallery';
 import { toast } from 'sonner';
 
-// Função para gerar slug a partir do título
-const generateSlug = (titulo) => {
-  if (!titulo) return '';
-  return titulo
+// Função para gerar slug a partir do título e ID
+const generateSlug = (titulo, id) => {
+  if (!titulo || !id) return '';
+  const slug = titulo
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+  return `${slug}-${id.slice(-8)}`;
 };
 
 export default function PostPage() {

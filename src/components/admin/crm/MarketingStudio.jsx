@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Send, Download, Image as ImageIcon, Mail, MessageCircle } from 'lucide-react';
+import { Sparkles, Send, Download, Image as ImageIcon, Mail, MessageCircle, RefreshCw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { syncLeadsActive } from '@/functions/syncLeadsActive';
 
 export default function MarketingStudio({ inscritos, currentUser }) {
   const [activeStudio, setActiveStudio] = useState('texto');
@@ -15,6 +16,7 @@ export default function MarketingStudio({ inscritos, currentUser }) {
   const [conteudoGerado, setConteudoGerado] = useState('');
   const [imagemUrl, setImagemUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
   const [campanhaForm, setCampanhaForm] = useState({
     nome: '',
     assunto: ''
@@ -103,9 +105,27 @@ export default function MarketingStudio({ inscritos, currentUser }) {
     }
   };
 
+  const handleSyncG1 = async () => {
+    setSyncLoading(true);
+    try {
+      const { data } = await syncLeadsActive();
+      if (data.success) {
+        toast.success(data.message);
+        // Recarregar a página após sincronização bem-sucedida
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        toast.error(data.error || 'Erro ao sincronizar G1');
+      }
+    } catch (error) {
+      toast.error('Erro na comunicação: ' + error.message);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button
           onClick={() => setActiveStudio('texto')}
           variant={activeStudio === 'texto' ? 'default' : 'outline'}
@@ -121,6 +141,23 @@ export default function MarketingStudio({ inscritos, currentUser }) {
         >
           <ImageIcon className="w-4 h-4 mr-2" />
           Gerar Imagem
+        </Button>
+        <Button
+          onClick={handleSyncG1}
+          disabled={syncLoading}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          {syncLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+              Sincronizando...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Sincronizar G1
+            </>
+          )}
         </Button>
       </div>
 

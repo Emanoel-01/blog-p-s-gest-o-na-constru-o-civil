@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
     
     console.log('User autenticado:', user?.email);
     
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.crm_access !== true)) {
       console.error('Acesso negado:', user ? 'usuário não é admin' : 'usuário não autenticado');
       return Response.json({ error: 'Acesso negado' }, { status: 403 });
     }
@@ -16,13 +16,15 @@ Deno.serve(async (req) => {
       destinatarios, 
       assunto, 
       conteudo_html,
-      campanha_id 
+      campanha_id,
+      attachments = []
     } = await req.json();
     
     console.log('Payload recebido:', { 
       qtd_destinatarios: destinatarios?.length, 
       assunto, 
-      campanha_id 
+      campanha_id,
+      qtd_anexos: attachments.length
     });
     
     if (!destinatarios || destinatarios.length === 0) {
@@ -75,6 +77,11 @@ Deno.serve(async (req) => {
             value: conteudo_html
           }]
         };
+
+        // Adicionar anexos se existirem
+        if (attachments && attachments.length > 0) {
+          emailData.attachments = attachments;
+        }
 
         const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
           method: 'POST',

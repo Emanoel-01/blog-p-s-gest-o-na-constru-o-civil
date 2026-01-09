@@ -21,7 +21,7 @@ export default function BulkActions({ inscritos, currentUser }) {
     assunto: '',
     conteudo: ''
   });
-  const [imagemAnexo, setImagemAnexo] = useState(null);
+  const [anexos, setAnexos] = useState([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [sending, setSending] = useState(false);
@@ -37,37 +37,51 @@ export default function BulkActions({ inscritos, currentUser }) {
 
   const cursosUnicos = [...new Set(inscritos.map(i => i.nome_curso).filter(Boolean))].sort();
 
-  const handleUploadImage = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleUploadImages = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Por favor, selecione apenas arquivos de imagem');
+    if (anexos.length + files.length > 10) {
+      toast.error('Máximo de 10 anexos permitidos');
       return;
     }
 
     setUploadingImage(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const novosAnexos = [];
       
-      // Converter para Base64 para anexo
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result.split(',')[1];
-        setImagemAnexo({
-          filename: file.name,
-          content: base64,
-          type: file.type,
-          url: file_url
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        
+        // Converter para Base64 para anexo
+        const reader = new FileReader();
+        await new Promise((resolve) => {
+          reader.onloadend = () => {
+            const base64 = reader.result.split(',')[1];
+            novosAnexos.push({
+              filename: file.name,
+              content: base64,
+              type: file.type,
+              url: file_url
+            });
+            resolve();
+          };
+          reader.readAsDataURL(file);
         });
-        toast.success('Imagem carregada!');
-      };
-      reader.readAsDataURL(file);
+      }
+      
+      setAnexos([...anexos, ...novosAnexos]);
+      toast.success(`${novosAnexos.length} arquivo(s) carregado(s)!`);
     } catch (error) {
-      toast.error('Erro ao carregar imagem');
+      toast.error('Erro ao carregar arquivos');
     } finally {
       setUploadingImage(false);
+      e.target.value = '';
     }
+  };
+
+  const removeAnexo = (index) => {
+    setAnexos(anexos.filter((_, i) => i !== index));
   };
 
   const handleExportCSV = async () => {
@@ -111,20 +125,34 @@ export default function BulkActions({ inscritos, currentUser }) {
         .filter(i => i.email)
         .map(i => ({ email: i.email, nome: i.nome_completo }));
 
-      const attachments = [];
-      if (imagemAnexo) {
-        attachments.push({
-          filename: imagemAnexo.filename,
-          content: imagemAnexo.content,
-          type: imagemAnexo.type,
-          disposition: 'attachment'
-        });
-      }
+      const attachments = anexos.map(a => ({
+        filename: a.filename,
+        content: a.content,
+        type: a.type,
+        disposition: 'attachment'
+      }));
+
+      const carimbo = `
+<hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;">
+<p style="font-size: 8px; color: #666; line-height: 1.5;">
+  <strong>Emanoel Silva de Amorim</strong><br>
+  Mestre em Engenharia Civil / Arquiteto e Urbanista<br>
+  Coordenação das Especializações em Gestão e Tecnologias da Construção Civil:<br><br>
+  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-gestao-de-manutencao-predial-na-construcao-4-0/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Engenharia e Gestão da Manutenção Predial na Construção 4.0</a><br>
+  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-gestao-de-projetos-e-obras-orcamento-e-pericia/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Gestão de Projetos e Obras</a><br>
+  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-tecnologia-bim-na-construcao-civil/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Tecnologia Bim na Construção Civil</a><br>
+  <a href="https://esuda.edu.br/posgraduacao/engenharia-legal-e-pericias-avaliacoes-e-desempenho/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Engenharia Legal: Perícias, Avaliações e Desempenho</a><br><br>
+  e-mail: <a href="mailto:emanoel@esuda.edu.br" style="color: #007bff; text-decoration: none;">emanoel@esuda.edu.br</a><br>
+  Contato: (081) 9.9129-8803 / (081) 9.928-4160<br>
+  <a href="https://blogpos.base44.app/Homepage" target="_blank" style="color: #007bff; text-decoration: none;">Conheça o Nosso Blog: Clique aqui</a>
+</p>`;
+
+      const conteudoComCarimbo = `<div style="font-size: 12px;">${emailForm.conteudo.replace(/\n/g, '<br>')}</div>${carimbo}`;
 
       const { data } = await base44.functions.invoke('sendBulkEmail', {
         destinatarios,
         assunto: emailForm.assunto,
-        conteudo_html: emailForm.conteudo.replace(/\n/g, '<br>'),
+        conteudo_html: conteudoComCarimbo,
         attachments
       });
 
@@ -137,7 +165,7 @@ export default function BulkActions({ inscritos, currentUser }) {
             details: {
               destinatarios: `${data.stats.enviados} lead(s)`,
               assunto: emailForm.assunto,
-              com_anexo: attachments.length > 0
+              com_anexos: attachments.length
             },
             timestamp: new Date().toISOString()
           });
@@ -150,7 +178,7 @@ export default function BulkActions({ inscritos, currentUser }) {
           toast.warning(`${data.stats.falhas} email(s) falharam`);
         }
         setEmailForm({ assunto: '', conteudo: '' });
-        setImagemAnexo(null);
+        setAnexos([]);
       } else {
         toast.error('Erro no envio');
       }
@@ -162,6 +190,21 @@ export default function BulkActions({ inscritos, currentUser }) {
   };
 
   const getEmailPreviewHTML = () => {
+    const carimbo = `
+<hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;">
+<p style="font-size: 8px; color: #666; line-height: 1.5;">
+  <strong>Emanoel Silva de Amorim</strong><br>
+  Mestre em Engenharia Civil / Arquiteto e Urbanista<br>
+  Coordenação das Especializações em Gestão e Tecnologias da Construção Civil:<br><br>
+  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-gestao-de-manutencao-predial-na-construcao-4-0/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Engenharia e Gestão da Manutenção Predial na Construção 4.0</a><br>
+  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-gestao-de-projetos-e-obras-orcamento-e-pericia/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Gestão de Projetos e Obras</a><br>
+  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-tecnologia-bim-na-construcao-civil/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Tecnologia Bim na Construção Civil</a><br>
+  <a href="https://esuda.edu.br/posgraduacao/engenharia-legal-e-pericias-avaliacoes-e-desempenho/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Engenharia Legal: Perícias, Avaliações e Desempenho</a><br><br>
+  e-mail: <a href="mailto:emanoel@esuda.edu.br" style="color: #007bff; text-decoration: none;">emanoel@esuda.edu.br</a><br>
+  Contato: (081) 9.9129-8803 / (081) 9.928-4160<br>
+  <a href="https://blogpos.base44.app/Homepage" target="_blank" style="color: #007bff; text-decoration: none;">Conheça o Nosso Blog: Clique aqui</a>
+</p>`;
+
     return `
 <!DOCTYPE html>
 <html>
@@ -171,7 +214,7 @@ export default function BulkActions({ inscritos, currentUser }) {
     body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; padding: 20px; }
     .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     .header { background: linear-gradient(135deg, #61b376 0%, #4a9960 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-    .content { margin: 20px 0; }
+    .content { margin: 20px 0; font-size: 12px; }
     .footer { margin-top: 30px; padding-top: 20px; border-top: 2px solid #61b376; text-align: center; font-size: 12px; color: #666; }
   </style>
 </head>
@@ -183,11 +226,13 @@ export default function BulkActions({ inscritos, currentUser }) {
     <div class="content">
       ${emailForm.conteudo.replace(/\n/g, '<br>') || 'Conteúdo do email...'}
     </div>
-    ${imagemAnexo ? `
+    ${anexos.length > 0 ? `
     <div style="margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 8px; border-left: 4px solid #61b376;">
-      <p style="margin: 0; font-size: 14px; color: #666;">📎 Anexo: ${imagemAnexo.filename}</p>
+      <p style="margin: 0 0 10px 0; font-size: 14px; color: #666; font-weight: bold;">📎 Anexos (${anexos.length}):</p>
+      ${anexos.map(a => `<p style="margin: 5px 0; font-size: 13px; color: #666;">• ${a.filename}</p>`).join('')}
     </div>
     ` : ''}
+    ${carimbo}
     <div class="footer">
       <p><strong>ESUDA - Pós-Graduação</strong></p>
       <p>Escola Superior de Desenvolvimento e Aperfeiçoamento</p>
@@ -327,31 +372,41 @@ export default function BulkActions({ inscritos, currentUser }) {
             />
 
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Imagem Anexa (opcional)</label>
-              {imagemAnexo ? (
-                <div className="bg-green-50 p-3 rounded-lg border border-green-300 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <ImageIcon className="w-5 h-5 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{imagemAnexo.filename}</p>
-                      <p className="text-xs text-gray-600">Pronto para envio</p>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Anexos (opcional, máx. 10 arquivos)
+              </label>
+              
+              {anexos.length > 0 && (
+                <div className="mb-3 space-y-2">
+                  {anexos.map((anexo, index) => (
+                    <div key={index} className="bg-green-50 p-3 rounded-lg border border-green-300 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <ImageIcon className="w-5 h-5 text-green-600" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">{anexo.filename}</p>
+                          <p className="text-xs text-gray-600">Pronto para envio</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => removeAnexo(index)}
+                        className="text-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setImagemAnexo(null)}
-                    className="text-red-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                  ))}
                 </div>
-              ) : (
+              )}
+
+              {anexos.length < 10 && (
                 <div className="flex gap-2">
                   <Input
                     type="file"
-                    accept="image/*"
-                    onChange={handleUploadImage}
+                    accept="image/*, application/pdf, .doc, .docx"
+                    multiple
+                    onChange={handleUploadImages}
                     disabled={uploadingImage}
                     className="flex-1"
                   />
@@ -361,6 +416,10 @@ export default function BulkActions({ inscritos, currentUser }) {
                   </Button>
                 </div>
               )}
+              
+              <p className="text-xs text-gray-500 mt-2">
+                {anexos.length}/10 anexos • Selecione múltiplos arquivos de uma vez
+              </p>
             </div>
 
             <div className="flex gap-3">

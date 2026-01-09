@@ -29,7 +29,7 @@ const generateSlug = (titulo, id) => {
 export default function EmAcaoPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroTag, setFiltroTag] = useState('todas');
-  const [ordenacao, setOrdenacao] = useState('-data');
+  const [ordenacao, setOrdenacao] = useState('-created_date');
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 6;
 
@@ -206,18 +206,18 @@ export default function EmAcaoPage() {
             <div className="flex flex-wrap gap-2 items-center">
               <span className="text-sm font-semibold text-gray-700">Ordenar por:</span>
               <Button
-                variant={ordenacao === '-data' ? 'default' : 'outline'}
+                variant={ordenacao === '-created_date' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setOrdenacao('-data')}
-                className={ordenacao === '-data' ? 'bg-pink-600' : ''}
+                onClick={() => setOrdenacao('-created_date')}
+                className={ordenacao === '-created_date' ? 'bg-pink-600' : ''}
               >
                 Mais Recentes
               </Button>
               <Button
-                variant={ordenacao === 'data' ? 'default' : 'outline'}
+                variant={ordenacao === 'created_date' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setOrdenacao('data')}
-                className={ordenacao === 'data' ? 'bg-pink-600' : ''}
+                onClick={() => setOrdenacao('created_date')}
+                className={ordenacao === 'created_date' ? 'bg-pink-600' : ''}
               >
                 Mais Antigos
               </Button>

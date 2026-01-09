@@ -33,8 +33,18 @@ Deno.serve(async (req) => {
         const existingDate = new Date(existing.data_inscricao);
         const currentDate = new Date(inscrito.data_inscricao);
         
-        // Manter apenas o mais recente
-        if (currentDate > existingDate) {
+        const existingMatriculado = existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova';
+        const currentMatriculado = inscrito.status_crm === 'Matriculado Turma Antiga' || inscrito.status_crm === 'Matriculado Turma Nova';
+        
+        // Prioridade 1: Manter o matriculado
+        if (currentMatriculado && !existingMatriculado) {
+          toDelete.push(existing.id);
+          duplicatesMap.set(key, inscrito);
+        } else if (existingMatriculado && !currentMatriculado) {
+          toDelete.push(inscrito.id);
+        } 
+        // Prioridade 2: Se ambos ou nenhum são matriculados, manter o mais recente
+        else if (currentDate > existingDate) {
           toDelete.push(existing.id);
           duplicatesMap.set(key, inscrito);
         } else {

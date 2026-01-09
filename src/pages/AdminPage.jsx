@@ -5559,7 +5559,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'incubadora' && renderIncubadoraTab()}
         {activeTab === 'chatbot' && renderChatbotTab()}
         {activeTab === 'leads' && renderLeadsTab()}
-        {activeTab === 'depoimentos' && <DepoimentosManager />}
+        {activeTab === 'depoimentos' && <DepoimentosManager depoimentos={depoimentos} />}
         {activeTab === 'notificacoes' && renderNotificacoesTab()}
         {activeTab === 'aplicativos' && <AplicativosManager />}
         {activeTab === 'crm' && renderCRMTab()}

@@ -133,19 +133,21 @@ export default function BulkActions({ inscritos, currentUser }) {
       }));
 
       const carimbo = `
-<hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;">
-<p style="font-size: 8px; color: #666; line-height: 1.5;">
-  <strong>Emanoel Silva de Amorim</strong><br>
-  Mestre em Engenharia Civil / Arquiteto e Urbanista<br>
-  Coordenação das Especializações em Gestão e Tecnologias da Construção Civil:<br><br>
-  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-gestao-de-manutencao-predial-na-construcao-4-0/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Engenharia e Gestão da Manutenção Predial na Construção 4.0</a><br>
-  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-gestao-de-projetos-e-obras-orcamento-e-pericia/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Gestão de Projetos e Obras</a><br>
-  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-tecnologia-bim-na-construcao-civil/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Tecnologia Bim na Construção Civil</a><br>
-  <a href="https://esuda.edu.br/posgraduacao/engenharia-legal-e-pericias-avaliacoes-e-desempenho/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Engenharia Legal: Perícias, Avaliações e Desempenho</a><br><br>
-  e-mail: <a href="mailto:emanoel@esuda.edu.br" style="color: #007bff; text-decoration: none;">emanoel@esuda.edu.br</a><br>
-  Contato: (081) 9.9129-8803 / (081) 9.928-4160<br>
-  <a href="https://blogpos.base44.app/Homepage" target="_blank" style="color: #007bff; text-decoration: none;">Conheça o Nosso Blog: Clique aqui</a>
-</p>`;
+<hr style="border: none; border-top: 2px solid #61b376; margin: 20px 0;">
+<table style="width: 100%; margin-top: 15px;">
+  <tr>
+    <td style="vertical-align: top; width: 100px;">
+      <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68e635f18ac82c0861df74bb/5b895a496_logo.png" alt="Faculdade ESUDA" style="width: 90px; height: auto;">
+    </td>
+    <td style="vertical-align: top; padding-left: 15px;">
+      <p style="font-size: 8px; color: #666; line-height: 1.6; margin: 0;">
+        <strong>Faculdade ESUDA</strong><br>
+        Especializações nas áreas de Gestão e Tecnologias na Construção Civil<br>
+        <a href="https://www.esuda.edu.br" target="_blank" style="color: #007bff; text-decoration: none;">www.esuda.edu.br</a>
+      </p>
+    </td>
+  </tr>
+</table>`;
 
       const conteudoComCarimbo = `<div style="font-size: 12px;">${emailForm.conteudo.replace(/\n/g, '<br>')}</div>${carimbo}`;
 
@@ -191,19 +193,21 @@ export default function BulkActions({ inscritos, currentUser }) {
 
   const getEmailPreviewHTML = () => {
     const carimbo = `
-<hr style="border: none; border-top: 1px solid #ccc; margin: 20px 0;">
-<p style="font-size: 8px; color: #666; line-height: 1.5;">
-  <strong>Emanoel Silva de Amorim</strong><br>
-  Mestre em Engenharia Civil / Arquiteto e Urbanista<br>
-  Coordenação das Especializações em Gestão e Tecnologias da Construção Civil:<br><br>
-  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-gestao-de-manutencao-predial-na-construcao-4-0/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Engenharia e Gestão da Manutenção Predial na Construção 4.0</a><br>
-  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-gestao-de-projetos-e-obras-orcamento-e-pericia/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Gestão de Projetos e Obras</a><br>
-  <a href="https://esuda.edu.br/posgraduacao/especializacao-em-tecnologia-bim-na-construcao-civil/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Tecnologia Bim na Construção Civil</a><br>
-  <a href="https://esuda.edu.br/posgraduacao/engenharia-legal-e-pericias-avaliacoes-e-desempenho/" target="_blank" style="color: #007bff; text-decoration: none;">Especialização em Engenharia Legal: Perícias, Avaliações e Desempenho</a><br><br>
-  e-mail: <a href="mailto:emanoel@esuda.edu.br" style="color: #007bff; text-decoration: none;">emanoel@esuda.edu.br</a><br>
-  Contato: (081) 9.9129-8803 / (081) 9.928-4160<br>
-  <a href="https://blogpos.base44.app/Homepage" target="_blank" style="color: #007bff; text-decoration: none;">Conheça o Nosso Blog: Clique aqui</a>
-</p>`;
+<hr style="border: none; border-top: 2px solid #61b376; margin: 20px 0;">
+<table style="width: 100%; margin-top: 15px;">
+  <tr>
+    <td style="vertical-align: top; width: 100px;">
+      <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68e635f18ac82c0861df74bb/5b895a496_logo.png" alt="Faculdade ESUDA" style="width: 90px; height: auto;">
+    </td>
+    <td style="vertical-align: top; padding-left: 15px;">
+      <p style="font-size: 8px; color: #666; line-height: 1.6; margin: 0;">
+        <strong>Faculdade ESUDA</strong><br>
+        Especializações nas áreas de Gestão e Tecnologias na Construção Civil<br>
+        <a href="https://www.esuda.edu.br" target="_blank" style="color: #007bff; text-decoration: none;">www.esuda.edu.br</a>
+      </p>
+    </td>
+  </tr>
+</table>`;
 
     return `
 <!DOCTYPE html>

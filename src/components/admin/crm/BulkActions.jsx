@@ -13,7 +13,8 @@ export default function BulkActions({ inscritos, currentUser }) {
   const [filtros, setFiltros] = useState({
     grupo_monitoramento: '',
     status_crm: '',
-    inscricao_paga: ''
+    inscricao_paga: '',
+    nome_curso: ''
   });
   const [emailForm, setEmailForm] = useState({
     assunto: '',
@@ -25,9 +26,13 @@ export default function BulkActions({ inscritos, currentUser }) {
     const matchesGrupo = !filtros.grupo_monitoramento || inscrito.grupo_monitoramento === filtros.grupo_monitoramento;
     const matchesStatus = !filtros.status_crm || inscrito.status_crm === filtros.status_crm;
     const matchesPago = filtros.inscricao_paga === '' || inscrito.inscricao_paga === (filtros.inscricao_paga === 'true');
+    const matchesCurso = !filtros.nome_curso || inscrito.nome_curso?.toLowerCase().includes(filtros.nome_curso.toLowerCase());
     
-    return matchesGrupo && matchesStatus && matchesPago;
+    return matchesGrupo && matchesStatus && matchesPago && matchesCurso;
   });
+
+  // Lista de cursos únicos
+  const cursosUnicos = [...new Set(inscritos.map(i => i.nome_curso).filter(Boolean))].sort();
 
   const handleExportCSV = async () => {
     try {
@@ -118,7 +123,7 @@ export default function BulkActions({ inscritos, currentUser }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">Grupo</label>
               <Select value={filtros.grupo_monitoramento} onValueChange={(v) => setFiltros({...filtros, grupo_monitoramento: v})}>
@@ -144,7 +149,10 @@ export default function BulkActions({ inscritos, currentUser }) {
                   <SelectItem value="Novo">Novo</SelectItem>
                   <SelectItem value="Contatado">Contatado</SelectItem>
                   <SelectItem value="Em Negociação">Em Negociação</SelectItem>
-                  <SelectItem value="Matriculado">Matriculado</SelectItem>
+                  <SelectItem value="Matriculado Turma Antiga">Matriculado Turma Antiga</SelectItem>
+                  <SelectItem value="Matriculado Turma Nova">Matriculado Turma Nova</SelectItem>
+                  <SelectItem value="Desistente">Desistente</SelectItem>
+                  <SelectItem value="Sem Resposta">Sem Resposta</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -159,6 +167,21 @@ export default function BulkActions({ inscritos, currentUser }) {
                   <SelectItem value={null}>Todos</SelectItem>
                   <SelectItem value="true">Pagos</SelectItem>
                   <SelectItem value="false">Não Pagos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Curso</label>
+              <Select value={filtros.nome_curso} onValueChange={(v) => setFiltros({...filtros, nome_curso: v})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Todos</SelectItem>
+                  {cursosUnicos.map(curso => (
+                    <SelectItem key={curso} value={curso}>{curso}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

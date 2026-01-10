@@ -184,6 +184,12 @@ export default function Layout({ children }) {
           {navItems.map((item) => {
             const Icon = icons[item.name];
             const isActive = location.pathname.includes(item.path);
+            
+            // Esconder "Corpo Discente" para usuários não autenticados ou sem perfil válido
+            if (item.name === 'Corpo Discente' && (!user || (user.role !== 'admin' && !user.crm_access))) {
+              return null;
+            }
+            
             return (
               <Link key={item.name} to={createPageUrl(item.path)}>
                 <Button
@@ -263,6 +269,12 @@ export default function Layout({ children }) {
               {navItems.map((item) => {
                 const Icon = icons[item.name];
                 const isActive = location.pathname.includes(item.path);
+                
+                // Esconder "Corpo Discente" para usuários não autenticados ou sem perfil válido
+                if (item.name === 'Corpo Discente' && (!user || (user.role !== 'admin' && !user.crm_access))) {
+                  return null;
+                }
+                
                 return (
                   <Link key={item.name} to={createPageUrl(item.path)} onClick={() => setMobileMenuOpen(false)}>
                     <Button

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Shield, Plus, Edit, Trash2, Save, X, ExternalLink, Upload, Sparkles, Star, CheckCircle2, Calendar, Download, Mail } from 'lucide-react';
+import { Shield, Plus, Edit, Trash2, Save, X, ExternalLink, Upload, Sparkles, Star, CheckCircle2, Calendar, Download, Mail, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 
 import DetailedReport from '../components/admin/DetailedReport';
@@ -40,6 +41,7 @@ export default function AdminPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [hasCrmAccess, setHasCrmAccess] = useState(false);
+  const [novaTag, setNovaTag] = useState('');
 
   useEffect(() => {
     async function loadUser() {
@@ -1479,6 +1481,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     });
     setShowPostForm(false);
     setEditingPost(null);
+    setNovaTag(''); // Reset novaTag as well
   };
 
   const handleSavePost = () => {
@@ -1587,9 +1590,12 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     }
   };
 
-  const handleAddTag = (tag) => {
+  const handleAddTag = () => {
+    const tag = novaTag.trim();
     if (tag && !postForm.tags.includes(tag)) {
       setPostForm(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+      setNovaTag(''); // Clear the input after adding
+      toast.success('Tag adicionada!');
     }
   };
 
@@ -2243,6 +2249,20 @@ Seja detalhado, prático e objetivo na análise.`;
     setEditingEspec(null);
 
     toast.success('Formulário de nova especialização preenchido! Revise e complete os dados.');
+  };
+
+  // ========== HANDLERS PARA CHATBOT FAQs ==========
+  const handleCriarFAQDePergunta = (pergunta) => {
+    setFaqForm({
+      pergunta: pergunta.pergunta,
+      resposta: '',
+      pagina_destino: '',
+      categoria: 'Informações Gerais',
+      ativo: true,
+      ordem: chatbotFAQs.length
+    });
+    setShowFAQForm(true);
+    setEditingFAQ(null);
   };
 
   // ========== RENDER TABS ==========
@@ -4686,19 +4706,6 @@ Seja detalhado, prático e objetivo na análise.`;
     );
   };
 
-  const handleCriarFAQDePergunta = (pergunta) => {
-    setFaqForm({
-      pergunta: pergunta.pergunta,
-      resposta: '',
-      pagina_destino: '',
-      categoria: 'Informações Gerais',
-      ativo: true,
-      ordem: chatbotFAQs.length
-    });
-    setShowFAQForm(true);
-    setEditingFAQ(null);
-  };
-
   const renderChatbotTab = () => (
     <div className="space-y-8">
       {/* Seção de Perguntas Sem Resposta */}
@@ -5207,6 +5214,56 @@ Seja detalhado, prático e objetivo na análise.`;
                   {uploadingMidia ? 'Enviando...' : 'Upload'}
                 </Button>
               </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">
+                <Tag className="w-4 h-4 inline mr-1" />
+                Tags/Categorias
+              </label>
+              
+              {postForm.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3 p-3 bg-white rounded-lg border">
+                  {postForm.tags.map((tag, index) => (
+                    <Badge key={index} className="bg-pink-100 text-pink-800 border-pink-300 px-3 py-1 flex items-center gap-2">
+                      {tag}
+                      <button
+                        onClick={() => handleRemoveTag(index)}
+                        className="hover:text-red-600 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Input
+                  value={novaTag}
+                  onChange={(e) => setNovaTag(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
+                  placeholder="Digite uma tag e pressione Enter ou clique em Adicionar"
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleAddTag}
+                  variant="outline"
+                  type="button"
+                  className="flex-shrink-0"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Adicionar
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Ex: Workshop, BIM, Canteiro Didático, Gestão de Obras, etc.
+              </p>
             </div>
 
             <div>

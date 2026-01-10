@@ -21,8 +21,8 @@ export default function ComentariosManager() {
   const { data: comentarios = [], isLoading } = useQuery({
     queryKey: ['admin-comentarios'],
     queryFn: async () => {
-      const allComments = await base44.entities.Comentario.list(sortBy);
-      return allComments;
+      const response = await base44.functions.invoke('listAllComentarios', {});
+      return response.comentarios.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     }
   });
 

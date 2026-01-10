@@ -91,7 +91,6 @@ export default function DepoimentosPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const base44 = (await import('@/api/base44Client')).base44;
       let fotoUrl = null;
       let videoUrl = null;
       let audioUrl = null;
@@ -112,7 +111,6 @@ export default function DepoimentosPage() {
         audioUrl = audioResponse.file_url;
       }
 
-      // Tentar vincular a perfil existente apenas (não criar novo)
       let userProfileId = null;
       try {
         const isAuth = await base44.auth.isAuthenticated();
@@ -135,7 +133,6 @@ export default function DepoimentosPage() {
         status: 'Pendente',
       });
 
-      // Notificar admins
       try {
         await base44.functions.invoke('notifyAdminNewContent', {
           tipo: 'depoimento',

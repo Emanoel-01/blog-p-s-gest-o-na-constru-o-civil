@@ -147,35 +147,38 @@ Deno.serve(async (req) => {
 
     const allExisting = await base44.asServiceRole.entities.Inscrito.list();
     
-    // LIMPAR DUPLICATAS EXISTENTES NO BANCO
-    const duplicatesMap = new Map();
+    // LIMPEZA DE DUPLICATAS DESATIVADA - MANTÉM TODOS OS REGISTROS
     const toDelete = [];
+    stats.deleted_duplicates = 0;
     
-    for (const lead of allExisting) {
-      const key = `${lead.email?.toLowerCase()}|${normalizarNomeCurso(lead.nome_curso || '')}`;
-      
-      if (duplicatesMap.has(key)) {
-        const existing = duplicatesMap.get(key);
-        const existingDate = new Date(existing.data_inscricao);
-        const currentDate = new Date(lead.data_inscricao);
-        
-        // Manter apenas o mais recente
-        if (currentDate > existingDate) {
-          toDelete.push(existing.id);
-          duplicatesMap.set(key, lead);
-        } else {
-          toDelete.push(lead.id);
-        }
-      } else {
-        duplicatesMap.set(key, lead);
-      }
-    }
-    
-    // Deletar duplicatas
-    for (const id of toDelete) {
-      await base44.asServiceRole.entities.Inscrito.delete(id);
-      stats.deleted_duplicates++;
-    }
+    // // LIMPAR DUPLICATAS EXISTENTES NO BANCO
+    // const duplicatesMap = new Map();
+    // 
+    // for (const lead of allExisting) {
+    //   const key = `${lead.email?.toLowerCase()}|${normalizarNomeCurso(lead.nome_curso || '')}`;
+    //   
+    //   if (duplicatesMap.has(key)) {
+    //     const existing = duplicatesMap.get(key);
+    //     const existingDate = new Date(existing.data_inscricao);
+    //     const currentDate = new Date(lead.data_inscricao);
+    //     
+    //     // Manter apenas o mais recente
+    //     if (currentDate > existingDate) {
+    //       toDelete.push(existing.id);
+    //       duplicatesMap.set(key, lead);
+    //     } else {
+    //       toDelete.push(lead.id);
+    //     }
+    //   } else {
+    //     duplicatesMap.set(key, lead);
+    //   }
+    // }
+    // 
+    // // Deletar duplicatas
+    // for (const id of toDelete) {
+    //   await base44.asServiceRole.entities.Inscrito.delete(id);
+    //   stats.deleted_duplicates++;
+    // }
     
     // Recarregar lista após limpeza
     const cleanedExisting = await base44.asServiceRole.entities.Inscrito.list();

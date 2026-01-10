@@ -21,44 +21,47 @@ Deno.serve(async (req) => {
 
     const allInscritos = await base44.asServiceRole.entities.Inscrito.list();
     
-    // Map para identificar duplicatas: chave = email + curso normalizado
-    const duplicatesMap = new Map();
+    // FUNCIONALIDADE DE LIMPEZA DE DUPLICATAS DESATIVADA
+    // A lógica foi comentada para preservar todos os registros
     const toDelete = [];
     
-    for (const inscrito of allInscritos) {
-      const key = `${inscrito.email?.toLowerCase()}|${normalizarNomeCurso(inscrito.nome_curso || '')}`;
-      
-      if (duplicatesMap.has(key)) {
-        const existing = duplicatesMap.get(key);
-        const existingDate = new Date(existing.data_inscricao);
-        const currentDate = new Date(inscrito.data_inscricao);
-        
-        const existingMatriculado = existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova';
-        const currentMatriculado = inscrito.status_crm === 'Matriculado Turma Antiga' || inscrito.status_crm === 'Matriculado Turma Nova';
-        
-        // Prioridade 1: Manter o matriculado
-        if (currentMatriculado && !existingMatriculado) {
-          toDelete.push(existing.id);
-          duplicatesMap.set(key, inscrito);
-        } else if (existingMatriculado && !currentMatriculado) {
-          toDelete.push(inscrito.id);
-        } 
-        // Prioridade 2: Se ambos ou nenhum são matriculados, manter o mais recente
-        else if (currentDate > existingDate) {
-          toDelete.push(existing.id);
-          duplicatesMap.set(key, inscrito);
-        } else {
-          toDelete.push(inscrito.id);
-        }
-      } else {
-        duplicatesMap.set(key, inscrito);
-      }
-    }
-    
-    // Deletar duplicatas
-    for (const id of toDelete) {
-      await base44.asServiceRole.entities.Inscrito.delete(id);
-    }
+    // // Map para identificar duplicatas: chave = email + curso normalizado
+    // const duplicatesMap = new Map();
+    // 
+    // for (const inscrito of allInscritos) {
+    //   const key = `${inscrito.email?.toLowerCase()}|${normalizarNomeCurso(inscrito.nome_curso || '')}`;
+    //   
+    //   if (duplicatesMap.has(key)) {
+    //     const existing = duplicatesMap.get(key);
+    //     const existingDate = new Date(existing.data_inscricao);
+    //     const currentDate = new Date(inscrito.data_inscricao);
+    //     
+    //     const existingMatriculado = existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova';
+    //     const currentMatriculado = inscrito.status_crm === 'Matriculado Turma Antiga' || inscrito.status_crm === 'Matriculado Turma Nova';
+    //     
+    //     // Prioridade 1: Manter o matriculado
+    //     if (currentMatriculado && !existingMatriculado) {
+    //       toDelete.push(existing.id);
+    //       duplicatesMap.set(key, inscrito);
+    //     } else if (existingMatriculado && !currentMatriculado) {
+    //       toDelete.push(inscrito.id);
+    //     } 
+    //     // Prioridade 2: Se ambos ou nenhum são matriculados, manter o mais recente
+    //     else if (currentDate > existingDate) {
+    //       toDelete.push(existing.id);
+    //       duplicatesMap.set(key, inscrito);
+    //     } else {
+    //       toDelete.push(inscrito.id);
+    //     }
+    //   } else {
+    //     duplicatesMap.set(key, inscrito);
+    //   }
+    // }
+    // 
+    // // Deletar duplicatas
+    // for (const id of toDelete) {
+    //   await base44.asServiceRole.entities.Inscrito.delete(id);
+    // }
     
     return Response.json({
       success: true,

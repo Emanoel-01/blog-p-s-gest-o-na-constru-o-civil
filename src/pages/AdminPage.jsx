@@ -48,7 +48,7 @@ export default function AdminPage() {
       try {
         const user = await base44.auth.me();
         setCurrentUser(user);
-        const superAdmin = user.email === 'emanoel.s.amorim@gmail.com';
+        const superAdmin = user.email === 'emanoel.s.amorim@gmail.com' || user.email === 'emanoel@esuda.edu.br';
         setIsSuperAdmin(superAdmin);
         setHasCrmAccess(superAdmin || user.role === 'admin' || user.crm_access === true);
       } catch (error) {

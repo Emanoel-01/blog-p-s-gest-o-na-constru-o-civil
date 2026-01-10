@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Shield, Plus, Edit, Trash2, Save, X, ExternalLink, Upload, Sparkles, Star, CheckCircle2, Calendar, Download, Mail, Tag } from 'lucide-react';
 import { toast } from 'sonner';
+import RichTextEditor from '../components/editor/RichTextEditor';
 
 import DetailedReport from '../components/admin/DetailedReport';
 import ManagerialReport from '../components/admin/ManagerialReport';
@@ -5185,12 +5185,11 @@ Seja detalhado, prático e objetivo na análise.`;
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Conteúdo Completo (Markdown suportado)</label>
-              <Textarea
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Conteúdo Completo</label>
+              <RichTextEditor
                 value={postForm.conteudo_completo}
-                onChange={(e) => setPostForm({...postForm, conteudo_completo: e.target.value})}
-                rows={8}
-                placeholder="Conteúdo detalhado do post..."
+                onChange={(value) => setPostForm({...postForm, conteudo_completo: value})}
+                placeholder="Escreva o conteúdo detalhado do post..."
               />
             </div>
 

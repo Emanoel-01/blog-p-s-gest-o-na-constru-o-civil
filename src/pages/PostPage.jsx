@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLocation, Link, Navigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -10,12 +11,10 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Share2, Calendar, Tag, MessageCircle, Send, User, Users, Handshake, Image as ImageIcon, Video, FileText, ExternalLink, ThumbsUp, Reply } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 import ImageViewer from '../components/blog/ImageViewer';
 import PDFGallery from '../components/blog/PDFGallery';
 import { toast } from 'sonner';
 
-// Função para gerar slug a partir do título e ID
 const generateSlug = (titulo, id) => {
   if (!titulo || !id) return '';
   const slug = titulo
@@ -444,9 +443,10 @@ export default function PostPage() {
             </div>
 
             {post.conteudo_completo && (
-              <div className="prose prose-lg max-w-none mb-8 text-justify">
-                <ReactMarkdown>{post.conteudo_completo}</ReactMarkdown>
-              </div>
+              <div
+                className="prose prose-lg max-w-none mb-8 text-justify"
+                dangerouslySetInnerHTML={{ __html: post.conteudo_completo }}
+              />
             )}
 
             {post.midias && post.midias.length > 0 && (

@@ -353,22 +353,17 @@ Deno.serve(async (req) => {
       );
 
       if (existing) {
-        // Atualizar apenas leads G1 (não atualizar G2)
-        if (inscritoData.grupo_monitoramento === 'G1_Cursos_Atuais') {
-          // Preservar status de "Matriculado" se já foi definido manualmente
-          const status_crm = (existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova')
-            ? existing.status_crm
-            : inscritoData.status_crm;
+        // Atualizar tanto G1 quanto G2
+        // Preservar status de "Matriculado" se já foi definido manualmente
+        const status_crm = (existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova')
+          ? existing.status_crm
+          : inscritoData.status_crm;
 
-          // IMPORTANTE: Atualizar inscricao_paga se mudou na planilha (de não pago para pago)
-          const inscricao_paga = inscritoData.inscricao_paga || existing.inscricao_paga;
+        // IMPORTANTE: Atualizar inscricao_paga se mudou na planilha (de não pago para pago)
+        const inscricao_paga = inscritoData.inscricao_paga || existing.inscricao_paga;
 
-          toUpdate.push({ id: existing.id, ...inscritoData, status_crm, inscricao_paga });
-          stats.updated++;
-        } else {
-          // G2 existente: não atualizar mas contar para estatísticas
-          // (já existe no banco, não precisa fazer nada)
-        }
+        toUpdate.push({ id: existing.id, ...inscritoData, status_crm, inscricao_paga });
+        stats.updated++;
       } else {
         // Criar novo lead (tanto G1 quanto G2)
         toCreate.push(inscritoData);

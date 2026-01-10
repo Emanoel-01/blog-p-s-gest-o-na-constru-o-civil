@@ -57,7 +57,7 @@ export default function SocialMediaGenerator({ especializacao }) {
         }
       }
       
-      const response = await base44.functions.invoke('generateSocialMediaPost', {
+      const { data } = await base44.functions.invoke('generateSocialMediaPost', {
         especializacao,
         platform,
         tone: customOptions.tone,
@@ -67,24 +67,24 @@ export default function SocialMediaGenerator({ especializacao }) {
         modeloImageUrl: modeloImageUrl
       });
       
+      return { platform, data };
+      
       // Salvar no banco de dados
       try {
         await base44.entities.SocialMediaPost.create({
           especializacao_id: especializacao.id,
           especializacao_nome: especializacao.nome,
           platform,
-          post_text: response.data.content.post_text || '',
-          image_suggestions: response.data.content.image_suggestions || [],
-          best_time_to_post: response.data.content.best_time_to_post || '',
-          hashtags: response.data.content.hashtags || [],
-          alternative_versions: response.data.content.alternative_versions || []
+          post_text: data.content.post_text || '',
+          image_suggestions: data.content.image_suggestions || [],
+          best_time_to_post: data.content.best_time_to_post || '',
+          hashtags: data.content.hashtags || [],
+          alternative_versions: data.content.alternative_versions || []
         });
         refetchHistory();
       } catch (saveError) {
         console.error('Erro ao salvar post:', saveError);
       }
-      
-      return { platform, data: response.data };
     },
     onSuccess: ({ platform, data }) => {
       setGeneratedContent(prev => ({ ...prev, [platform]: data.content }));

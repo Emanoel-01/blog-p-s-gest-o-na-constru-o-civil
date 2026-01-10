@@ -21,7 +21,7 @@ export default function ComentariosManager() {
   const { data: comentarios = [], isLoading } = useQuery({
     queryKey: ['admin-comentarios'],
     queryFn: async () => {
-      const allComments = await base44.asServiceRole.entities.Comentario.list(sortBy);
+      const allComments = await base44.entities.Comentario.list(sortBy);
       return allComments;
     }
   });
@@ -32,7 +32,7 @@ export default function ComentariosManager() {
   });
 
   const updateComentarioMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.asServiceRole.entities.Comentario.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.Comentario.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-comentarios']);
       toast.success('Comentário atualizado!');
@@ -40,7 +40,7 @@ export default function ComentariosManager() {
   });
 
   const deleteComentarioMutation = useMutation({
-    mutationFn: (id) => base44.asServiceRole.entities.Comentario.delete(id),
+    mutationFn: (id) => base44.entities.Comentario.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-comentarios']);
       toast.success('Comentário deletado!');
@@ -51,7 +51,7 @@ export default function ComentariosManager() {
     mutationFn: async (comentarioId) => {
       const comentario = comentarios.find(c => c.id === comentarioId);
       const likes = comentario.likes || 0;
-      await base44.asServiceRole.entities.Comentario.update(comentarioId, { likes: likes + 1 });
+      await base44.entities.Comentario.update(comentarioId, { likes: likes + 1 });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-comentarios']);
@@ -63,15 +63,15 @@ export default function ComentariosManager() {
     mutationFn: async ({ action, ids }) => {
       if (action === 'aprovar') {
         await Promise.all(ids.map(id => 
-          base44.asServiceRole.entities.Comentario.update(id, { aprovado: true })
+          base44.entities.Comentario.update(id, { aprovado: true })
         ));
       } else if (action === 'rejeitar') {
         await Promise.all(ids.map(id => 
-          base44.asServiceRole.entities.Comentario.update(id, { aprovado: false })
+          base44.entities.Comentario.update(id, { aprovado: false })
         ));
       } else if (action === 'deletar') {
         await Promise.all(ids.map(id => 
-          base44.asServiceRole.entities.Comentario.delete(id)
+          base44.entities.Comentario.delete(id)
         ));
       }
     },

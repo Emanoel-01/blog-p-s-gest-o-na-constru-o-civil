@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Star, Check, X, Edit, UserCircle, Trash2, AlertTriangle, Search, Filter, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
-import { listAllDepoimentos } from '@/functions/listAllDepoimentos';
 import BulkActionsPanel from './BulkActionsPanel';
 
 export default function DepoimentosManager() {
@@ -29,8 +28,8 @@ export default function DepoimentosManager() {
   const { data: depoimentos = [] } = useQuery({
     queryKey: ['admin-depoimentos'],
     queryFn: async () => {
-      const response = await listAllDepoimentos({});
-      return response.data.depoimentos;
+      const response = await base44.functions.invoke('listAllDepoimentos', {});
+      return response.depoimentos;
     },
   });
 

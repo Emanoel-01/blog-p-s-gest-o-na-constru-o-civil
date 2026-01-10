@@ -67,8 +67,6 @@ export default function SocialMediaGenerator({ especializacao }) {
         modeloImageUrl: modeloImageUrl
       });
       
-      return { platform, data };
-      
       // Salvar no banco de dados
       try {
         await base44.entities.SocialMediaPost.create({
@@ -85,6 +83,8 @@ export default function SocialMediaGenerator({ especializacao }) {
       } catch (saveError) {
         console.error('Erro ao salvar post:', saveError);
       }
+      
+      return { platform, data };
     },
     onSuccess: ({ platform, data }) => {
       setGeneratedContent(prev => ({ ...prev, [platform]: data.content }));

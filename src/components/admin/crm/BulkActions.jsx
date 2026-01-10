@@ -9,6 +9,7 @@ import { Mail, Download, Send, FileText, Upload, Eye, X, Image as ImageIcon } fr
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import RichTextEditor from '@/components/editor/RichTextEditor';
 
 export default function BulkActions({ inscritos, currentUser }) {
   const [filtros, setFiltros] = useState({
@@ -161,7 +162,7 @@ export default function BulkActions({ inscritos, currentUser }) {
   </tr>
 </table>`;
 
-      const conteudoComCarimbo = `<div style="font-size: 12px;">${emailForm.conteudo.replace(/\n/g, '<br>')}</div>${carimbo}`;
+      const conteudoComCarimbo = `<div style="font-size: 12px;">${emailForm.conteudo}</div>${carimbo}`;
 
       const { data } = await base44.functions.invoke('sendBulkEmail', {
         destinatarios,
@@ -252,7 +253,7 @@ export default function BulkActions({ inscritos, currentUser }) {
       <h1 style="margin: 0;">${emailForm.assunto || 'Assunto do Email'}</h1>
     </div>
     <div class="content">
-      ${emailForm.conteudo.replace(/\n/g, '<br>') || 'Conteúdo do email...'}
+      ${emailForm.conteudo || 'Conteúdo do email...'}
     </div>
     ${anexos.length > 0 ? `
     <div style="margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 8px; border-left: 4px solid #61b376;">
@@ -392,12 +393,14 @@ export default function BulkActions({ inscritos, currentUser }) {
               onChange={(e) => setEmailForm({...emailForm, assunto: e.target.value})}
             />
             
-            <Textarea
-              placeholder="Conteúdo do Email (quebras de linha serão convertidas automaticamente)"
-              value={emailForm.conteudo}
-              onChange={(e) => setEmailForm({...emailForm, conteudo: e.target.value})}
-              rows={8}
-            />
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Conteúdo do Email</label>
+              <RichTextEditor
+                value={emailForm.conteudo}
+                onChange={(value) => setEmailForm({...emailForm, conteudo: value})}
+                placeholder="Escreva o conteúdo do email..."
+              />
+            </div>
 
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">

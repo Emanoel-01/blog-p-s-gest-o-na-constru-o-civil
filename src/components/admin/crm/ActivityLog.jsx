@@ -20,8 +20,18 @@ export default function ActivityLog() {
     queryFn: () => base44.entities.CRMActivityLog.list('-created_date', 100)
   });
 
-  // Extrair lista de usuários únicos
+  // Extrair lista de usuários únicos e contar suas atividades
   const uniqueUsers = [...new Set(logs.map(l => l.user_email))].filter(Boolean);
+  
+  const userStats = uniqueUsers.map(email => {
+    const userLogs = logs.filter(l => l.user_email === email);
+    return {
+      email,
+      name: userLogs[0]?.user_name || email,
+      totalActions: userLogs.length,
+      lastActivity: userLogs[0]?.created_date
+    };
+  }).sort((a, b) => new Date(b.lastActivity) - new Date(a.lastActivity));
 
   const filtered = logs.filter(log => {
     const matchesAction = actionFilter === 'Todas' || log.action_type === actionFilter;
@@ -72,6 +82,35 @@ export default function ActivityLog() {
           <p className="text-sm text-gray-600">
             Histórico completo de todas as ações realizadas pelos administradores do CRM.
           </p>
+
+          {/* Painel de Administradores Ativos */}
+          {userStats.length > 0 && (
+            <div className="bg-white p-4 rounded-lg border-2 border-indigo-200">
+              <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <User className="w-4 h-4 text-indigo-600" />
+                Administradores Ativos no CRM ({userStats.length})
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {userStats.map(user => (
+                  <div key={user.email} className="bg-gradient-to-r from-indigo-50 to-purple-50 p-3 rounded-lg border border-indigo-200">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-gray-900">{user.name}</p>
+                        <p className="text-xs text-gray-600">{user.email}</p>
+                      </div>
+                      <Badge className="bg-indigo-600 text-white text-xs">
+                        {user.totalActions} ações
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+                      <Clock className="w-3 h-3" />
+                      <span>Última atividade: {format(new Date(user.lastActivity), "dd/MM 'às' HH:mm", { locale: ptBR })}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-3 items-center">
             <div className="flex-1 min-w-[200px]">

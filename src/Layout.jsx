@@ -97,7 +97,7 @@ export default function Layout({ children }) {
         setUser(currentUser);
         
         // Super Admin hardcoded
-        const isSuperAdmin = currentUser && (currentUser.email === 'emanoel.s.amorim@gmail.com' || currentUser.email === 'emanoel@esuda.edu.br');
+        const isSuperAdmin = currentUser && (currentUser.email === 'emanoel.s.amorim@gmail.com' || currentUser.email === 'emanoel@esuda.edu.br' || currentUser.email === 'vdoval@gmail.com');
         setIsAdmin(isSuperAdmin || (currentUser && currentUser.role === 'admin') || (currentUser && currentUser.crm_access === true));
       } catch (error) {
         console.error("Erro ao verificar status de admin:", error);

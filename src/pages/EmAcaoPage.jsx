@@ -313,35 +313,121 @@ export default function EmAcaoPage() {
 
       {/* Paginação */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-          >
-            Anterior
-          </Button>
+        <div className="flex flex-col items-center gap-4 mt-8">
+          <p className="text-sm text-gray-600">
+            Página {currentPage} de {totalPages}
+          </p>
           
-          <div className="flex gap-1">
-            {[...Array(totalPages)].map((_, i) => (
-              <Button
-                key={i + 1}
-                variant={currentPage === i + 1 ? 'default' : 'outline'}
-                onClick={() => setCurrentPage(i + 1)}
-                className={currentPage === i + 1 ? 'bg-pink-600' : ''}
-              >
-                {i + 1}
-              </Button>
-            ))}
-          </div>
+          <div className="flex justify-center items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCurrentPage(prev => Math.max(1, prev - 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              disabled={currentPage === 1}
+              className="min-w-[100px]"
+            >
+              ← Anterior
+            </Button>
+            
+            {/* Desktop: Mostrar todas as páginas se forem poucas, ou com ellipsis */}
+            <div className="hidden sm:flex gap-1">
+              {totalPages <= 7 ? (
+                [...Array(totalPages)].map((_, i) => (
+                  <Button
+                    key={i + 1}
+                    variant={currentPage === i + 1 ? 'default' : 'outline'}
+                    onClick={() => {
+                      setCurrentPage(i + 1);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={currentPage === i + 1 ? 'bg-pink-600 hover:bg-pink-700' : ''}
+                  >
+                    {i + 1}
+                  </Button>
+                ))
+              ) : (
+                <>
+                  {/* Primeira página */}
+                  <Button
+                    variant={currentPage === 1 ? 'default' : 'outline'}
+                    onClick={() => {
+                      setCurrentPage(1);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={currentPage === 1 ? 'bg-pink-600 hover:bg-pink-700' : ''}
+                  >
+                    1
+                  </Button>
+                  
+                  {/* Ellipsis esquerda */}
+                  {currentPage > 3 && <span className="px-2 py-2">...</span>}
+                  
+                  {/* Páginas ao redor da atual */}
+                  {[...Array(totalPages)].map((_, i) => {
+                    const pageNum = i + 1;
+                    if (
+                      pageNum === currentPage ||
+                      pageNum === currentPage - 1 ||
+                      pageNum === currentPage + 1
+                    ) {
+                      if (pageNum !== 1 && pageNum !== totalPages) {
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? 'default' : 'outline'}
+                            onClick={() => {
+                              setCurrentPage(pageNum);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className={currentPage === pageNum ? 'bg-pink-600 hover:bg-pink-700' : ''}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      }
+                    }
+                    return null;
+                  })}
+                  
+                  {/* Ellipsis direita */}
+                  {currentPage < totalPages - 2 && <span className="px-2 py-2">...</span>}
+                  
+                  {/* Última página */}
+                  <Button
+                    variant={currentPage === totalPages ? 'default' : 'outline'}
+                    onClick={() => {
+                      setCurrentPage(totalPages);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={currentPage === totalPages ? 'bg-pink-600 hover:bg-pink-700' : ''}
+                  >
+                    {totalPages}
+                  </Button>
+                </>
+              )}
+            </div>
+            
+            {/* Mobile: Apenas página atual */}
+            <div className="sm:hidden">
+              <span className="px-4 py-2 bg-pink-600 text-white rounded-md font-semibold">
+                {currentPage}
+              </span>
+            </div>
 
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Próxima
-          </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              disabled={currentPage === totalPages}
+              className="min-w-[100px]"
+            >
+              Próxima →
+            </Button>
+          </div>
         </div>
       )}
 

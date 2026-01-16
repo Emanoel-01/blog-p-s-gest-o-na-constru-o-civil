@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Edit, Trash2, Search, Filter, CheckCircle2, CalendarIcon, X, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -15,7 +16,7 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
   const [grupoFilter, setGrupoFilter] = useState('Todos');
-  const [cursoFilter, setCursoFilter] = useState('Todos');
+  const [cursoFilter, setCursoFilter] = useState([]);
   const [dataInicio, setDataInicio] = useState(null);
   const [dataFim, setDataFim] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -35,7 +36,7 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
     
     const matchesStatus = statusFilter === 'Todos' || inscrito.status_crm === statusFilter;
     const matchesGrupo = grupoFilter === 'Todos' || inscrito.grupo_monitoramento === grupoFilter;
-    const matchesCurso = cursoFilter === 'Todos' || inscrito.nome_curso === cursoFilter;
+    const matchesCurso = cursoFilter.length === 0 || cursoFilter.includes(inscrito.nome_curso);
     
     // Filtro de data
     const inscricaoDate = inscrito.data_inscricao ? new Date(inscrito.data_inscricao) : null;
@@ -152,17 +153,60 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
           </SelectContent>
         </Select>
 
-        <Select value={cursoFilter} onValueChange={setCursoFilter}>
-          <SelectTrigger className="w-56">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Todos">Todos Cursos</SelectItem>
-            {cursosUnicos.map(curso => (
-              <SelectItem key={curso} value={curso}>{curso}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-56 justify-between">
+              {cursoFilter.length === 0 ? (
+                'Todos Cursos'
+              ) : cursoFilter.length === 1 ? (
+                cursoFilter[0]
+              ) : (
+                `${cursoFilter.length} cursos selecionados`
+              )}
+              <Filter className="ml-2 h-4 w-4 text-gray-500" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-3" align="start">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-gray-700">Filtrar por Cursos</label>
+                {cursoFilter.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCursoFilter([])}
+                    className="h-6 px-2 text-xs"
+                  >
+                    Limpar
+                  </Button>
+                )}
+              </div>
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {cursosUnicos.map(curso => (
+                  <div key={curso} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={curso}
+                      checked={cursoFilter.includes(curso)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setCursoFilter([...cursoFilter, curso]);
+                        } else {
+                          setCursoFilter(cursoFilter.filter(c => c !== curso));
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={curso}
+                      className="text-sm text-gray-700 cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {curso}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
 
         <Popover>
           <PopoverTrigger asChild>

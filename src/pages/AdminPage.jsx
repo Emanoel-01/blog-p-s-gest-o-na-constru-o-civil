@@ -34,6 +34,7 @@ import LeadsTable from '../components/admin/crm/LeadsTable';
 import MarketingStudio from '../components/admin/crm/MarketingStudio';
 import BulkActions from '../components/admin/crm/BulkActions';
 import ActivityLog from '../components/admin/crm/ActivityLog';
+import BlogManager from '../components/admin/BlogManager';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -190,6 +191,10 @@ export default function AdminPage() {
     midias: [],
     imagem_destaque: '',
     tags: [],
+    categoria_principal: '',
+    subcategoria: '',
+    status: 'Rascunho',
+    data_publicacao: '',
     especializacoes: [],
     ciclos: [],
     professores: [],
@@ -1473,6 +1478,10 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       midias: [],
       imagem_destaque: '',
       tags: [],
+      categoria_principal: '',
+      subcategoria: '',
+      status: 'Rascunho',
+      data_publicacao: '',
       especializacoes: [],
       ciclos: [],
       professores: [],
@@ -1481,12 +1490,17 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     });
     setShowPostForm(false);
     setEditingPost(null);
-    setNovaTag(''); // Reset novaTag as well
+    setNovaTag('');
   };
 
   const handleSavePost = () => {
     if (!postForm.titulo || !postForm.data || !postForm.descricao) {
       toast.error('Título, data e descrição são obrigatórios!');
+      return;
+    }
+
+    if (postForm.status === 'Agendado' && !postForm.data_publicacao) {
+      toast.error('Data de publicação é obrigatória para posts agendados!');
       return;
     }
 
@@ -1498,6 +1512,10 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       midias: postForm.midias,
       imagem_destaque: postForm.imagem_destaque,
       tags: postForm.tags,
+      categoria_principal: postForm.categoria_principal,
+      subcategoria: postForm.subcategoria,
+      status: postForm.status,
+      data_publicacao: postForm.data_publicacao,
       especializacoes: postForm.especializacoes,
       ciclos: postForm.ciclos,
       professores: postForm.professores,
@@ -1521,6 +1539,10 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       midias: post.midias || [],
       imagem_destaque: post.imagem_destaque || '',
       tags: post.tags || [],
+      categoria_principal: post.categoria_principal || '',
+      subcategoria: post.subcategoria || '',
+      status: post.status || 'Rascunho',
+      data_publicacao: post.data_publicacao || '',
       especializacoes: post.especializacoes || [],
       ciclos: post.ciclos || [],
       professores: post.professores || [],
@@ -1537,96 +1559,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     }
   };
 
-  const handleUploadImagemDestaque = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    setUploadingMidia(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setPostForm(prev => ({ ...prev, imagem_destaque: file_url }));
-      toast.success('Imagem enviada com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao enviar imagem: ' + error.message);
-    } finally {
-      setUploadingMidia(false);
-    }
-  };
-
-  const handleAddMidia = () => {
-    setPostForm(prev => ({
-      ...prev,
-      midias: [...prev.midias, { tipo: 'imagem', url: '', titulo: '', cta: null }]
-    }));
-  };
-
-  const handleRemoveMidia = (index) => {
-    setPostForm(prev => ({
-      ...prev,
-      midias: prev.midias.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleMidiaChange = (index, field, value) => {
-    setPostForm(prev => ({
-      ...prev,
-      midias: prev.midias.map((m, i) => i === index ? { ...m, [field]: value } : m)
-    }));
-  };
-
-  const handleToggleCTA = (index) => {
-    setPostForm(prev => ({
-      ...prev,
-      midias: prev.midias.map((m, i) => 
-        i === index 
-          ? { ...m, cta: m.cta ? null : { texto: '', link: '', cor: 'azul' } }
-          : m
-      )
-    }));
-  };
-
-  const handleCTAChange = (index, field, value) => {
-    setPostForm(prev => ({
-      ...prev,
-      midias: prev.midias.map((m, i) => 
-        i === index && m.cta
-          ? { ...m, cta: { ...m.cta, [field]: value } }
-          : m
-      )
-    }));
-  };
-
-  const handleUploadMidiaFile = async (e, index) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploadingMidia(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      handleMidiaChange(index, 'url', file_url);
-      toast.success('Arquivo enviado com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao enviar arquivo: ' + error.message);
-    } finally {
-      setUploadingMidia(false);
-    }
-  };
-
-  const handleAddTag = () => {
-    const tag = novaTag.trim();
-    if (tag && !postForm.tags.includes(tag)) {
-      setPostForm(prev => ({ ...prev, tags: [...prev.tags, tag] }));
-      setNovaTag(''); // Clear the input after adding
-      toast.success('Tag adicionada!');
-    }
-  };
-
-  const handleRemoveTag = (index) => {
-    setPostForm(prev => ({
-      ...prev,
-      tags: prev.tags.filter((_, i) => i !== index)
-    }));
-  };
 
   // ========== HANDLERS PARA CRONOGRAMA ==========
   const resetCronogramaForm = () => {
@@ -5157,350 +5090,22 @@ Seja detalhado, prático e objetivo na análise.`;
   };
 
   const renderPostsTab = () => (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-bold text-gray-800">Gerenciar Posts do Blog</h3>
-        <Button
-          onClick={() => setShowPostForm(!showPostForm)}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Post
-        </Button>
-      </div>
-
-      {showPostForm && (
-        <Card className="mb-6 bg-pink-50 border-pink-200">
-          <CardHeader>
-            <CardTitle className="text-lg">
-              {editingPost ? 'Editar Post' : 'Novo Post'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">Título do Post</label>
-                <Input
-                  value={postForm.titulo}
-                  onChange={(e) => setPostForm({...postForm, titulo: e.target.value})}
-                  placeholder="Ex: Workshop BIM na Prática"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Data do Evento/Post</label>
-                <Input
-                  value={postForm.data}
-                  onChange={(e) => setPostForm({...postForm, data: e.target.value})}
-                  placeholder="Ex: 15/01/2025"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700">Descrição Resumida</label>
-              <Textarea
-                value={postForm.descricao}
-                onChange={(e) => setPostForm({...postForm, descricao: e.target.value})}
-                rows={3}
-                placeholder="Breve descrição que aparece no card..."
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Conteúdo Completo</label>
-              <RichTextEditor
-                value={postForm.conteudo_completo}
-                onChange={(value) => setPostForm({...postForm, conteudo_completo: value})}
-                placeholder="Escreva o conteúdo detalhado do post..."
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">Imagem de Destaque (Thumbnail)</label>
-              {postForm.imagem_destaque && (
-                <div className="mb-2">
-                  <img src={postForm.imagem_destaque} alt="Destaque" loading="lazy" className="w-full max-w-md h-48 object-cover rounded-lg border" />
-                </div>
-              )}
-              <div className="flex gap-2">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleUploadImagemDestaque}
-                  disabled={uploadingMidia}
-                  className="flex-1"
-                />
-                <Button disabled={uploadingMidia} variant="outline">
-                  <Upload className="w-4 h-4 mr-2" />
-                  {uploadingMidia ? 'Enviando...' : 'Upload'}
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">
-                <Tag className="w-4 h-4 inline mr-1" />
-                Tags/Categorias
-              </label>
-              
-              {postForm.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3 p-3 bg-white rounded-lg border">
-                  {postForm.tags.map((tag, index) => (
-                    <Badge key={index} className="bg-pink-100 text-pink-800 border-pink-300 px-3 py-1 flex items-center gap-2">
-                      {tag}
-                      <button
-                        onClick={() => handleRemoveTag(index)}
-                        className="hover:text-red-600 transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <Input
-                  value={novaTag}
-                  onChange={(e) => setNovaTag(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddTag();
-                    }
-                  }}
-                  placeholder="Digite uma tag e pressione Enter ou clique em Adicionar"
-                  className="flex-1"
-                />
-                <Button
-                  onClick={handleAddTag}
-                  variant="outline"
-                  type="button"
-                  className="flex-shrink-0"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Adicionar
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Ex: Workshop, BIM, Canteiro Didático, Gestão de Obras, etc.
-              </p>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-sm font-medium text-gray-700">Mídias Anexadas</label>
-                <Button onClick={handleAddMidia} size="sm" variant="outline">
-                  <Plus className="w-3 h-3 mr-1" />
-                  Adicionar Mídia
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {postForm.midias.map((midia, index) => (
-                  <div key={index} className="bg-white p-3 rounded-md border space-y-2">
-                    <div className="flex justify-between items-start">
-                      <span className="text-xs font-semibold text-gray-600">Mídia {index + 1}</span>
-                      <Button
-                        onClick={() => handleRemoveMidia(index)}
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6 text-red-600"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                    <Select value={midia.tipo} onValueChange={(v) => handleMidiaChange(index, 'tipo', v)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="imagem">Imagem</SelectItem>
-                        <SelectItem value="video">Vídeo</SelectItem>
-                        <SelectItem value="audio">Áudio/Podcast</SelectItem>
-                        <SelectItem value="pdf">PDF</SelectItem>
-                        <SelectItem value="link">Link Externo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {(midia.tipo === 'imagem' || midia.tipo === 'video' || midia.tipo === 'audio' || midia.tipo === 'pdf') && (
-                      <div className="flex gap-2">
-                        <Input
-                          type="file"
-                          accept={
-                            midia.tipo === 'imagem' ? 'image/*' : 
-                            midia.tipo === 'video' ? 'video/*' : 
-                            midia.tipo === 'audio' ? 'audio/*' :
-                            'application/pdf'
-                          }
-                          onChange={(e) => handleUploadMidiaFile(e, index)}
-                          disabled={uploadingMidia}
-                          className="flex-1 text-sm"
-                        />
-                      </div>
-                    )}
-                    {midia.tipo === 'link' && (
-                      <Input
-                        value={midia.url}
-                        onChange={(e) => handleMidiaChange(index, 'url', e.target.value)}
-                        placeholder="https://..."
-                        className="text-sm"
-                      />
-                    )}
-                    <Input
-                      value={midia.titulo}
-                      onChange={(e) => handleMidiaChange(index, 'titulo', e.target.value)}
-                      placeholder="Título/descrição da mídia"
-                      className="text-sm"
-                    />
-
-                    {/* CTA para Mídia */}
-                    <div className="border-t pt-3 mt-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-semibold text-gray-700">Call-to-Action (CTA)</label>
-                        <Button
-                          onClick={() => handleToggleCTA(index)}
-                          size="sm"
-                          variant={midia.cta ? 'destructive' : 'outline'}
-                          className="h-7 text-xs"
-                        >
-                          {midia.cta ? <X className="w-3 h-3 mr-1" /> : <Plus className="w-3 h-3 mr-1" />}
-                          {midia.cta ? 'Remover CTA' : 'Adicionar CTA'}
-                        </Button>
-                      </div>
-
-                      {midia.cta && (
-                        <div className="bg-gray-50 p-3 rounded-md space-y-2">
-                          <Input
-                            value={midia.cta.texto}
-                            onChange={(e) => handleCTAChange(index, 'texto', e.target.value)}
-                            placeholder="Ex: Inscreva-se Agora"
-                            className="text-sm"
-                          />
-                          <Input
-                            value={midia.cta.link}
-                            onChange={(e) => handleCTAChange(index, 'link', e.target.value)}
-                            placeholder="https://..."
-                            className="text-sm"
-                          />
-                          <Select 
-                            value={midia.cta.cor} 
-                            onValueChange={(v) => handleCTAChange(index, 'cor', v)}
-                          >
-                            <SelectTrigger className="text-sm">
-                              <SelectValue placeholder="Escolha a cor" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="azul">🔵 Azul</SelectItem>
-                              <SelectItem value="verde">🟢 Verde</SelectItem>
-                              <SelectItem value="vermelho">🔴 Vermelho</SelectItem>
-                              <SelectItem value="laranja">🟠 Laranja</SelectItem>
-                              <SelectItem value="roxo">🟣 Roxo</SelectItem>
-                              <SelectItem value="rosa">🌸 Rosa</SelectItem>
-                              <SelectItem value="cinza">⚫ Cinza</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          
-                          {/* Preview do CTA */}
-                          <div className="pt-2">
-                            <p className="text-xs text-gray-500 mb-1">Preview:</p>
-                            <a
-                              href={midia.cta.link || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`inline-block px-4 py-2 rounded-full font-semibold text-white shadow-lg transform hover:scale-105 transition-all text-sm ${
-                                midia.cta.cor === 'azul' ? 'bg-blue-600 hover:bg-blue-700' :
-                                midia.cta.cor === 'verde' ? 'bg-green-600 hover:bg-green-700' :
-                                midia.cta.cor === 'vermelho' ? 'bg-red-600 hover:bg-red-700' :
-                                midia.cta.cor === 'laranja' ? 'bg-orange-600 hover:bg-orange-700' :
-                                midia.cta.cor === 'roxo' ? 'bg-purple-600 hover:bg-purple-700' :
-                                midia.cta.cor === 'rosa' ? 'bg-pink-600 hover:bg-pink-700' :
-                                'bg-gray-600 hover:bg-gray-700'
-                              }`}
-                            >
-                              {midia.cta.texto || 'Texto do CTA'}
-                            </a>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>
-              <Input
-                type="number"
-                value={postForm.ordem}
-                onChange={(e) => setPostForm({...postForm, ordem: e.target.value})}
-                placeholder="0"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleSavePost} className="bg-pink-600 hover:bg-pink-700">
-                <Save className="w-4 h-4 mr-2" />
-                Salvar
-              </Button>
-              <Button onClick={resetPostForm} variant="outline">
-                <X className="w-4 h-4 mr-2" />
-                Cancelar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-4">
-        {loadingPosts ? (
-          <p className="text-gray-600">Carregando posts...</p>
-        ) : posts.length === 0 ? (
-          <p className="text-gray-500 italic">Nenhum post cadastrado ainda.</p>
-        ) : (
-          posts.map((post) => (
-            <Card key={post.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex gap-4 items-start">
-                  {post.imagem_destaque && (
-                    <img src={post.imagem_destaque} alt={post.titulo} loading="lazy" className="w-32 h-24 rounded-lg object-cover border" />
-                  )}
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-800 mb-1">{post.titulo}</h4>
-                    <p className="text-xs text-gray-500 mb-2">{post.data}</p>
-                    <p className="text-sm text-gray-600 line-clamp-2">{post.descricao}</p>
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {post.tags.map((tag, i) => (
-                          <span key={i} className="text-xs bg-pink-100 px-2 py-0.5 rounded-full">{tag}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleEditPost(post)}
-                      className="text-blue-600 hover:text-blue-700"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDeletePost(post.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-    </div>
+    <BlogManager
+      posts={posts}
+      editingPost={editingPost}
+      setEditingPost={setEditingPost}
+      showPostForm={showPostForm}
+      setShowPostForm={setShowPostForm}
+      postForm={postForm}
+      setPostForm={setPostForm}
+      onSave={handleSavePost}
+      onDelete={handleDeletePost}
+      uploadingMidia={uploadingMidia}
+      especializacoes={especializacoes}
+      ciclos={ciclos}
+      professores={professores}
+      parceiros={parceiros}
+    />
   );
 
   return (

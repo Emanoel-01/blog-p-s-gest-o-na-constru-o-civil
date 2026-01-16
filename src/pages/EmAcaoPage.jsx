@@ -87,8 +87,16 @@ export default function EmAcaoPage() {
   // Extrair todas as tags únicas
   const allTags = [...new Set(posts.flatMap(p => p.tags || []))].sort();
 
-  // Filtrar posts
+  // Filtrar posts - apenas publicados
   const filteredPosts = posts.filter(post => {
+    // Exibir apenas posts publicados ou agendados cuja data já passou
+    const isPublicado = post.status === 'Publicado';
+    const isAgendadoJaPublicado = post.status === 'Agendado' && 
+      post.data_publicacao && 
+      new Date(post.data_publicacao) <= new Date();
+    
+    if (!isPublicado && !isAgendadoJaPublicado) return false;
+    
     const termMatch = !searchTerm || (
       post.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||

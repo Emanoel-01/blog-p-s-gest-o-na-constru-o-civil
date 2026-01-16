@@ -343,6 +343,25 @@ export default function Homepage() {
         </div>
       </div>
 
+      {/* Vídeo 50 anos ESUDA */}
+      <div className="bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-yellow-300">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 text-center mb-4 sm:mb-6">
+          🎉 50 anos da Faculdade Esuda! 🎉
+        </h2>
+        <div className="relative w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl border-4 border-yellow-400">
+          <div className="relative pb-[56.25%] h-0">
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              src="https://www.youtube.com/embed/dQMTp-iQnWY"
+              title="50 anos da Faculdade Esuda"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Incubadora Profissional com ROI */}
       {incubadoraActivities.length > 0 && (
         <div className="bg-gradient-to-r from-teal-50 via-cyan-50 to-blue-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 border-2 border-teal-200">

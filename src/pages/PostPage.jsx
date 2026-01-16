@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Share2, Calendar, Tag, MessageCircle, Send, User, Users, Handshake, Image as ImageIcon, Video, FileText, ExternalLink, ThumbsUp, Reply, MousePointerClick } from 'lucide-react';
+import { ArrowLeft, Share2, Calendar, Tag, MessageCircle, Send, User, Users, Handshake, Image as ImageIcon, Video, FileText, ExternalLink, ThumbsUp, Reply } from 'lucide-react';
 import ImageViewer from '../components/blog/ImageViewer';
 import PDFGallery from '../components/blog/PDFGallery';
 import { toast } from 'sonner';
@@ -34,15 +34,6 @@ export default function PostPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [novoComentario, setNovoComentario] = useState({});
   const [respostaComentarioId, setRespostaComentarioId] = useState(null);
-  
-  const ctaColors = {
-    verde: 'bg-green-600 hover:bg-green-700 shadow-green-300',
-    azul: 'bg-blue-600 hover:bg-blue-700 shadow-blue-300',
-    laranja: 'bg-orange-600 hover:bg-orange-700 shadow-orange-300',
-    rosa: 'bg-pink-600 hover:bg-pink-700 shadow-pink-300',
-    roxo: 'bg-purple-600 hover:bg-purple-700 shadow-purple-300',
-    vermelho: 'bg-red-600 hover:bg-red-700 shadow-red-300'
-  };
 
   const queryClient = useQueryClient();
 
@@ -466,12 +457,34 @@ export default function PostPage() {
 
                 {/* Galeria de PDFs */}
                 {post.midias.filter(m => m.tipo === 'pdf').length > 0 && (
-                  <div className="mb-6">
+                  <div className="mb-6 space-y-4">
                     <h4 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
                       <FileText className="w-5 h-5 text-red-600" />
                       Documentos PDF
                     </h4>
                     <PDFGallery pdfs={post.midias.filter(m => m.tipo === 'pdf')} />
+                    {post.midias.filter(m => m.tipo === 'pdf' && m.cta).map((pdf, idx) => (
+                      pdf.cta && (
+                        <div key={idx} className="text-center">
+                          <a
+                            href={pdf.cta.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`inline-block px-6 py-3 rounded-full font-bold text-white shadow-xl transform hover:scale-110 transition-all ${
+                              pdf.cta.cor === 'azul' ? 'bg-blue-600 hover:bg-blue-700' :
+                              pdf.cta.cor === 'verde' ? 'bg-green-600 hover:bg-green-700' :
+                              pdf.cta.cor === 'vermelho' ? 'bg-red-600 hover:bg-red-700' :
+                              pdf.cta.cor === 'laranja' ? 'bg-orange-600 hover:bg-orange-700' :
+                              pdf.cta.cor === 'roxo' ? 'bg-purple-600 hover:bg-purple-700' :
+                              pdf.cta.cor === 'rosa' ? 'bg-pink-600 hover:bg-pink-700' :
+                              'bg-gray-600 hover:bg-gray-700'
+                            }`}
+                          >
+                            {pdf.cta.texto}
+                          </a>
+                        </div>
+                      )
+                    ))}
                   </div>
                 )}
 
@@ -501,26 +514,48 @@ export default function PostPage() {
                         )}
                         
                         {midia.tipo === 'imagem' && midia.url && (
-                          <img 
-                            src={midia.url} 
-                            alt={midia.titulo || 'Imagem'}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-gray-300" 
-                            onClick={() => {
-                              const allImages = [
-                                post.imagem_destaque,
-                                ...(post.midias || [])
-                                  .filter(m => m.tipo === 'imagem' && m.url)
-                                  .map(m => m.url)
-                              ].filter(Boolean);
-                              handleImageClick(midia.url, allImages);
-                            }}
-                          />
+                          <div>
+                            <img 
+                              src={midia.url} 
+                              alt={midia.titulo || 'Imagem'}
+                              loading="lazy"
+                              decoding="async"
+                              className="w-full rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-gray-300" 
+                              onClick={() => {
+                                const allImages = [
+                                  post.imagem_destaque,
+                                  ...(post.midias || [])
+                                    .filter(m => m.tipo === 'imagem' && m.url)
+                                    .map(m => m.url)
+                                ].filter(Boolean);
+                                handleImageClick(midia.url, allImages);
+                              }}
+                            />
+                            {midia.cta && (
+                              <div className="mt-4 text-center">
+                                <a
+                                  href={midia.cta.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`inline-block px-6 py-3 rounded-full font-bold text-white shadow-xl transform hover:scale-110 transition-all ${
+                                    midia.cta.cor === 'azul' ? 'bg-blue-600 hover:bg-blue-700' :
+                                    midia.cta.cor === 'verde' ? 'bg-green-600 hover:bg-green-700' :
+                                    midia.cta.cor === 'vermelho' ? 'bg-red-600 hover:bg-red-700' :
+                                    midia.cta.cor === 'laranja' ? 'bg-orange-600 hover:bg-orange-700' :
+                                    midia.cta.cor === 'roxo' ? 'bg-purple-600 hover:bg-purple-700' :
+                                    midia.cta.cor === 'rosa' ? 'bg-pink-600 hover:bg-pink-700' :
+                                    'bg-gray-600 hover:bg-gray-700'
+                                  }`}
+                                >
+                                  {midia.cta.texto}
+                                </a>
+                              </div>
+                            )}
+                          </div>
                         )}
                         
                         {midia.tipo === 'video' && midia.url && (
-                          <>
+                          <div>
                             {isYouTube ? (
                               <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                                 <iframe
@@ -537,31 +572,73 @@ export default function PostPage() {
                                 Seu navegador não suporta o elemento de vídeo.
                               </video>
                             )}
-                          </>
+                            {midia.cta && (
+                              <div className="mt-4 text-center">
+                                <a
+                                  href={midia.cta.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`inline-block px-6 py-3 rounded-full font-bold text-white shadow-xl transform hover:scale-110 transition-all ${
+                                    midia.cta.cor === 'azul' ? 'bg-blue-600 hover:bg-blue-700' :
+                                    midia.cta.cor === 'verde' ? 'bg-green-600 hover:bg-green-700' :
+                                    midia.cta.cor === 'vermelho' ? 'bg-red-600 hover:bg-red-700' :
+                                    midia.cta.cor === 'laranja' ? 'bg-orange-600 hover:bg-orange-700' :
+                                    midia.cta.cor === 'roxo' ? 'bg-purple-600 hover:bg-purple-700' :
+                                    midia.cta.cor === 'rosa' ? 'bg-pink-600 hover:bg-pink-700' :
+                                    'bg-gray-600 hover:bg-gray-700'
+                                  }`}
+                                >
+                                  {midia.cta.texto}
+                                </a>
+                              </div>
+                            )}
+                          </div>
                         )}
 
                         {midia.tipo === 'audio' && midia.url && (
-                          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border-2 border-purple-200">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
-                                <span className="text-2xl">🎵</span>
+                          <div className="space-y-4">
+                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border-2 border-purple-200">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center">
+                                  <span className="text-2xl">🎵</span>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold text-purple-900">Podcast / Áudio</p>
+                                  <p className="text-xs text-purple-700">{midia.titulo || 'Reproduzir áudio'}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-sm font-semibold text-purple-900">Podcast / Áudio</p>
-                                <p className="text-xs text-purple-700">{midia.titulo || 'Reproduzir áudio'}</p>
-                              </div>
+                              <audio controls className="w-full" preload="none">
+                                <source src={midia.url} type="audio/mpeg" />
+                                <source src={midia.url} type="audio/wav" />
+                                <source src={midia.url} type="audio/ogg" />
+                                Seu navegador não suporta o elemento de áudio.
+                              </audio>
                             </div>
-                            <audio controls className="w-full" preload="none">
-                              <source src={midia.url} type="audio/mpeg" />
-                              <source src={midia.url} type="audio/wav" />
-                              <source src={midia.url} type="audio/ogg" />
-                              Seu navegador não suporta o elemento de áudio.
-                            </audio>
+                            {midia.cta && (
+                              <div className="text-center">
+                                <a
+                                  href={midia.cta.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`inline-block px-6 py-3 rounded-full font-bold text-white shadow-xl transform hover:scale-110 transition-all ${
+                                    midia.cta.cor === 'azul' ? 'bg-blue-600 hover:bg-blue-700' :
+                                    midia.cta.cor === 'verde' ? 'bg-green-600 hover:bg-green-700' :
+                                    midia.cta.cor === 'vermelho' ? 'bg-red-600 hover:bg-red-700' :
+                                    midia.cta.cor === 'laranja' ? 'bg-orange-600 hover:bg-orange-700' :
+                                    midia.cta.cor === 'roxo' ? 'bg-purple-600 hover:bg-purple-700' :
+                                    midia.cta.cor === 'rosa' ? 'bg-pink-600 hover:bg-pink-700' :
+                                    'bg-gray-600 hover:bg-gray-700'
+                                  }`}
+                                >
+                                  {midia.cta.texto}
+                                </a>
+                              </div>
+                            )}
                           </div>
                         )}
 
                         {midia.tipo === 'link' && midia.url && (
-                          <>
+                          <div className="space-y-4">
                             {isInstagram ? (
                               <div className="w-full max-w-lg mx-auto">
                                 <iframe
@@ -583,24 +660,29 @@ export default function PostPage() {
                                 Abrir Link <ExternalLink className="w-5 h-5" />
                               </a>
                             )}
-                          </>
-                        )}
-                        
-                        {/* CTA Button */}
-                        {midia.cta && midia.cta.texto && midia.cta.link && (
-                          <div className="mt-4">
-                            <a
-                              href={midia.cta.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`block text-center px-6 py-3 rounded-full text-white font-bold text-sm transition-all transform hover:scale-105 shadow-lg ${ctaColors[midia.cta.cor] || ctaColors.azul}`}
-                            >
-                              <MousePointerClick className="w-4 h-4 inline mr-2" />
-                              {midia.cta.texto}
-                            </a>
+                            {midia.cta && (
+                              <div className="text-center">
+                                <a
+                                  href={midia.cta.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`inline-block px-6 py-3 rounded-full font-bold text-white shadow-xl transform hover:scale-110 transition-all ${
+                                    midia.cta.cor === 'azul' ? 'bg-blue-600 hover:bg-blue-700' :
+                                    midia.cta.cor === 'verde' ? 'bg-green-600 hover:bg-green-700' :
+                                    midia.cta.cor === 'vermelho' ? 'bg-red-600 hover:bg-red-700' :
+                                    midia.cta.cor === 'laranja' ? 'bg-orange-600 hover:bg-orange-700' :
+                                    midia.cta.cor === 'roxo' ? 'bg-purple-600 hover:bg-purple-700' :
+                                    midia.cta.cor === 'rosa' ? 'bg-pink-600 hover:bg-pink-700' :
+                                    'bg-gray-600 hover:bg-gray-700'
+                                  }`}
+                                >
+                                  {midia.cta.texto}
+                                </a>
+                              </div>
+                            )}
                           </div>
                         )}
-                      </div>
+                            </div>
                     );
                   })}
                 </div>

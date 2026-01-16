@@ -346,7 +346,7 @@ export default function Homepage() {
       {/* Vídeo 50 anos ESUDA */}
       <div className="bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-yellow-300">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 text-center mb-4 sm:mb-6">
-          🎉 50 anos da Faculdade Esuda! 🎉
+          50 anos da Faculdade Esuda!
         </h2>
         <div className="relative w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl border-4 border-yellow-400">
           <div className="relative pb-[56.25%] h-0">

@@ -1574,6 +1574,28 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     }));
   };
 
+  const handleToggleCTA = (index) => {
+    setPostForm(prev => ({
+      ...prev,
+      midias: prev.midias.map((m, i) => 
+        i === index 
+          ? { ...m, cta: m.cta ? null : { texto: '', link: '', cor: 'azul' } }
+          : m
+      )
+    }));
+  };
+
+  const handleCTAChange = (index, field, value) => {
+    setPostForm(prev => ({
+      ...prev,
+      midias: prev.midias.map((m, i) => 
+        i === index && m.cta
+          ? { ...m, cta: { ...m.cta, [field]: value } }
+          : m
+      )
+    }));
+  };
+
   const handleUploadMidiaFile = async (e, index) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -5324,67 +5346,86 @@ Seja detalhado, prático e objetivo na análise.`;
                       />
                     )}
                     <Input
-                     value={midia.titulo}
-                     onChange={(e) => handleMidiaChange(index, 'titulo', e.target.value)}
-                     placeholder="Título/descrição da mídia"
-                     className="text-sm"
+                      value={midia.titulo}
+                      onChange={(e) => handleMidiaChange(index, 'titulo', e.target.value)}
+                      placeholder="Título/descrição da mídia"
+                      className="text-sm"
                     />
 
-                    {/* CTA Optional */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-blue-200">
-                     <div className="flex items-center justify-between mb-2">
-                       <label className="text-xs font-bold text-blue-900">🎯 Call-to-Action (CTA)</label>
-                       <input
-                         type="checkbox"
-                         checked={!!midia.cta}
-                         onChange={(e) => {
-                           if (e.target.checked) {
-                             handleMidiaChange(index, 'cta', { texto: '', link: '', cor: 'azul' });
-                           } else {
-                             handleMidiaChange(index, 'cta', null);
-                           }
-                         }}
-                         className="rounded"
-                       />
-                     </div>
+                    {/* CTA para Mídia */}
+                    <div className="border-t pt-3 mt-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-semibold text-gray-700">Call-to-Action (CTA)</label>
+                        <Button
+                          onClick={() => handleToggleCTA(index)}
+                          size="sm"
+                          variant={midia.cta ? 'destructive' : 'outline'}
+                          className="h-7 text-xs"
+                        >
+                          {midia.cta ? <X className="w-3 h-3 mr-1" /> : <Plus className="w-3 h-3 mr-1" />}
+                          {midia.cta ? 'Remover CTA' : 'Adicionar CTA'}
+                        </Button>
+                      </div>
 
-                     {midia.cta && (
-                       <div className="space-y-2">
-                         <Input
-                           value={midia.cta.texto || ''}
-                           onChange={(e) => handleMidiaChange(index, 'cta', { ...midia.cta, texto: e.target.value })}
-                           placeholder="Ex: Inscreva-se Agora"
-                           className="text-sm"
-                         />
-                         <Input
-                           value={midia.cta.link || ''}
-                           onChange={(e) => handleMidiaChange(index, 'cta', { ...midia.cta, link: e.target.value })}
-                           placeholder="Ex: https://esuda.edu.br/inscricao"
-                           className="text-sm"
-                         />
-                         <Select 
-                           value={midia.cta.cor || 'azul'} 
-                           onValueChange={(v) => handleMidiaChange(index, 'cta', { ...midia.cta, cor: v })}
-                         >
-                           <SelectTrigger className="text-sm">
-                             <SelectValue />
-                           </SelectTrigger>
-                           <SelectContent>
-                             <SelectItem value="verde">🟢 Verde</SelectItem>
-                             <SelectItem value="azul">🔵 Azul</SelectItem>
-                             <SelectItem value="laranja">🟠 Laranja</SelectItem>
-                             <SelectItem value="rosa">🩷 Rosa</SelectItem>
-                             <SelectItem value="roxo">🟣 Roxo</SelectItem>
-                             <SelectItem value="vermelho">🔴 Vermelho</SelectItem>
-                           </SelectContent>
-                         </Select>
-                       </div>
-                     )}
+                      {midia.cta && (
+                        <div className="bg-gray-50 p-3 rounded-md space-y-2">
+                          <Input
+                            value={midia.cta.texto}
+                            onChange={(e) => handleCTAChange(index, 'texto', e.target.value)}
+                            placeholder="Ex: Inscreva-se Agora"
+                            className="text-sm"
+                          />
+                          <Input
+                            value={midia.cta.link}
+                            onChange={(e) => handleCTAChange(index, 'link', e.target.value)}
+                            placeholder="https://..."
+                            className="text-sm"
+                          />
+                          <Select 
+                            value={midia.cta.cor} 
+                            onValueChange={(v) => handleCTAChange(index, 'cor', v)}
+                          >
+                            <SelectTrigger className="text-sm">
+                              <SelectValue placeholder="Escolha a cor" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="azul">🔵 Azul</SelectItem>
+                              <SelectItem value="verde">🟢 Verde</SelectItem>
+                              <SelectItem value="vermelho">🔴 Vermelho</SelectItem>
+                              <SelectItem value="laranja">🟠 Laranja</SelectItem>
+                              <SelectItem value="roxo">🟣 Roxo</SelectItem>
+                              <SelectItem value="rosa">🌸 Rosa</SelectItem>
+                              <SelectItem value="cinza">⚫ Cinza</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          {/* Preview do CTA */}
+                          <div className="pt-2">
+                            <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                            <a
+                              href={midia.cta.link || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`inline-block px-4 py-2 rounded-full font-semibold text-white shadow-lg transform hover:scale-105 transition-all text-sm ${
+                                midia.cta.cor === 'azul' ? 'bg-blue-600 hover:bg-blue-700' :
+                                midia.cta.cor === 'verde' ? 'bg-green-600 hover:bg-green-700' :
+                                midia.cta.cor === 'vermelho' ? 'bg-red-600 hover:bg-red-700' :
+                                midia.cta.cor === 'laranja' ? 'bg-orange-600 hover:bg-orange-700' :
+                                midia.cta.cor === 'roxo' ? 'bg-purple-600 hover:bg-purple-700' :
+                                midia.cta.cor === 'rosa' ? 'bg-pink-600 hover:bg-pink-700' :
+                                'bg-gray-600 hover:bg-gray-700'
+                              }`}
+                            >
+                              {midia.cta.texto || 'Texto do CTA'}
+                            </a>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    </div>
-                    ))}
-                    </div>
-                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             <div>
               <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>

@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
         <p><strong>Post:</strong> ${dados.post_titulo || 'N/A'}</p>
         <p><strong>Comentário:</strong></p>
         <p>${dados.conteudo}</p>
-        <p><a href="https://posgraduacao-esuda.base44.app/AdminPage">Ver no Painel Admin</a></p>
+        <p><a href="https://blogpos.base44.app/AdminPage">Ver no Painel Admin</a></p>
       `;
     } else if (tipo === 'depoimento') {
       assunto = `Novo Depoimento Recebido - ${dados.autor_nome}`;
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
         <p><strong>Avaliação:</strong> ${dados.avaliacao || 'N/A'} estrelas</p>
         <p><strong>Depoimento:</strong></p>
         <p>${dados.depoimento}</p>
-        <p><a href="https://posgraduacao-esuda.base44.app/AdminPage">Ver no Painel Admin</a></p>
+        <p><a href="https://blogpos.base44.app/AdminPage">Ver no Painel Admin</a></p>
       `;
     }
 

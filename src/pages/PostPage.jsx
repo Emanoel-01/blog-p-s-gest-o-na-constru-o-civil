@@ -162,7 +162,7 @@ export default function PostPage() {
       autor_email: comentario.autor_email,
       conteudo: comentario.conteudo,
       comentario_pai_id: respostaComentarioId,
-      aprovado: false,
+      aprovado: true,
       likes: 0
     });
   };

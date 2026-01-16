@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLocation, Link, Navigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -10,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Share2, Calendar, Tag, MessageCircle, Send, User, Users, Handshake, Image as ImageIcon, Video, FileText, ExternalLink, ThumbsUp, Reply } from 'lucide-react';
+import { ArrowLeft, Share2, Calendar, Tag, MessageCircle, Send, User, Users, Handshake, Image as ImageIcon, Video, FileText, ExternalLink, ThumbsUp, Reply, MousePointerClick } from 'lucide-react';
 import ImageViewer from '../components/blog/ImageViewer';
 import PDFGallery from '../components/blog/PDFGallery';
 import { toast } from 'sonner';
@@ -35,6 +34,15 @@ export default function PostPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [novoComentario, setNovoComentario] = useState({});
   const [respostaComentarioId, setRespostaComentarioId] = useState(null);
+  
+  const ctaColors = {
+    verde: 'bg-green-600 hover:bg-green-700 shadow-green-300',
+    azul: 'bg-blue-600 hover:bg-blue-700 shadow-blue-300',
+    laranja: 'bg-orange-600 hover:bg-orange-700 shadow-orange-300',
+    rosa: 'bg-pink-600 hover:bg-pink-700 shadow-pink-300',
+    roxo: 'bg-purple-600 hover:bg-purple-700 shadow-purple-300',
+    vermelho: 'bg-red-600 hover:bg-red-700 shadow-red-300'
+  };
 
   const queryClient = useQueryClient();
 
@@ -575,9 +583,24 @@ export default function PostPage() {
                                 Abrir Link <ExternalLink className="w-5 h-5" />
                               </a>
                             )}
-                            </>
-                            )}
-                            </div>
+                          </>
+                        )}
+                        
+                        {/* CTA Button */}
+                        {midia.cta && midia.cta.texto && midia.cta.link && (
+                          <div className="mt-4">
+                            <a
+                              href={midia.cta.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`block text-center px-6 py-3 rounded-full text-white font-bold text-sm transition-all transform hover:scale-105 shadow-lg ${ctaColors[midia.cta.cor] || ctaColors.azul}`}
+                            >
+                              <MousePointerClick className="w-4 h-4 inline mr-2" />
+                              {midia.cta.texto}
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>

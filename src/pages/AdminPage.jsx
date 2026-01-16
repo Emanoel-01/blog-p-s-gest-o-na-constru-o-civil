@@ -1556,7 +1556,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const handleAddMidia = () => {
     setPostForm(prev => ({
       ...prev,
-      midias: [...prev.midias, { tipo: 'imagem', url: '', titulo: '' }]
+      midias: [...prev.midias, { tipo: 'imagem', url: '', titulo: '', cta: null }]
     }));
   };
 
@@ -5324,15 +5324,67 @@ Seja detalhado, prático e objetivo na análise.`;
                       />
                     )}
                     <Input
-                      value={midia.titulo}
-                      onChange={(e) => handleMidiaChange(index, 'titulo', e.target.value)}
-                      placeholder="Título/descrição da mídia"
-                      className="text-sm"
+                     value={midia.titulo}
+                     onChange={(e) => handleMidiaChange(index, 'titulo', e.target.value)}
+                     placeholder="Título/descrição da mídia"
+                     className="text-sm"
                     />
-                  </div>
-                ))}
-              </div>
-            </div>
+
+                    {/* CTA Optional */}
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-blue-200">
+                     <div className="flex items-center justify-between mb-2">
+                       <label className="text-xs font-bold text-blue-900">🎯 Call-to-Action (CTA)</label>
+                       <input
+                         type="checkbox"
+                         checked={!!midia.cta}
+                         onChange={(e) => {
+                           if (e.target.checked) {
+                             handleMidiaChange(index, 'cta', { texto: '', link: '', cor: 'azul' });
+                           } else {
+                             handleMidiaChange(index, 'cta', null);
+                           }
+                         }}
+                         className="rounded"
+                       />
+                     </div>
+
+                     {midia.cta && (
+                       <div className="space-y-2">
+                         <Input
+                           value={midia.cta.texto || ''}
+                           onChange={(e) => handleMidiaChange(index, 'cta', { ...midia.cta, texto: e.target.value })}
+                           placeholder="Ex: Inscreva-se Agora"
+                           className="text-sm"
+                         />
+                         <Input
+                           value={midia.cta.link || ''}
+                           onChange={(e) => handleMidiaChange(index, 'cta', { ...midia.cta, link: e.target.value })}
+                           placeholder="Ex: https://esuda.edu.br/inscricao"
+                           className="text-sm"
+                         />
+                         <Select 
+                           value={midia.cta.cor || 'azul'} 
+                           onValueChange={(v) => handleMidiaChange(index, 'cta', { ...midia.cta, cor: v })}
+                         >
+                           <SelectTrigger className="text-sm">
+                             <SelectValue />
+                           </SelectTrigger>
+                           <SelectContent>
+                             <SelectItem value="verde">🟢 Verde</SelectItem>
+                             <SelectItem value="azul">🔵 Azul</SelectItem>
+                             <SelectItem value="laranja">🟠 Laranja</SelectItem>
+                             <SelectItem value="rosa">🩷 Rosa</SelectItem>
+                             <SelectItem value="roxo">🟣 Roxo</SelectItem>
+                             <SelectItem value="vermelho">🔴 Vermelho</SelectItem>
+                           </SelectContent>
+                         </Select>
+                       </div>
+                     )}
+                    </div>
+                    </div>
+                    ))}
+                    </div>
+                    </div>
 
             <div>
               <label className="text-sm font-medium text-gray-700">Ordem de Exibição</label>

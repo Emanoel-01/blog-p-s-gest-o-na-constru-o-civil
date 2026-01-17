@@ -280,7 +280,7 @@ export default function BulkActionsPanel({ type, items = [] }) {
           )}
 
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <div
                 key={item.id}
                 className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"

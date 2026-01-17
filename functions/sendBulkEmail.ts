@@ -1,5 +1,64 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Validar formato de email
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// Função para enviar email com retry
+async function sendEmailWithRetry(emailData, sendgridApiKey, maxRetries = 3) {
+  for (let tentativa = 0; tentativa < maxRetries; tentativa++) {
+    try {
+      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${sendgridApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(emailData)
+      });
+
+      // Se deu certo, retorna sucesso
+      if (response.ok) {
+        return { success: true, status: response.status };
+      }
+
+      const errorText = await response.text();
+      
+      // Rate limiting (429) ou erro temporário (5xx) - tentar novamente
+      if (response.status === 429 || response.status >= 500) {
+        if (tentativa < maxRetries - 1) {
+          // Backoff exponencial: 2s, 4s, 8s
+          const delayMs = Math.pow(2, tentativa + 1) * 1000;
+          console.log(`⏳ Rate limit/erro temporário. Aguardando ${delayMs}ms antes de retry ${tentativa + 1}/${maxRetries}`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+      }
+
+      // Erro definitivo (4xx exceto 429)
+      return { 
+        success: false, 
+        error: errorText,
+        status: response.status
+      };
+
+    } catch (error) {
+      // Erro de rede - tentar novamente
+      if (tentativa < maxRetries - 1) {
+        const delayMs = Math.pow(2, tentativa + 1) * 1000;
+        console.log(`⏳ Erro de rede. Retry ${tentativa + 1}/${maxRetries} em ${delayMs}ms`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        continue;
+      }
+      return { success: false, error: error.message };
+    }
+  }
+
+  return { success: false, error: 'Máximo de tentativas excedido' };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -56,16 +115,29 @@ Deno.serve(async (req) => {
       total: destinatarios.length,
       enviados: 0,
       falhas: 0,
+      emails_invalidos: 0,
       erros: []
     };
 
     for (const dest of destinatarios) {
       try {
-        console.log(`Tentando enviar email para ${dest.email}...`);
+        // Validar formato do email
+        if (!dest.email || !isValidEmail(dest.email)) {
+          stats.emails_invalidos++;
+          stats.falhas++;
+          stats.erros.push({
+            email: dest.email || 'N/A',
+            erro: 'Formato de email inválido'
+          });
+          console.error(`❌ Email inválido: ${dest.email}`);
+          continue;
+        }
+
+        console.log(`📧 Enviando para ${dest.email}...`);
         
         const emailData = {
           personalizations: [{
-            to: [{ email: dest.email, name: dest.nome }],
+            to: [{ email: dest.email.trim(), name: dest.nome }],
             subject: assunto
           }],
           from: {
@@ -83,29 +155,24 @@ Deno.serve(async (req) => {
           emailData.attachments = attachments;
         }
 
-        const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${sendgridApiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(emailData)
-        });
+        // Tentar enviar com retry automático
+        const resultado = await sendEmailWithRetry(emailData, sendgridApiKey);
 
-        if (response.ok) {
+        if (resultado.success) {
           stats.enviados++;
           console.log(`✅ Email enviado com sucesso para ${dest.email}`);
         } else {
-          const errorText = await response.text();
           stats.falhas++;
           stats.erros.push({
             email: dest.email,
-            erro: errorText
+            erro: resultado.error,
+            status: resultado.status
           });
-          console.error(`❌ Erro ao enviar para ${dest.email}: ${response.status} - ${errorText}`);
+          console.error(`❌ Falha definitiva para ${dest.email}: ${resultado.error}`);
         }
 
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Delay entre envios (respeitar rate limit)
+        await new Promise(resolve => setTimeout(resolve, 200));
 
       } catch (error) {
         stats.falhas++;

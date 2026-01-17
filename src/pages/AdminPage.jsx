@@ -34,6 +34,8 @@ import LeadsTable from '../components/admin/crm/LeadsTable';
 import MarketingStudio from '../components/admin/crm/MarketingStudio';
 import BulkActions from '../components/admin/crm/BulkActions';
 import ActivityLog from '../components/admin/crm/ActivityLog';
+import EmailTemplateManager from '../components/admin/EmailTemplateManager';
+import EmailCampaignLog from '../components/admin/EmailCampaignLog';
 import BlogManager from '../components/admin/BlogManager';
 
 export default function AdminPage() {

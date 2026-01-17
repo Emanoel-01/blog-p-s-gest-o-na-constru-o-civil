@@ -168,32 +168,118 @@ export default function BulkActionsPanel({ type, items = [] }) {
         <CardContent className="space-y-4">
           {type === 'leads' && (
             <div className="flex flex-wrap gap-3 items-center bg-white p-3 rounded-lg border">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos Status</SelectItem>
-                  <SelectItem value="Novo">Novo</SelectItem>
-                  <SelectItem value="Contatado">Contatado</SelectItem>
-                  <SelectItem value="Em Negociação">Em Negociação</SelectItem>
-                  <SelectItem value="Matriculado Turma Antiga">Matriculado Turma Antiga</SelectItem>
-                  <SelectItem value="Matriculado Turma Nova">Matriculado Turma Nova</SelectItem>
-                  <SelectItem value="Desistente">Desistente</SelectItem>
-                  <SelectItem value="Sem Resposta">Sem Resposta</SelectItem>
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-40 justify-between">
+                    {statusFilter.length === 0 ? (
+                      'Todos Status'
+                    ) : statusFilter.length === 1 ? (
+                      statusFilter[0]
+                    ) : (
+                      `${statusFilter.length} status`
+                    )}
+                    <Filter className="ml-2 h-4 w-4 text-gray-500" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-3" align="start">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-semibold text-gray-700">Filtrar por Status</label>
+                      {statusFilter.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setStatusFilter([])}
+                          className="h-6 px-2 text-xs"
+                        >
+                          Limpar
+                        </Button>
+                      )}
+                    </div>
+                    <div className="max-h-64 overflow-y-auto space-y-2">
+                      {['Novo', 'Contatado', 'Em Negociação', 'Matriculado Turma Antiga', 'Matriculado Turma Nova', 'Desistente', 'Sem Resposta'].map(status => (
+                        <div key={status} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`bulk-status-${status}`}
+                            checked={statusFilter.includes(status)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setStatusFilter([...statusFilter, status]);
+                              } else {
+                                setStatusFilter(statusFilter.filter(s => s !== status));
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={`bulk-status-${status}`}
+                            className="text-sm text-gray-700 cursor-pointer leading-none"
+                          >
+                            {status}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-              <Select value={grupoFilter} onValueChange={setGrupoFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos Grupos</SelectItem>
-                  <SelectItem value="G1_Cursos_Atuais">G1 - Atuais</SelectItem>
-                  <SelectItem value="G2_Cursos_Legacy_Pos_Ago2024">G2 - Legacy</SelectItem>
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-40 justify-between">
+                    {grupoFilter.length === 0 ? (
+                      'Todos Grupos'
+                    ) : grupoFilter.length === 1 ? (
+                      grupoFilter[0] === 'G1_Cursos_Atuais' ? 'G1 - Atuais' : 'G2 - Legacy'
+                    ) : (
+                      `${grupoFilter.length} grupos`
+                    )}
+                    <Filter className="ml-2 h-4 w-4 text-gray-500" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-3" align="start">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-semibold text-gray-700">Filtrar por Grupos</label>
+                      {grupoFilter.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setGrupoFilter([])}
+                          className="h-6 px-2 text-xs"
+                        >
+                          Limpar
+                        </Button>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      {[
+                        { id: 'G1_Cursos_Atuais', label: 'G1 - Atuais' },
+                        { id: 'G2_Cursos_Legacy_Pos_Ago2024', label: 'G2 - Legacy' }
+                      ].map(grupo => (
+                        <div key={grupo.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`bulk-grupo-${grupo.id}`}
+                            checked={grupoFilter.includes(grupo.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setGrupoFilter([...grupoFilter, grupo.id]);
+                              } else {
+                                setGrupoFilter(grupoFilter.filter(g => g !== grupo.id));
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={`bulk-grupo-${grupo.id}`}
+                            className="text-sm text-gray-700 cursor-pointer leading-none"
+                          >
+                            {grupo.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
 
               <Badge variant="outline" className="text-sm">
                 {filteredItems.length} lead(s)

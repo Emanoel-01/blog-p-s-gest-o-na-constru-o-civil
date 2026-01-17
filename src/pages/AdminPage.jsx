@@ -256,6 +256,7 @@ export default function AdminPage() {
   
   // CRM Tab state
   const [crmSubTab, setCrmSubTab] = useState('dashboard');
+  const [crmMarketingSubTab, setCrmMarketingSubTab] = useState('acoes');
 
   // Queries
   const { data: ciclos = [], isLoading: loadingCiclos } = useQuery({

@@ -23,8 +23,8 @@ export default function BulkActionsPanel({ type, items = [] }) {
   const [selectedIds, setSelectedIds] = useState([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('Todos');
-  const [grupoFilter, setGrupoFilter] = useState('Todos');
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [grupoFilter, setGrupoFilter] = useState([]);
   const queryClient = useQueryClient();
 
   // Filtrar itens baseado em status e grupo
@@ -32,8 +32,8 @@ export default function BulkActionsPanel({ type, items = [] }) {
     if (type !== 'leads') return items;
     
     return items.filter(item => {
-      const matchesStatus = statusFilter === 'Todos' || item.status_crm === statusFilter;
-      const matchesGrupo = grupoFilter === 'Todos' || item.grupo_monitoramento === grupoFilter;
+      const matchesStatus = statusFilter.length === 0 || statusFilter.includes(item.status_crm);
+      const matchesGrupo = grupoFilter.length === 0 || grupoFilter.includes(item.grupo_monitoramento);
       return matchesStatus && matchesGrupo;
     });
   }, [items, statusFilter, grupoFilter, type]);

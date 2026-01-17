@@ -7,11 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Mail, Download, Send, FileText, Upload, Eye, X, Image as ImageIcon, Filter } from 'lucide-react';
+import { Mail, Download, Send, FileText, Upload, Eye, X, Image as ImageIcon, Filter, Copy } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import RichTextEditor from '@/components/editor/RichTextEditor';
+import { useQuery } from '@tanstack/react-query';
 
 export default function BulkActions({ inscritos, currentUser }) {
   const [filtros, setFiltros] = useState({

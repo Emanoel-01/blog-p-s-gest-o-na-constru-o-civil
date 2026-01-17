@@ -114,6 +114,9 @@ Deno.serve(async (req) => {
       const discentes = await base44.asServiceRole.entities.Discente.list();
       const discentesOpenToWork = discentes.filter(d => d.status_carreira === 'Open to Work' && d.tags_competencia);
       
+      const matchEmails = discentesOpenToWork.map(d => d.email);
+      const existingMatches = await getExistingNotifications(base44, matchEmails);
+      
       for (const opp of newOpportunities) {
         // Verificar se a oportunidade tem requisitos de competências (no resumo ou descrição)
         const oppText = `${opp.resumo || ''} ${opp.descricao_completa || ''}`.toLowerCase();
@@ -125,12 +128,10 @@ Deno.serve(async (req) => {
           );
           
           if (hasMatch) {
-            const existingMatch = await base44.asServiceRole.entities.Notificacao.filter({
-              destinatario_email: discente.email,
-              titulo: 'Vaga Compatível Encontrada'
-            });
-            
-            const recentMatch = existingMatch.filter(n => n.created_date > oneDayAgo);
+            const existingMatch = existingMatches[discente.email] || [];
+            const recentMatch = existingMatch.filter(n => 
+              n.titulo === 'Vaga Compatível Encontrada' && n.created_date > oneDayAgo
+            );
             
             if (recentMatch.length === 0) {
               notifications.push({

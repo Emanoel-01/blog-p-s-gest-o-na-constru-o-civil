@@ -294,7 +294,7 @@ export default function Homepage() {
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://esuda.edu.br" />
-        <meta property="twitter:title" content="Pós-Graduação em Gestão e Tecnologias na Construção Civil | ESUDA" />
+        <meta property="twitter:title" content="Especializações em Gestão e Tecnologias da Construção Civil | ESUDA" />
         <meta property="twitter:description" content="Especializações com foco em inovação e tecnologia 4.0. Retorno garantido antes do fim do curso." />
         <meta property="twitter:image" content="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" />
         

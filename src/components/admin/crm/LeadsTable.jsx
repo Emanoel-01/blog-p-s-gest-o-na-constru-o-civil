@@ -14,8 +14,8 @@ import { ptBR } from 'date-fns/locale';
 
 export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Todos');
-  const [grupoFilter, setGrupoFilter] = useState('Todos');
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [grupoFilter, setGrupoFilter] = useState([]);
   const [cursoFilter, setCursoFilter] = useState([]);
   const [dataInicio, setDataInicio] = useState(null);
   const [dataFim, setDataFim] = useState(null);

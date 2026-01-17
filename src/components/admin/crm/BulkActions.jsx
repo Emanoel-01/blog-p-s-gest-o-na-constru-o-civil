@@ -398,34 +398,118 @@ export default function BulkActions({ inscritos, currentUser }) {
               </PopoverContent>
             </Popover>
 
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Pagamento</label>
-              <Select value={filtros.inscricao_paga} onValueChange={(v) => setFiltros({...filtros, inscricao_paga: v})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={null}>Todos</SelectItem>
-                  <SelectItem value="true">Pagos</SelectItem>
-                  <SelectItem value="false">Não Pagos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-between w-full">
+                  {filtros.inscricao_paga.length === 0 ? (
+                    'Todos Pagamentos'
+                  ) : filtros.inscricao_paga.length === 1 ? (
+                    filtros.inscricao_paga[0] === 'true' ? 'Pagos' : 'Não Pagos'
+                  ) : (
+                    `${filtros.inscricao_paga.length} status`
+                  )}
+                  <Filter className="ml-2 h-4 w-4 text-gray-500" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-3" align="start">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-sm font-semibold text-gray-700">Filtrar por Pagamento</label>
+                    {filtros.inscricao_paga.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFiltros({...filtros, inscricao_paga: []})}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Limpar
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {[
+                      { id: 'true', label: 'Pagos' },
+                      { id: 'false', label: 'Não Pagos' }
+                    ].map(pagamento => (
+                      <div key={pagamento.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`bulk-pagamento-${pagamento.id}`}
+                          checked={filtros.inscricao_paga.includes(pagamento.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFiltros({...filtros, inscricao_paga: [...filtros.inscricao_paga, pagamento.id]});
+                            } else {
+                              setFiltros({...filtros, inscricao_paga: filtros.inscricao_paga.filter(p => p !== pagamento.id)});
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`bulk-pagamento-${pagamento.id}`}
+                          className="text-sm text-gray-700 cursor-pointer leading-none"
+                        >
+                          {pagamento.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
 
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Curso</label>
-              <Select value={filtros.nome_curso} onValueChange={(v) => setFiltros({...filtros, nome_curso: v})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={null}>Todos</SelectItem>
-                  {cursosUnicos.map(curso => (
-                    <SelectItem key={curso} value={curso}>{curso}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-between w-full">
+                  {filtros.nome_curso.length === 0 ? (
+                    'Todos Cursos'
+                  ) : filtros.nome_curso.length === 1 ? (
+                    filtros.nome_curso[0]
+                  ) : (
+                    `${filtros.nome_curso.length} cursos`
+                  )}
+                  <Filter className="ml-2 h-4 w-4 text-gray-500" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-3" align="start">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-sm font-semibold text-gray-700">Filtrar por Curso</label>
+                    {filtros.nome_curso.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFiltros({...filtros, nome_curso: []})}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Limpar
+                      </Button>
+                    )}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {cursosUnicos.map(curso => (
+                      <div key={curso} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`bulk-curso-${curso}`}
+                          checked={filtros.nome_curso.includes(curso)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFiltros({...filtros, nome_curso: [...filtros.nome_curso, curso]});
+                            } else {
+                              setFiltros({...filtros, nome_curso: filtros.nome_curso.filter(c => c !== curso)});
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`bulk-curso-${curso}`}
+                          className="text-sm text-gray-700 cursor-pointer leading-none"
+                        >
+                          {curso}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="bg-white p-4 rounded-lg border">

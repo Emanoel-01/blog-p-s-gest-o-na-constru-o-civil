@@ -147,7 +147,7 @@ export default function Homepage() {
     "@context": "https://schema.org",
     "@type": "Course",
     "name": `Especialização em ${espec.nome}`,
-    "description": espec.resumo || `Pós-graduação em ${espec.nome} com foco em inovação e tecnologia na construção civil`,
+    "description": espec.resumo || `Especialização em ${espec.nome} com foco em inovação e tecnologia na construção civil`,
     "provider": {
       "@type": "EducationalOrganization",
       "name": "ESUDA",

@@ -29,6 +29,21 @@ export default function BulkActions({ inscritos, currentUser }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [sending, setSending] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['emailTemplates'],
+    queryFn: () => base44.entities.EmailTemplate.list()
+  });
+
+  const handleApplyTemplate = (template) => {
+    setEmailForm({
+      assunto: template.assunto,
+      conteudo: template.conteudo
+    });
+    setSelectedTemplate(template.id);
+    toast.success(`Template "${template.nome}" aplicado!`);
+  };
 
   const inscritosFiltrados = inscritos.filter(inscrito => {
     const matchesGrupo = filtros.grupo_monitoramento.length === 0 || filtros.grupo_monitoramento.includes(inscrito.grupo_monitoramento);

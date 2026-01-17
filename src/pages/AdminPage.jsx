@@ -5086,7 +5086,40 @@ Seja detalhado, prático e objetivo na análise.`;
           />
         )}
         {crmSubTab === 'marketing' && <MarketingStudio inscritos={leadsG1Dashboard} currentUser={currentUser} />}
-        {crmSubTab === 'acoes' && <BulkActions inscritos={todosLeads} currentUser={currentUser} />}
+        {crmSubTab === 'acoes' && (
+          <div className="space-y-6">
+            <div className="flex gap-2 mb-4 flex-wrap">
+              <Button
+                onClick={() => setCrmMarketingSubTab('acoes')}
+                variant={crmMarketingSubTab === 'acoes' ? 'default' : 'outline'}
+                size="sm"
+                className={crmMarketingSubTab === 'acoes' ? 'bg-orange-600' : ''}
+              >
+                Envio em Massa
+              </Button>
+              <Button
+                onClick={() => setCrmMarketingSubTab('templates')}
+                variant={crmMarketingSubTab === 'templates' ? 'default' : 'outline'}
+                size="sm"
+                className={crmMarketingSubTab === 'templates' ? 'bg-blue-600' : ''}
+              >
+                📧 Gerenciar Templates
+              </Button>
+              <Button
+                onClick={() => setCrmMarketingSubTab('campanhas')}
+                variant={crmMarketingSubTab === 'campanhas' ? 'default' : 'outline'}
+                size="sm"
+                className={crmMarketingSubTab === 'campanhas' ? 'bg-purple-600' : ''}
+              >
+                📊 Log de Campanhas
+              </Button>
+            </div>
+            
+            {crmMarketingSubTab === 'acoes' && <BulkActions inscritos={todosLeads} currentUser={currentUser} />}
+            {crmMarketingSubTab === 'templates' && <EmailTemplateManager />}
+            {crmMarketingSubTab === 'campanhas' && <EmailCampaignLog />}
+          </div>
+        )}
         {crmSubTab === 'log' && <ActivityLog />}
       </div>
     );

@@ -191,17 +191,28 @@ export default function BulkActions({ inscritos, currentUser }) {
 
       if (data.success) {
         try {
-          await base44.entities.CRMActivityLog.create({
-            user_email: currentUser?.email,
-            user_name: currentUser?.full_name,
-            action_type: 'email_em_massa',
-            details: {
-              destinatarios: `${data.stats.enviados} lead(s)`,
+          await Promise.all([
+            base44.entities.CRMActivityLog.create({
+              user_email: currentUser?.email,
+              user_name: currentUser?.full_name,
+              action_type: 'email_em_massa',
+              details: {
+                destinatarios: `${data.stats.enviados} lead(s)`,
+                assunto: emailForm.assunto,
+                com_anexos: attachments.length
+              },
+              timestamp: new Date().toISOString()
+            }),
+            base44.entities.EmailCampaign.create({
               assunto: emailForm.assunto,
-              com_anexos: attachments.length
-            },
-            timestamp: new Date().toISOString()
-          });
+              conteudo: emailForm.conteudo,
+              total_destinatarios: destinatarios.length,
+              destinatarios,
+              template_id: selectedTemplate || undefined,
+              status: 'Enviado',
+              data_envio: new Date().toISOString()
+            })
+          ]);
         } catch (logError) {
           console.error('Erro ao registrar log:', logError);
         }

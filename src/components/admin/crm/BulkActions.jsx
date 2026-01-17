@@ -17,8 +17,8 @@ export default function BulkActions({ inscritos, currentUser }) {
   const [filtros, setFiltros] = useState({
     grupo_monitoramento: [],
     status_crm: [],
-    inscricao_paga: '',
-    nome_curso: ''
+    inscricao_paga: [],
+    nome_curso: []
   });
   const [emailForm, setEmailForm] = useState({
     assunto: '',

@@ -15,8 +15,8 @@ import RichTextEditor from '@/components/editor/RichTextEditor';
 
 export default function BulkActions({ inscritos, currentUser }) {
   const [filtros, setFiltros] = useState({
-    grupo_monitoramento: '',
-    status_crm: '',
+    grupo_monitoramento: [],
+    status_crm: [],
     inscricao_paga: '',
     nome_curso: ''
   });

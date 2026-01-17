@@ -45,7 +45,7 @@ export default function BulkActionsPanel({ type, items = [] }) {
   };
 
   const selectAll = () => {
-    setSelectedIds(items.map(item => item.id));
+    setSelectedIds(filteredItems.map(item => item.id));
   };
 
   const clearSelection = () => {

@@ -232,9 +232,16 @@ Deno.serve(async (req) => {
     // Este gatilho requer sistema de tracking de visualizações
     // Por ora, está marcado como "Planejado" no sistema
     
-    // Criar todas as notificações
+    // Criar todas as notificações em batches para evitar rate limit
     if (notifications.length > 0) {
-      await base44.asServiceRole.entities.Notificacao.bulkCreate(notifications);
+      const batchSize = 50;
+      for (let i = 0; i < notifications.length; i += batchSize) {
+        const batch = notifications.slice(i, i + batchSize);
+        await base44.asServiceRole.entities.Notificacao.bulkCreate(batch);
+        if (i + batchSize < notifications.length) {
+          await delay(300); // Delay entre batches
+        }
+      }
     }
     
     return Response.json({ 

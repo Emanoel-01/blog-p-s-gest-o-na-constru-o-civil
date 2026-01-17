@@ -287,7 +287,7 @@ export default function Homepage() {
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://esuda.edu.br" />
-        <meta property="og:title" content="Pós-Graduação em Gestão e Tecnologias na Construção Civil | ESUDA" />
+        <meta property="og:title" content="Especializações em Gestão e Tecnologias da Construção Civil | ESUDA" />
         <meta property="og:description" content="Especializações com foco em inovação e tecnologia 4.0. Retorno garantido antes do fim do curso. Inscrições abertas." />
         <meta property="og:image" content="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" />
         

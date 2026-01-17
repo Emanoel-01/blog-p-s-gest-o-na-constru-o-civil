@@ -165,6 +165,41 @@ export default function BulkActionsPanel({ type, items = [] }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {type === 'leads' && (
+            <div className="flex flex-wrap gap-3 items-center bg-white p-3 rounded-lg border">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos Status</SelectItem>
+                  <SelectItem value="Novo">Novo</SelectItem>
+                  <SelectItem value="Contatado">Contatado</SelectItem>
+                  <SelectItem value="Em Negociação">Em Negociação</SelectItem>
+                  <SelectItem value="Matriculado Turma Antiga">Matriculado Turma Antiga</SelectItem>
+                  <SelectItem value="Matriculado Turma Nova">Matriculado Turma Nova</SelectItem>
+                  <SelectItem value="Desistente">Desistente</SelectItem>
+                  <SelectItem value="Sem Resposta">Sem Resposta</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={grupoFilter} onValueChange={setGrupoFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos Grupos</SelectItem>
+                  <SelectItem value="G1_Cursos_Atuais">G1 - Atuais</SelectItem>
+                  <SelectItem value="G2_Cursos_Legacy_Pos_Ago2024">G2 - Legacy</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Badge variant="outline" className="text-sm">
+                {filteredItems.length} lead(s)
+              </Badge>
+            </div>
+          )}
+
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="bg-white">
@@ -174,9 +209,9 @@ export default function BulkActionsPanel({ type, items = [] }) {
                 variant="outline" 
                 size="sm" 
                 onClick={selectAll}
-                disabled={selectedIds.length === items.length}
+                disabled={selectedIds.length === filteredItems.length || filteredItems.length === 0}
               >
-                Selecionar Todos ({items.length})
+                Selecionar Todos ({filteredItems.length})
               </Button>
               <Button 
                 variant="outline" 

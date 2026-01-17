@@ -380,13 +380,37 @@ Deno.serve(async (req) => {
       stats.total++;
     }
     
+    // Processar em lotes para evitar rate limit
+    const BATCH_SIZE = 50;
+    
     if (toCreate.length > 0) {
-      await base44.asServiceRole.entities.Inscrito.bulkCreate(toCreate);
+      for (let i = 0; i < toCreate.length; i += BATCH_SIZE) {
+        const batch = toCreate.slice(i, i + BATCH_SIZE);
+        await base44.asServiceRole.entities.Inscrito.bulkCreate(batch);
+        
+        // Delay entre lotes
+        if (i + BATCH_SIZE < toCreate.length) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
     }
     
-    for (const item of toUpdate) {
-      const { id, ...data } = item;
-      await base44.asServiceRole.entities.Inscrito.update(id, data);
+    // Processar updates em lotes também
+    for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
+      for (let j = i; j < Math.min(i + BATCH_SIZE, toUpdate.length); j++) {
+        const { id, ...data } = toUpdate[j];
+        await base44.asServiceRole.entities.Inscrito.update(id, data);
+        
+        // Pequeno delay entre updates individuais
+        if (j < toUpdate.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      // Delay maior entre lotes
+      if (i + BATCH_SIZE < toUpdate.length) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
     }
     
     return Response.json({

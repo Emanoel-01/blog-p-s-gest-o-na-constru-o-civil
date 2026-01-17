@@ -34,8 +34,8 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
       inscrito.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inscrito.nome_curso?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'Todos' || inscrito.status_crm === statusFilter;
-    const matchesGrupo = grupoFilter === 'Todos' || inscrito.grupo_monitoramento === grupoFilter;
+    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(inscrito.status_crm);
+    const matchesGrupo = grupoFilter.length === 0 || grupoFilter.includes(inscrito.grupo_monitoramento);
     const matchesCurso = cursoFilter.length === 0 || cursoFilter.includes(inscrito.nome_curso);
     
     // Filtro de data

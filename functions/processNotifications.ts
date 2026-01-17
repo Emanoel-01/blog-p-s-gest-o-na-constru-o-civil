@@ -150,9 +150,12 @@ Deno.serve(async (req) => {
     
     // 4. LEMBRETE DE ROI (30 dias sem atividade na Incubadora)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const discentes = await base44.asServiceRole.entities.Discente.list();
+    const discentesList = await base44.asServiceRole.entities.Discente.list();
+    const roiEmails = discentesList.filter(d => d.email).map(d => d.email);
+    const existingRoiReminders = await getExistingNotifications(base44, roiEmails);
     
-    for (const discente of discentes) {
+    for (let i = 0; i < discentesList.length; i++) {
+      const discente = discentesList[i];
       if (!discente.email) continue;
       
       // Buscar última atividade do aluno na incubadora
@@ -171,12 +174,10 @@ Deno.serve(async (req) => {
         const lastActivity = allActivities.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
         
         if (new Date(lastActivity.created_date) < thirtyDaysAgo) {
-          const existingReminder = await base44.asServiceRole.entities.Notificacao.filter({
-            destinatario_email: discente.email,
-            titulo: 'Atualize seu Portfólio'
-          });
-          
-          const recentReminder = existingReminder.filter(n => new Date(n.created_date) > thirtyDaysAgo);
+          const existingReminder = existingRoiReminders[discente.email] || [];
+          const recentReminder = existingReminder.filter(n => 
+            n.titulo === 'Atualize seu Portfólio' && new Date(n.created_date) > thirtyDaysAgo
+          );
           
           if (recentReminder.length === 0) {
             notifications.push({
@@ -188,6 +189,11 @@ Deno.serve(async (req) => {
             });
           }
         }
+      }
+      
+      // Delay para evitar rate limit
+      if ((i + 1) % 10 === 0) {
+        await delay(300);
       }
     }
     

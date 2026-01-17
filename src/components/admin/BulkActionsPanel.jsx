@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Archive, Check, X, Trash2, Mail, AlertCircle } from 'lucide-react';
+import { Archive, Check, X, Trash2, Mail, AlertCircle, Filter } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +23,20 @@ export default function BulkActionsPanel({ type, items = [] }) {
   const [selectedIds, setSelectedIds] = useState([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('Todos');
+  const [grupoFilter, setGrupoFilter] = useState('Todos');
   const queryClient = useQueryClient();
+
+  // Filtrar itens baseado em status e grupo
+  const filteredItems = useMemo(() => {
+    if (type !== 'leads') return items;
+    
+    return items.filter(item => {
+      const matchesStatus = statusFilter === 'Todos' || item.status_crm === statusFilter;
+      const matchesGrupo = grupoFilter === 'Todos' || item.grupo_monitoramento === grupoFilter;
+      return matchesStatus && matchesGrupo;
+    });
+  }, [items, statusFilter, grupoFilter, type]);
 
   const toggleSelection = (id) => {
     setSelectedIds(prev => 

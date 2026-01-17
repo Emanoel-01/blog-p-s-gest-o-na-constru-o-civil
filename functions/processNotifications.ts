@@ -80,18 +80,18 @@ Deno.serve(async (req) => {
     
     if (aulasAmanha.length > 0) {
       const discentes = await base44.asServiceRole.entities.Discente.list();
+      const discenteEmails = discentes.filter(d => d.email).map(d => d.email);
+      const existingReminders = await getExistingNotifications(base44, discenteEmails);
+      
+      const disciplinasAmanha = aulasAmanha.map(a => a.disciplina_nome).filter(Boolean).join(', ') || 'Confira sua agenda';
       
       for (const discente of discentes) {
         if (!discente.email) continue;
         
-        const existingReminder = await base44.asServiceRole.entities.Notificacao.filter({
-          destinatario_email: discente.email,
-          titulo: `Aula Amanhã: ${tomorrowStr}`
-        });
+        const existingReminder = existingReminders[discente.email] || [];
+        const hasReminder = existingReminder.some(n => n.titulo === `Aula Amanhã: ${tomorrowStr}`);
         
-        if (existingReminder.length === 0) {
-          const disciplinasAmanha = aulasAmanha.map(a => a.disciplina_nome).filter(Boolean).join(', ') || 'Confira sua agenda';
-          
+        if (!hasReminder) {
           notifications.push({
             destinatario_email: discente.email,
             tipo: 'Acadêmico',

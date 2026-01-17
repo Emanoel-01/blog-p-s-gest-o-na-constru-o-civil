@@ -1,5 +1,41 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
+// Delay utility para evitar rate limiting
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Busca notificações existentes em batch para evitar múltiplas queries
+const getExistingNotifications = async (base44, emailsToCheck) => {
+  if (emailsToCheck.length === 0) return {};
+  
+  const existing = {};
+  const batch = [];
+  
+  for (const email of emailsToCheck) {
+    batch.push(base44.asServiceRole.entities.Notificacao.filter({ destinatario_email: email }).then(results => ({
+      email,
+      results
+    })));
+    
+    if (batch.length >= 5) {
+      const results = await Promise.all(batch);
+      for (const { email: e, results: r } of results) {
+        existing[e] = r;
+      }
+      batch.length = 0;
+      await delay(200); // Pequeno delay entre batches
+    }
+  }
+  
+  if (batch.length > 0) {
+    const results = await Promise.all(batch);
+    for (const { email: e, results: r } of results) {
+      existing[e] = r;
+    }
+  }
+  
+  return existing;
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);

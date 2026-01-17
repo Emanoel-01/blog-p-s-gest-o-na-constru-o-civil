@@ -207,17 +207,17 @@ Deno.serve(async (req) => {
     const comentarios = await base44.asServiceRole.entities.Comentario.filter({ aprovado: true });
     const comentariosComResposta = comentarios.filter(c => c.resposta_admin && c.resposta_admin.trim() !== '');
     
+    const commentEmails = comentariosComResposta.filter(c => c.autor_email).map(c => c.autor_email);
+    const existingCommentNotifications = await getExistingNotifications(base44, commentEmails);
+    
     for (const comentario of comentariosComResposta) {
       if (!comentario.autor_email) continue;
       
-      const existingNotification = await base44.asServiceRole.entities.Notificacao.filter({
-        destinatario_email: comentario.autor_email,
-        titulo: 'Você recebeu uma resposta!'
-      });
-      
+      const existingNotification = existingCommentNotifications[comentario.autor_email] || [];
       const comentarioRecente = new Date(comentario.updated_date) > oneDayAgo;
+      const hasNotification = existingNotification.some(n => n.titulo === 'Você recebeu uma resposta!');
       
-      if (existingNotification.length === 0 && comentarioRecente) {
+      if (!hasNotification && comentarioRecente) {
         notifications.push({
           destinatario_email: comentario.autor_email,
           tipo: 'Engajamento',

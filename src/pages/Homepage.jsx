@@ -125,7 +125,7 @@ export default function Homepage() {
     "name": "ESUDA - Escola Superior de Desenho e Animação",
     "url": "https://esuda.edu.br",
     "logo": "https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png",
-    "description": "Pós-Graduação em Gestão e Tecnologias na Construção Civil. Especializações em BIM, Gestão de Projetos e Obras, Manutenção Predial e Engenharia Legal com foco em inovação e tecnologia.",
+    "description": "Especializações em Gestão e Tecnologias da Construção Civil. Em BIM, Gestão de Projetos e Obras, Manutenção Predial e Engenharia Legal com foco em inovação e tecnologia.",
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Recife",

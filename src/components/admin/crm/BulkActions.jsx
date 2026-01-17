@@ -569,6 +569,26 @@ export default function BulkActions({ inscritos, currentUser }) {
           <div className="border-t pt-4 space-y-3">
             <h4 className="font-bold text-gray-800">Envio de Email em Massa</h4>
             
+            {templates.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Templates Salvos</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {templates.map(template => (
+                    <Button
+                      key={template.id}
+                      variant={selectedTemplate === template.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleApplyTemplate(template)}
+                      className={`justify-start ${selectedTemplate === template.id ? 'bg-blue-600' : ''}`}
+                    >
+                      <Copy className="w-3 h-3 mr-2" />
+                      {template.nome}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <Input
               placeholder="Assunto do Email"
               value={emailForm.assunto}

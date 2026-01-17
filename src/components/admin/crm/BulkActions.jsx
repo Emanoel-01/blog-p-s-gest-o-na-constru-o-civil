@@ -30,8 +30,8 @@ export default function BulkActions({ inscritos, currentUser }) {
   const [sending, setSending] = useState(false);
 
   const inscritosFiltrados = inscritos.filter(inscrito => {
-    const matchesGrupo = !filtros.grupo_monitoramento || inscrito.grupo_monitoramento === filtros.grupo_monitoramento;
-    const matchesStatus = !filtros.status_crm || inscrito.status_crm === filtros.status_crm;
+    const matchesGrupo = filtros.grupo_monitoramento.length === 0 || filtros.grupo_monitoramento.includes(inscrito.grupo_monitoramento);
+    const matchesStatus = filtros.status_crm.length === 0 || filtros.status_crm.includes(inscrito.status_crm);
     const matchesPago = filtros.inscricao_paga === '' || inscrito.inscricao_paga === (filtros.inscricao_paga === 'true');
     const matchesCurso = !filtros.nome_curso || inscrito.nome_curso?.toLowerCase().includes(filtros.nome_curso.toLowerCase());
     

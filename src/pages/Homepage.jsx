@@ -278,7 +278,7 @@ export default function Homepage() {
     <>
       <Helmet>
         {/* Meta Tags Básicas */}
-        <title>Pós-Graduação em Gestão e Tecnologias na Construção Civil | ESUDA</title>
+        <title>Especializações em Gestão e Tecnologias da Construção Civil | ESUDA</title>
         <meta name="description" content="Especializações em BIM, Gestão de Projetos e Obras, Manutenção Predial e Engenharia Legal. Cursos com foco em inovação, tecnologia 4.0 e retorno garantido. Inscrições abertas." />
         
         {/* Keywords */}

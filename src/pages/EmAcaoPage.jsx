@@ -89,13 +89,8 @@ export default function EmAcaoPage() {
 
   // Filtrar posts - apenas publicados
   const filteredPosts = posts.filter(post => {
-    // Exibir apenas posts publicados ou agendados cuja data já passou
-    const isPublicado = post.status === 'Publicado';
-    const isAgendadoJaPublicado = post.status === 'Agendado' && 
-      post.data_publicacao && 
-      new Date(post.data_publicacao) <= new Date();
-    
-    if (!isPublicado && !isAgendadoJaPublicado) return false;
+    // Exibir TODOS os posts com status "Publicado"
+    if (post.status !== 'Publicado') return false;
     
     const termMatch = !searchTerm || (
       post.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||

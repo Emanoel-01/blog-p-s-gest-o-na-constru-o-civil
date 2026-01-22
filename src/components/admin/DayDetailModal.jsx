@@ -1,11 +1,59 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { X, Clock, User, BookOpen } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { X, Clock, User, BookOpen, Calendar, Save } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export default function DayDetailModal({ day, aulas, professores, ciclos, onClose }) {
+  const queryClient = useQueryClient();
+  const [editingAula, setEditingAula] = useState(null);
+  const [novaData, setNovaData] = useState('');
+
   if (!aulas || aulas.length === 0) return null;
+
+  const updateDataMutation = useMutation({
+    mutationFn: async ({ aulaId, newDate }) => {
+      await base44.entities.CronogramaAula.update(aulaId, { data: newDate });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cronograma'] });
+      toast.success('Data da aula atualizada com sucesso!');
+      setEditingAula(null);
+      setNovaData('');
+      onClose();
+    },
+    onError: (error) => {
+      toast.error('Erro ao atualizar a data da aula');
+      console.error(error);
+    }
+  });
+
+  const handleEditClick = (aula) => {
+    setEditingAula(aula.id);
+    // Converter data DD/MM/YYYY para YYYY-MM-DD
+    const [dia, mes, ano] = aula.data.split('/');
+    setNovaData(`${ano}-${mes}-${dia}`);
+  };
+
+  const handleSaveDate = (aulaId) => {
+    if (!novaData) {
+      toast.warning('Selecione uma data válida');
+      return;
+    }
+    // Converter data YYYY-MM-DD para DD/MM/YYYY
+    const [ano, mes, dia] = novaData.split('-');
+    const newDate = `${dia}/${mes}/${ano}`;
+    updateDataMutation.mutate({ aulaId, newDate });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingAula(null);
+    setNovaData('');
+  };
 
   const getProfessorNome = (professorId) => {
     const professor = professores.find(p => p.id === professorId);
@@ -78,8 +126,42 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
           {aulas.map((aula, index) => (
             <Card key={index} className="border-2">
               <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <Badge className={`${getTipoColor(aula)} border font-semibold`}>
+                {editingAula === aula.id ? (
+                  <div className="space-y-4 bg-yellow-50 p-4 rounded-lg border-2 border-yellow-300">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calendar className="w-5 h-5 text-yellow-700" />
+                      <h4 className="font-bold text-yellow-900">Alterar Data da Aula</h4>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Nova Data:</label>
+                      <Input 
+                        type="date" 
+                        value={novaData}
+                        onChange={(e) => setNovaData(e.target.value)}
+                        className="border-yellow-300"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pt-2">
+                      <Button 
+                        onClick={() => handleSaveDate(aula.id)}
+                        disabled={updateDataMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        {updateDataMutation.isPending ? 'Salvando...' : 'Salvar'}
+                      </Button>
+                      <Button 
+                        onClick={handleCancelEdit}
+                        variant="outline"
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between mb-3">
+                      <Badge className={`${getTipoColor(aula)} border font-semibold`}>
                     {aula.disciplina_nome === 'Aula Especial'
                       ? 'AULA ESPECIAL'
                       : ['Carnaval', 'Data Magna', 'Sexta Santa', 'Dia do Trabalho', 'Intervalo', '7 de Setembro', 'Dia Sem aula', 'Prévias'].includes(aula.tipo) 
@@ -140,6 +222,20 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
                       <strong>Observações:</strong> {aula.observacoes}
                     </p>
                   </div>
+                )}
+
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <Button 
+                    onClick={() => handleEditClick(aula)}
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-600 hover:bg-blue-50"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Alterar Data
+                  </Button>
+                </div>
+              </>
                 )}
               </CardContent>
             </Card>

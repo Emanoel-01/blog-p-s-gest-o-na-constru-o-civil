@@ -122,8 +122,7 @@ export default function Layout({ children }) {
     { name: 'Parceiros', path: 'ParceirosPage' },
     { name: 'Incubadora', path: 'IncubadoraProfissionalPage' },
     { name: 'Blog', path: 'EmAcaoPage' },
-    { name: 'Calendário', path: 'CalendarioDeAula' },
-    { name: 'Depoimentos', path: 'DepoimentosPage' }
+    { name: 'Calendário', path: 'CalendarioDeAula' }
     ];
 
   const icons = {
@@ -138,8 +137,7 @@ export default function Layout({ children }) {
     'Parceiros': Handshake,
     'Incubadora': Lightbulb,
     'Blog': Rss,
-    'Calendário': CalendarDays,
-    'Depoimentos': Star
+    'Calendário': CalendarDays
   };
 
   if (loadingUser) {

@@ -22,7 +22,7 @@ import AtividadeEditForm from '../components/admin/incubadora/AtividadeEditForm'
 import LeadCRM from '../components/admin/LeadCRM';
 import ComentariosManager from '../components/admin/ComentariosManager';
 import NotificationCenter from '../components/admin/NotificationCenter';
-import DepoimentosManager from '../components/admin/DepoimentosManager';
+
 import BulkEnrollStudents from '../components/admin/BulkEnrollStudents';
 import NotificationManager from '../components/admin/NotificationManager';
 import BulkActionsPanel from '../components/admin/BulkActionsPanel';
@@ -354,10 +354,7 @@ export default function AdminPage() {
     queryFn: () => base44.entities.PerguntaSemResposta.list('-created_date')
   });
 
-  const { data: depoimentos = [] } = useQuery({
-    queryKey: ['admin-depoimentos'],
-    queryFn: () => base44.entities.Depoimento.list('-created_date')
-  });
+
 
   const { data: allNotificacoes = [] } = useQuery({
     queryKey: ['admin-notificacoes'],
@@ -5155,7 +5152,6 @@ Seja detalhado, prático e objetivo na análise.`;
           leads={leads}
           comentarios={comentarios}
           perguntasSemResposta={perguntasSemResposta}
-          depoimentos={depoimentos}
           onNavigate={(tab) => setActiveTab(tab)}
         />
       </div>
@@ -5278,18 +5274,7 @@ Seja detalhado, prático e objetivo na análise.`;
         >
           Leads
         </Button>
-        <Button
-          onClick={() => setActiveTab('depoimentos')}
-          variant={activeTab === 'depoimentos' ? 'default' : 'outline'}
-          className={activeTab === 'depoimentos' ? 'bg-yellow-600' : ''}
-        >
-          Depoimentos
-          {depoimentos.filter(d => d.status === 'Pendente').length > 0 && (
-            <Badge className="ml-2 bg-red-500 text-white">
-              {depoimentos.filter(d => d.status === 'Pendente').length}
-            </Badge>
-          )}
-        </Button>
+
         <Button
           onClick={() => setActiveTab('notificacoes')}
           variant={activeTab === 'notificacoes' ? 'default' : 'outline'}
@@ -5349,7 +5334,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'incubadora' && renderIncubadoraTab()}
         {activeTab === 'chatbot' && renderChatbotTab()}
         {activeTab === 'leads' && renderLeadsTab()}
-        {activeTab === 'depoimentos' && <DepoimentosManager depoimentos={depoimentos} />}
+
         {activeTab === 'notificacoes' && renderNotificacoesTab()}
         {activeTab === 'aplicativos' && <AplicativosManager />}
         {activeTab === 'crm' && renderCRMTab()}

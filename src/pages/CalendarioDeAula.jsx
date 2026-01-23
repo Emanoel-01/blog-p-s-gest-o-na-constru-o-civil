@@ -28,6 +28,18 @@ export default function CalendarioDeAula() {
     staleTime: 1000 * 60 * 30
   });
 
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      try {
+        return await base44.auth.me();
+      } catch (e) {
+        return null;
+      }
+    },
+    staleTime: 1000 * 60 * 10
+  });
+
   // 2. Loading State
   if (loadingSchedule) {
     return (
@@ -64,6 +76,7 @@ export default function CalendarioDeAula() {
       <PortalAcademico 
         rawData={cronograma} 
         professores={professores}
+        currentUser={currentUser}
       />
     </div>
   );

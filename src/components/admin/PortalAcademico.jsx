@@ -22,13 +22,16 @@ const FERIADOS = {
 
 const POS_COURSES = ['BIM', 'MANUT', 'GPO', 'LEGAL'];
 
-export default function PortalAcademico({ rawData = [], professores = [] }) {
+export default function PortalAcademico({ rawData = [], professores = [], currentUser = null }) {
   // --- ESTADOS ---
   const [view, setView] = useState('lista'); // lista, gantt, calendario, admin
   const [role, setRole] = useState('student'); // student, admin
   const [events, setEvents] = useState([]);
   const [filterTurma, setFilterTurma] = useState('TODAS');
   const [filterProf, setFilterProf] = useState('TODOS');
+  
+  // Verificar se é admin (apenas emanoel.s.amorim@gmail.com)
+  const isAdmin = currentUser?.email === 'emanoel.s.amorim@gmail.com';
   
   // Modal e Chat
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -58,22 +61,31 @@ export default function PortalAcademico({ rawData = [], professores = [] }) {
       const tipo = getData(['Tipo', 'tipo', 'type']) || 'Presencial';
       const disciplina = getData(['Nome da Discisciplina ', 'disciplina_nome', 'disciplina', 'Disciplina']) || 'Sem Título';
       const docente = getData(['Docente', 'professor_nome', 'professor']) || 'A Definir';
-      const turma = getData(['Curso / Turma', 'turma', 'curso']) || 'Todos';
+      const turma = getData(['Curso / Turma', 'turma', 'curso', 'observacoes']) || 'Todos';
       const obs = getData(['Recomendações Preliminares', 'observacoes', 'details']) || '';
 
       // 2. Lógica de Negócio
-      const isHoliday = !!FERIADOS[rawDate] || tipo === 'Feriado' || tipo === 'Dia Sem aula';
+      const isHoliday = !!FERIADOS[rawDate] || tipo === 'Feriado' || tipo === 'Dia Sem aula' || tipo === 'FERIADO';
       
-      // Detecção de Categoria baseada no conteúdo
+      // Detecção de Categoria - TODAS as turmas = COMMON
       let category = 'COMMON';
-      if (['Ciclo Técnico', 'Específico', 'BIM', 'GPO', 'Manutenção', 'Legal'].some(k => (disciplina || '').includes(k) || (tipo || '').includes(k))) {
-        category = 'SPECIFIC';
+      const turmaUpper = String(turma).toUpperCase();
+      const obsUpper = String(obs).toUpperCase();
+      
+      // Se não for TODAS, e mencionar curso específico, é SPECIFIC
+      if (!turmaUpper.includes('TODAS') && !turmaUpper.includes('TODOS')) {
+        if (turmaUpper.includes('BIM') || turmaUpper.includes('GPO') || 
+            turmaUpper.includes('MANUT') || turmaUpper.includes('LEGAL') ||
+            obsUpper.includes('BIM') || obsUpper.includes('GPO') || 
+            obsUpper.includes('MANUT') || obsUpper.includes('LEGAL')) {
+          category = 'SPECIFIC';
+        }
       }
 
       return {
         id: item.id || `evt-${index}`,
-        dateString: rawDate, // Mantém string original para exibição rápida
-        dateObj: parseDateSafe(rawDate), // Objeto Date para ordenação
+        dateString: rawDate,
+        dateObj: parseDateSafe(rawDate),
         type: tipo,
         category,
         title: disciplina,
@@ -82,7 +94,7 @@ export default function PortalAcademico({ rawData = [], professores = [] }) {
         isHoliday,
         details: obs,
       };
-    }).sort((a, b) => a.dateObj - b.dateObj); // Ordena por data
+    }).sort((a, b) => a.dateObj - b.dateObj);
 
     setEvents(processed);
   }, [rawData]);
@@ -201,7 +213,7 @@ export default function PortalAcademico({ rawData = [], professores = [] }) {
                          <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" /> {evt.details}
                        </div>
                      )}
-                     {role === 'admin' && !evt.isHoliday && (
+                     {isAdmin && !evt.isHoliday && (
                        <Button variant="link" size="sm" className="h-auto p-0 text-xs text-green-700 mt-2" onClick={() => { setSelectedEvent(evt); setView('admin'); }}>
                          Editar
                        </Button>
@@ -222,31 +234,97 @@ export default function PortalAcademico({ rawData = [], professores = [] }) {
   const renderGanttView = () => {
     // Agrupa por mês para o Gantt
     const months = {};
+    const groupedEvents = {};
+    
+    // Primeiro, agrupa disciplinas comuns do mesmo dia
     filteredEvents.forEach(evt => {
         if(evt.isHoliday) return;
+        
+        const dateKey = evt.dateString;
+        const disciplineKey = `${dateKey}-${evt.title}`;
+        
+        if (!groupedEvents[disciplineKey]) {
+          groupedEvents[disciplineKey] = {
+            ...evt,
+            courses: evt.category === 'COMMON' ? ['BIM', 'MANUT', 'GPO', 'LEGAL'] : []
+          };
+        }
+    });
+    
+    // Depois, organiza por mês
+    Object.values(groupedEvents).forEach(evt => {
         const m = evt.dateObj.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
         if(!months[m]) months[m] = [];
         months[m].push(evt);
     });
 
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-8">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-10">
          {Object.entries(months).map(([month, evts]) => (
-             <div key={month}>
-                 <h3 className="text-sm font-bold text-green-800 uppercase tracking-wider mb-4 border-b pb-2">{month}</h3>
-                 <div className="space-y-2">
-                     {evts.map(evt => (
-                         <div key={evt.id} className="grid grid-cols-[40px_1fr] gap-4 items-center">
-                             <div className="text-xs font-bold text-gray-400 text-right">{evt.dateObj.getDate()}</div>
+             <div key={month} className="animate-in fade-in duration-300">
+                 <div className="flex items-center gap-3 mb-6">
+                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-300 to-transparent"></div>
+                   <h3 className="text-sm font-bold text-green-800 uppercase tracking-wider px-4 py-1 bg-green-50 rounded-full border border-green-200">
+                     {month}
+                   </h3>
+                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-green-300 to-transparent"></div>
+                 </div>
+                 
+                 <div className="space-y-3">
+                     {evts.map((evt, idx) => {
+                       const bgColor = evt.type === 'EAD' ? 'from-orange-500 to-orange-600' : 'from-blue-600 to-blue-700';
+                       const hoverBg = evt.type === 'EAD' ? 'hover:from-orange-600 hover:to-orange-700' : 'hover:from-blue-700 hover:to-blue-800';
+                       
+                       return (
+                         <div key={evt.id} className="group grid grid-cols-[50px_1fr] gap-4 items-center">
+                             <div className="flex flex-col items-end">
+                               <div className="text-2xl font-bold text-gray-800">{evt.dateObj.getDate()}</div>
+                               <div className="text-[10px] text-gray-400 uppercase tracking-wide">
+                                 {evt.dateObj.toLocaleString('pt-BR', { weekday: 'short' })}
+                               </div>
+                             </div>
+                             
                              <div 
-                                className={`rounded px-3 py-2 text-xs font-medium shadow-sm flex justify-between items-center cursor-pointer hover:opacity-90 transition-opacity ${evt.type === 'EAD' ? 'bg-orange-500 text-white' : 'bg-blue-600 text-white'}`}
+                                className={`bg-gradient-to-r ${bgColor} ${hoverBg} rounded-lg px-4 py-3 shadow-md group-hover:shadow-lg transition-all duration-300 cursor-pointer border border-white/20`}
                                 onClick={() => { setSelectedEvent(evt); setIsModalOpen(true); }}
                              >
-                                 <span className="truncate mr-2">{evt.title}</span>
-                                 <span className="opacity-80 text-[10px] uppercase bg-black/10 px-1 rounded">{evt.type}</span>
+                                 <div className="flex justify-between items-start gap-3">
+                                   <div className="flex-1 min-w-0">
+                                     <h4 className="text-white font-bold text-sm mb-1 truncate">
+                                       {evt.title}
+                                     </h4>
+                                     
+                                     {evt.category === 'COMMON' && (
+                                       <div className="flex items-center gap-1 flex-wrap mt-2">
+                                         {evt.courses.map(course => (
+                                           <span key={course} className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-medium">
+                                             {course}
+                                           </span>
+                                         ))}
+                                       </div>
+                                     )}
+                                     
+                                     <div className="flex items-center gap-2 mt-2 text-white/80 text-xs">
+                                       <User className="w-3 h-3" />
+                                       <span className="truncate">{evt.professor}</span>
+                                     </div>
+                                   </div>
+                                   
+                                   <div className="flex flex-col items-end gap-1">
+                                     <span className="text-[10px] uppercase bg-white/20 text-white px-2 py-1 rounded font-bold tracking-wide">
+                                       {evt.type}
+                                     </span>
+                                     {evt.category === 'COMMON' && (
+                                       <span className="text-[9px] bg-white/30 text-white px-2 py-0.5 rounded-full">
+                                         Ciclo Comum
+                                       </span>
+                                     )}
+                                   </div>
+                                 </div>
                              </div>
                          </div>
-                     ))}
+                       );
+                     })}
                  </div>
              </div>
          ))}
@@ -375,10 +453,6 @@ export default function PortalAcademico({ rawData = [], professores = [] }) {
            </div>
            
            <div className="flex items-center gap-3">
-              <div className="bg-gray-100 p-1 rounded-lg flex border border-gray-200">
-                 <button onClick={() => setRole('student')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${role === 'student' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>Aluno</button>
-                 <button onClick={() => setRole('admin')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${role === 'admin' ? 'bg-white shadow text-green-700' : 'text-gray-500 hover:text-gray-700'}`}>Coordenação</button>
-              </div>
               <Button variant="outline" onClick={handleDownloadPDF} className="border-gray-300">
                  <Download className="w-4 h-4 mr-2" /> PDF
               </Button>
@@ -391,7 +465,7 @@ export default function PortalAcademico({ rawData = [], professores = [] }) {
              { id: 'lista', icon: List, label: 'Lista' },
              { id: 'gantt', icon: BarChart, label: 'Timeline' },
              { id: 'calendario', icon: CalendarIcon, label: 'Calendário' },
-             { id: 'admin', icon: Settings, label: 'Gestão', show: role === 'admin' }
+             { id: 'admin', icon: Settings, label: 'Gestão', show: isAdmin }
            ].map(tab => (
              (!tab.show && tab.show === false) ? null : (
                 <button
@@ -461,7 +535,7 @@ export default function PortalAcademico({ rawData = [], professores = [] }) {
                     </div>
                     <Badge className={`mt-3 ${selectedEvent?.type === 'EAD' ? 'bg-orange-500' : 'bg-blue-600'}`}>{selectedEvent?.type}</Badge>
                  </div>
-                 {role === 'admin' && (
+                 {isAdmin && (
                     <Button className="w-full bg-green-700" onClick={() => { setIsModalOpen(false); setView('admin'); setSelectedEvent(selectedEvent); }}>
                        Editar Aula
                     </Button>

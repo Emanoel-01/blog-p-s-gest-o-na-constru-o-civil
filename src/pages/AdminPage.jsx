@@ -37,6 +37,7 @@ import ActivityLog from '../components/admin/crm/ActivityLog';
 import EmailTemplateManager from '../components/admin/EmailTemplateManager';
 import EmailCampaignLog from '../components/admin/EmailCampaignLog';
 import BlogManager from '../components/admin/BlogManager';
+import GerenciamentoUsuarios from '../components/admin/GerenciamentoUsuarios';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -5298,6 +5299,14 @@ Seja detalhado, prático e objetivo na análise.`;
           <Mail className="w-4 h-4 mr-2" />
           CRM & Marketing
         </Button>
+        <Button
+          onClick={() => setActiveTab('usuarios')}
+          variant={activeTab === 'usuarios' ? 'default' : 'outline'}
+          className={activeTab === 'usuarios' ? 'bg-gradient-to-r from-red-600 to-pink-600' : ''}
+        >
+          <Users className="w-4 h-4 mr-2" />
+          Gerenciar Usuários
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -5338,6 +5347,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'notificacoes' && renderNotificacoesTab()}
         {activeTab === 'aplicativos' && <AplicativosManager />}
         {activeTab === 'crm' && renderCRMTab()}
+        {activeTab === 'usuarios' && <GerenciamentoUsuarios />}
       </div>
         </>
       )}

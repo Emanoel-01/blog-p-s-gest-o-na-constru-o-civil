@@ -1,0 +1,476 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  GraduationCap, Download, List, BarChart, Calendar as CalendarIcon, 
+  Settings, Filter, User, MessageSquare, X, AlertCircle, CheckCircle,
+  PlusCircle, BookOpen, Search
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import html2pdf from 'html2pdf.js';
+import { toast } from 'sonner';
+
+// --- CONSTANTES ---
+const FERIADOS = { 
+  "14/02/2026": "Carnaval", "07/03/2026": "Data Magna", "04/04/2026": "Páscoa", 
+  "02/05/2026": "Dia do Trabalho", "24/06/2026": "São João", "29/08/2026": "Intervalo", 
+  "05/09/2026": "Independência", "31/10/2026": "Finados", "14/11/2026": "Proclamação Rep." 
+};
+
+const POS_COURSES = ['BIM', 'MANUT', 'GPO', 'LEGAL'];
+
+export default function PortalAcademico({ rawData = [], professores = [] }) {
+  // --- ESTADOS ---
+  const [view, setView] = useState('lista'); // lista, gantt, calendario, admin
+  const [role, setRole] = useState('student'); // student, admin
+  const [events, setEvents] = useState([]);
+  const [filterTurma, setFilterTurma] = useState('TODAS');
+  const [filterProf, setFilterProf] = useState('TODOS');
+  
+  // Modal e Chat
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { type: 'bot', text: 'Olá! Sou seu assistente acadêmico IA. Pergunte sobre datas de aulas, professores ou conteúdo programático.' }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+
+  // Refs
+  const contentRef = useRef(null);
+
+  // --- PROCESSAMENTO DE DADOS (ADAPTER) ---
+  useEffect(() => {
+    if (!rawData || rawData.length === 0) return;
+
+    // Transforma dados do Base44/CSV para o formato visual
+    const processed = rawData.map((item, index) => {
+      // 1. Normalização de Chaves (Evita erros se o nome da coluna mudar)
+      const getData = (keys) => {
+        for (const k of keys) if (item[k] !== undefined) return item[k];
+        return null;
+      };
+
+      const rawDate = getData(['Data', 'data', 'date']);
+      const tipo = getData(['Tipo', 'tipo', 'type']) || 'Presencial';
+      const disciplina = getData(['Nome da Discisciplina ', 'disciplina_nome', 'disciplina', 'Disciplina']) || 'Sem Título';
+      const docente = getData(['Docente', 'professor_nome', 'professor']) || 'A Definir';
+      const turma = getData(['Curso / Turma', 'turma', 'curso']) || 'Todos';
+      const obs = getData(['Recomendações Preliminares', 'observacoes', 'details']) || '';
+
+      // 2. Lógica de Negócio
+      const isHoliday = !!FERIADOS[rawDate] || tipo === 'Feriado' || tipo === 'Dia Sem aula';
+      
+      // Detecção de Categoria baseada no conteúdo
+      let category = 'COMMON';
+      if (['Ciclo Técnico', 'Específico', 'BIM', 'GPO', 'Manutenção', 'Legal'].some(k => (disciplina || '').includes(k) || (tipo || '').includes(k))) {
+        category = 'SPECIFIC';
+      }
+
+      return {
+        id: item.id || `evt-${index}`,
+        dateString: rawDate, // Mantém string original para exibição rápida
+        dateObj: parseDateSafe(rawDate), // Objeto Date para ordenação
+        type: tipo,
+        category,
+        title: disciplina,
+        professor: docente,
+        turmaContext: turma,
+        isHoliday,
+        details: obs,
+      };
+    }).sort((a, b) => a.dateObj - b.dateObj); // Ordena por data
+
+    setEvents(processed);
+  }, [rawData]);
+
+  // Parser Seguro de Datas (Resolve formato ISO e BR)
+  const parseDateSafe = (dateInput) => {
+    if (!dateInput) return new Date();
+    if (dateInput instanceof Date) return dateInput;
+    // Formato YYYY-MM-DD
+    if (dateInput.includes('-')) {
+        const [y, m, d] = dateInput.split('-');
+        return new Date(y, m - 1, d);
+    }
+    // Formato DD/MM/YYYY
+    if (dateInput.includes('/')) {
+        const [d, m, y] = dateInput.split('/');
+        return new Date(y, m - 1, d);
+    }
+    return new Date();
+  };
+
+  // --- FILTROS ---
+  const filteredEvents = events.filter(evt => {
+    if (filterProf !== 'TODOS' && !evt.professor.includes(filterProf)) return false;
+    if (filterTurma !== 'TODAS') {
+        // Se for aula comum, aparece para todos. Se for específica, filtra.
+        if (evt.category === 'SPECIFIC' && !evt.title.includes(filterTurma) && !evt.turmaContext.includes(filterTurma)) return false;
+    }
+    return true;
+  });
+
+  // --- AÇÕES ---
+  const handleDownloadPDF = () => {
+    const element = contentRef.current;
+    const opt = {
+      margin: 5,
+      filename: 'Cronograma_ESUDA_2026.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+    toast.success("Download do PDF iniciado!");
+  };
+
+  const handleChatSend = () => {
+    if (!chatInput.trim()) return;
+    setChatMessages(prev => [...prev, { type: 'user', text: chatInput }]);
+    setTimeout(() => {
+      setChatMessages(prev => [...prev, { type: 'bot', text: 'Analisando sua solicitação no banco de dados...' }]);
+    }, 1000);
+    setChatInput('');
+  };
+
+  // --- RENDERIZADORES ---
+
+  const renderListView = () => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in duration-300">
+      <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 bg-gray-50/50" data-html2canvas-ignore>
+        <div className="flex items-center gap-2 flex-1">
+          <Filter className="w-4 h-4 text-gray-500" />
+          <Select value={filterTurma} onValueChange={setFilterTurma}>
+            <SelectTrigger className="w-[180px] bg-white"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TODAS">Todas as Turmas</SelectItem>
+              {POS_COURSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2 flex-1">
+          <User className="w-4 h-4 text-gray-500" />
+          <Select value={filterProf} onValueChange={setFilterProf}>
+            <SelectTrigger className="w-[180px] bg-white"><SelectValue placeholder="Professor" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TODOS">Todos os Professores</SelectItem>
+              {professores.map(p => <SelectItem key={p.id} value={p.nome}>{p.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-gray-50 text-gray-600 font-bold uppercase text-xs">
+            <tr>
+              <th className="px-6 py-4">Data / Formato</th>
+              <th className="px-6 py-4">Disciplina / Conteúdo</th>
+              <th className="px-6 py-4">Detalhes</th>
+              <th className="px-6 py-4">Turma</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filteredEvents.map((evt) => {
+              const tagColor = evt.isHoliday ? 'bg-red-50 text-red-700 border-red-200' : evt.type === 'EAD' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-blue-50 text-blue-700 border-blue-200';
+              return (
+                <tr key={evt.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4 align-top w-[160px]">
+                    <div className="font-mono font-bold text-gray-900">{evt.dateString}</div>
+                    <Badge variant="outline" className={`mt-2 border ${tagColor}`}>{evt.type}</Badge>
+                  </td>
+                  <td className="px-6 py-4 align-top">
+                    {evt.isHoliday ? (
+                      <span className="font-bold text-red-600 uppercase tracking-wide">{evt.title || "FERIADO"}</span>
+                    ) : (
+                      <>
+                        <div className="font-bold text-gray-900 text-base">{evt.title}</div>
+                        <div className="flex items-center gap-2 mt-1 text-gray-600 text-xs">
+                          <User className="w-3 h-3" /> {evt.professor}
+                        </div>
+                      </>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 align-top">
+                     {evt.details && (
+                       <div className="text-xs text-yellow-800 bg-yellow-50 p-2 rounded border border-yellow-100 flex gap-2 items-start max-w-[200px]">
+                         <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" /> {evt.details}
+                       </div>
+                     )}
+                     {role === 'admin' && !evt.isHoliday && (
+                       <Button variant="link" size="sm" className="h-auto p-0 text-xs text-green-700 mt-2" onClick={() => { setSelectedEvent(evt); setView('admin'); }}>
+                         Editar
+                       </Button>
+                     )}
+                  </td>
+                  <td className="px-6 py-4 align-top">
+                    <Badge variant="outline" className="bg-gray-100 text-gray-600">{evt.turmaContext === 'Todos / 2026.1' ? 'Ciclo Comum' : evt.turmaContext}</Badge>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderGanttView = () => {
+    // Agrupa por mês para o Gantt
+    const months = {};
+    filteredEvents.forEach(evt => {
+        if(evt.isHoliday) return;
+        const m = evt.dateObj.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+        if(!months[m]) months[m] = [];
+        months[m].push(evt);
+    });
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-8">
+         {Object.entries(months).map(([month, evts]) => (
+             <div key={month}>
+                 <h3 className="text-sm font-bold text-green-800 uppercase tracking-wider mb-4 border-b pb-2">{month}</h3>
+                 <div className="space-y-2">
+                     {evts.map(evt => (
+                         <div key={evt.id} className="grid grid-cols-[40px_1fr] gap-4 items-center">
+                             <div className="text-xs font-bold text-gray-400 text-right">{evt.dateObj.getDate()}</div>
+                             <div 
+                                className={`rounded px-3 py-2 text-xs font-medium shadow-sm flex justify-between items-center cursor-pointer hover:opacity-90 transition-opacity ${evt.type === 'EAD' ? 'bg-orange-500 text-white' : 'bg-blue-600 text-white'}`}
+                                onClick={() => { setSelectedEvent(evt); setIsModalOpen(true); }}
+                             >
+                                 <span className="truncate mr-2">{evt.title}</span>
+                                 <span className="opacity-80 text-[10px] uppercase bg-black/10 px-1 rounded">{evt.type}</span>
+                             </div>
+                         </div>
+                     ))}
+                 </div>
+             </div>
+         ))}
+      </div>
+    );
+  };
+
+  const renderCalendarView = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {Array.from({ length: 12 }).map((_, i) => {
+        const year = i < 2 ? 2025 : 2026;
+        const date = new Date(2026, i, 1);
+        const monthName = date.toLocaleString('pt-BR', { month: 'long' });
+        const daysInMonth = new Date(2026, i + 1, 0).getDate();
+        const startDay = date.getDay();
+
+        return (
+          <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="text-center font-bold text-green-800 uppercase text-xs mb-3">{monthName} 2026</div>
+            <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-gray-400 mb-1">
+               {['D','S','T','Q','Q','S','S'].map(d => <span key={d}>{d}</span>)}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+               {Array.from({length: startDay}).map((_, k) => <div key={`e-${k}`} />)}
+               {Array.from({length: daysInMonth}).map((_, d) => {
+                  const day = d + 1;
+                  const dStr = new Date(2026, i, day).toLocaleDateString('pt-BR');
+                  const dayEvts = events.filter(e => e.dateString.includes(`${String(day).padStart(2,'0')}/${String(i+1).padStart(2,'0')}`)); 
+                  const hasEvt = dayEvts.length > 0;
+                  const isHol = dayEvts.some(e => e.isHoliday);
+
+                  let cellClass = "text-gray-600 hover:bg-gray-50";
+                  if (hasEvt) {
+                      if (isHol) cellClass = "bg-red-100 text-red-800 line-through font-bold";
+                      else if (dayEvts[0].type === 'EAD') cellClass = "bg-orange-100 text-orange-800 font-bold border border-orange-200 cursor-pointer";
+                      else cellClass = "bg-blue-100 text-blue-800 font-bold border border-blue-200 cursor-pointer";
+                  }
+
+                  return (
+                    <div 
+                      key={day} 
+                      className={`aspect-square flex items-center justify-center rounded text-xs transition-colors ${cellClass}`}
+                      onClick={() => { if(hasEvt && !isHol) { setSelectedEvent(dayEvts[0]); setIsModalOpen(true); } }}
+                    >
+                      {day}
+                    </div>
+                  )
+               })}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  );
+
+  const renderAdminView = () => (
+    <div className="max-w-4xl mx-auto space-y-6 animate-in slide-in-from-right-4">
+       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-3 mb-6 border-b pb-4">
+             <div className="bg-yellow-100 p-2 rounded-lg text-yellow-700"><Settings className="w-6 h-6" /></div>
+             <div>
+                <h2 className="text-xl font-bold text-gray-900">Gestão de Cronograma</h2>
+                <p className="text-sm text-gray-500">Adicione ou edite aulas. As alterações refletem para todos os alunos.</p>
+             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="space-y-4">
+                <h3 className="font-bold text-sm text-gray-700 uppercase">Adicionar Novo Evento</h3>
+                <div className="space-y-2">
+                   <label className="text-xs font-bold text-gray-500">Data</label>
+                   <Input type="date" />
+                </div>
+                <div className="space-y-2">
+                   <label className="text-xs font-bold text-gray-500">Tipo</label>
+                   <Select>
+                      <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                      <SelectContent>
+                         <SelectItem value="Presencial">Presencial</SelectItem>
+                         <SelectItem value="EAD">EAD</SelectItem>
+                         <SelectItem value="Feriado">Feriado</SelectItem>
+                      </SelectContent>
+                   </Select>
+                </div>
+                <div className="space-y-2">
+                   <label className="text-xs font-bold text-gray-500">Disciplina</label>
+                   <Input placeholder="Nome da disciplina" />
+                </div>
+                <Button className="w-full bg-green-700 hover:bg-green-800 text-white"><PlusCircle className="w-4 h-4 mr-2" /> Adicionar</Button>
+             </div>
+
+             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 className="font-bold text-sm text-gray-700 uppercase mb-4">Edição Rápida (Últimos Eventos)</h3>
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                   {events.slice(0, 5).map(evt => (
+                      <div key={evt.id} className="bg-white p-3 rounded border border-gray-200 text-xs flex justify-between items-center">
+                         <div>
+                            <span className="font-bold block">{evt.dateString}</span>
+                            <span className="text-gray-500 truncate block max-w-[150px]">{evt.title}</span>
+                         </div>
+                         <Button variant="ghost" size="icon" className="h-6 w-6"><Settings className="w-3 h-3" /></Button>
+                      </div>
+                   ))}
+                </div>
+             </div>
+          </div>
+       </div>
+    </div>
+  );
+
+  // --- RENDERIZAÇÃO PRINCIPAL ---
+  return (
+    <div className="bg-gray-100 min-h-screen p-4 sm:p-6 font-sans text-gray-900 flex justify-center">
+      <div className="max-w-[1400px] w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col min-h-[85vh]">
+        
+        {/* HEADER */}
+        <header className="bg-white border-b border-gray-200 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+           <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-green-700 text-white rounded-xl flex items-center justify-center shadow-lg shadow-green-700/20">
+                 <GraduationCap className="w-6 h-6" />
+              </div>
+              <div>
+                 <h1 className="text-xl font-bold text-gray-900">Portal Acadêmico 2026</h1>
+                 <p className="text-sm text-gray-500">Engenharia e Arquitetura - ESUDA</p>
+              </div>
+           </div>
+           
+           <div className="flex items-center gap-3">
+              <div className="bg-gray-100 p-1 rounded-lg flex border border-gray-200">
+                 <button onClick={() => setRole('student')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${role === 'student' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>Aluno</button>
+                 <button onClick={() => setRole('admin')} className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${role === 'admin' ? 'bg-white shadow text-green-700' : 'text-gray-500 hover:text-gray-700'}`}>Coordenação</button>
+              </div>
+              <Button variant="outline" onClick={handleDownloadPDF} className="border-gray-300">
+                 <Download className="w-4 h-4 mr-2" /> PDF
+              </Button>
+           </div>
+        </header>
+
+        {/* NAV */}
+        <nav className="flex px-6 border-b border-gray-200 sticky top-0 z-20 bg-white/95 backdrop-blur">
+           {[
+             { id: 'lista', icon: List, label: 'Lista' },
+             { id: 'gantt', icon: BarChart, label: 'Timeline' },
+             { id: 'calendario', icon: CalendarIcon, label: 'Calendário' },
+             { id: 'admin', icon: Settings, label: 'Gestão', show: role === 'admin' }
+           ].map(tab => (
+             (!tab.show && tab.show === false) ? null : (
+                <button
+                  key={tab.id}
+                  onClick={() => setView(tab.id)}
+                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-all ${view === tab.id ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-green-700'}`}
+                >
+                   <tab.icon className="w-4 h-4" /> {tab.label}
+                </button>
+             )
+           ))}
+        </nav>
+
+        {/* CONTEÚDO */}
+        <main className="flex-1 bg-gray-50 p-6 overflow-y-auto" ref={contentRef}>
+           {view === 'lista' && renderListView()}
+           {view === 'gantt' && renderGanttView()}
+           {view === 'calendario' && renderCalendarView()}
+           {view === 'admin' && renderAdminView()}
+        </main>
+
+        {/* CHATBOT */}
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4" data-html2canvas-ignore>
+           {isChatOpen && (
+              <div className="bg-white w-[320px] h-[400px] rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10">
+                 <div className="bg-green-700 p-4 text-white flex justify-between items-center">
+                    <span className="font-bold text-sm">IA Assistente</span>
+                    <button onClick={() => setIsChatOpen(false)}><X className="w-4 h-4" /></button>
+                 </div>
+                 <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
+                    {chatMessages.map((msg, i) => (
+                       <div key={i} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[85%] p-2.5 rounded-xl text-xs ${msg.type === 'user' ? 'bg-green-700 text-white rounded-br-none' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'}`}>
+                             {msg.text}
+                          </div>
+                       </div>
+                    ))}
+                 </div>
+                 <div className="p-2 bg-white border-t border-gray-100 flex gap-2">
+                    <Input 
+                       className="h-9 text-xs rounded-full bg-gray-50 border-gray-200 focus-visible:ring-green-500" 
+                       placeholder="Digite aqui..." 
+                       value={chatInput}
+                       onChange={e => setChatInput(e.target.value)}
+                       onKeyDown={e => e.key === 'Enter' && handleChatSend()}
+                    />
+                    <Button size="icon" className="h-9 w-9 rounded-full bg-green-700 hover:bg-green-800" onClick={handleChatSend}><MessageSquare className="w-4 h-4" /></Button>
+                 </div>
+              </div>
+           )}
+           <button onClick={() => setIsChatOpen(!isChatOpen)} className="w-14 h-14 bg-green-700 text-white rounded-full shadow-lg hover:bg-green-800 transition-colors flex items-center justify-center">
+              {isChatOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
+           </button>
+        </div>
+
+        {/* MODAL DETALHES */}
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+           <DialogContent>
+              <DialogHeader>
+                 <DialogTitle className="flex items-center gap-2 text-green-700"><CalendarIcon className="w-5 h-5" /> {selectedEvent?.dateString}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 className="font-bold text-gray-900 text-lg leading-tight">{selectedEvent?.title}</h3>
+                    <div className="flex items-center gap-2 mt-2 text-gray-600 text-sm">
+                       <User className="w-4 h-4" /> {selectedEvent?.professor}
+                    </div>
+                    <Badge className={`mt-3 ${selectedEvent?.type === 'EAD' ? 'bg-orange-500' : 'bg-blue-600'}`}>{selectedEvent?.type}</Badge>
+                 </div>
+                 {role === 'admin' && (
+                    <Button className="w-full bg-green-700" onClick={() => { setIsModalOpen(false); setView('admin'); setSelectedEvent(selectedEvent); }}>
+                       Editar Aula
+                    </Button>
+                 )}
+              </div>
+           </DialogContent>
+        </Dialog>
+
+      </div>
+    </div>
+  );
+}

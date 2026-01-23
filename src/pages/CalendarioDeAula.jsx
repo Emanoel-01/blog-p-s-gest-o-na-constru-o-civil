@@ -1,98 +1,70 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft } from 'lucide-react';
-import ScheduleCalendar from '../components/admin/ScheduleCalendar';
-import DayDetailModal from '../components/admin/DayDetailModal';
+import PortalAcademico from '../components/admin/PortalAcademico';
 
 export default function CalendarioDeAula() {
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [selectedAulas, setSelectedAulas] = useState([]);
-
-  const { data: cronograma = [], isLoading } = useQuery({
-    queryKey: ['cronograma'],
-    queryFn: () => base44.entities.CronogramaAula.list('data')
-  });
-
-  const { data: ciclos = [] } = useQuery({
-    queryKey: ['ciclos'],
-    queryFn: () => base44.entities.Ciclo.list('ordem')
+  // 1. Busca Dados (Conectado ao Base44)
+  const { data: cronograma = [], isLoading: loadingSchedule, isError, refetch } = useQuery({
+    queryKey: ['cronograma-aulas'],
+    queryFn: async () => {
+      try {
+        return await base44.entities.CronogramaAula.list('data'); 
+      } catch (e) {
+        console.warn("Entidade 'CronogramaAula' não encontrada ou vazia.", e);
+        return []; 
+      }
+    },
+    staleTime: 1000 * 60 * 5
   });
 
   const { data: professores = [] } = useQuery({
-    queryKey: ['professores'],
-    queryFn: () => base44.entities.Professor.list('ordem')
+    queryKey: ['professores-lista'],
+    queryFn: () => base44.entities.Professor.list('nome'),
+    staleTime: 1000 * 60 * 30
   });
 
-  const handleDayClick = (day, aulas) => {
-    setSelectedDay(day);
-    setSelectedAulas(aulas);
-  };
+  // 2. Loading State
+  if (loadingSchedule) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50 gap-4">
+        <Loader2 className="w-12 h-12 text-green-700 animate-spin" />
+        <p className="text-gray-500 font-medium animate-pulse">Sincronizando portal acadêmico...</p>
+      </div>
+    );
+  }
 
-  const handleCloseModal = () => {
-    setSelectedDay(null);
-    setSelectedAulas([]);
-  };
+  // 3. Error State
+  if (isError) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-4 text-center">
+        <h2 className="text-xl font-bold text-red-600">Erro ao carregar cronograma</h2>
+        <Button onClick={() => refetch()} variant="outline"><RefreshCw className="w-4 h-4 mr-2"/> Tentar Novamente</Button>
+      </div>
+    );
+  }
 
+  // 4. Renderização do Portal
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
-          {selectedDay && (
-            <DayDetailModal
-              day={selectedDay}
-              aulas={selectedAulas}
-              professores={professores}
-              ciclos={ciclos}
-              onClose={handleCloseModal}
-            />
-          )}
+    <div className="relative">
+      {/* Botão de Voltar Flutuante */}
+      <div className="fixed bottom-4 left-4 z-50 print:hidden">
+         <Link to={createPageUrl('EmAcaoPage')}>
+            <Button variant="secondary" size="sm" className="shadow-xl border border-gray-200 bg-white hover:bg-gray-100 text-gray-700">
+               <ArrowLeft className="w-4 h-4 mr-2" /> Voltar ao Blog
+            </Button>
+         </Link>
+      </div>
 
-          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 sm:p-6 rounded-xl shadow-lg">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-                  Calendário de Aulas 2026
-                </h1>
-                <p className="text-green-50 text-sm sm:text-base max-w-3xl">
-                  Clique nos dias com aula para ver detalhes sobre horários, professores e disciplinas.
-                </p>
-              </div>
-              <Link to={createPageUrl('EmAcaoPage')} className="w-full sm:w-auto">
-                <Button variant="outline" className="border-white bg-white/10 hover:bg-white/20 text-white w-full sm:w-auto text-sm sm:text-base">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Voltar
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-      {isLoading ? (
-        <div className="text-center py-12 sm:py-16">
-          <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-4 border-green-600 mx-auto mb-4 sm:mb-6" />
-          <p className="text-gray-600 text-base sm:text-lg font-medium">Carregando cronograma...</p>
-        </div>
-      ) : cronograma.length === 0 ? (
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 sm:p-12 md:p-16 rounded-2xl text-center border-2 border-dashed border-gray-300">
-          <div className="mb-3 sm:mb-4 text-4xl sm:text-5xl md:text-6xl">📚</div>
-          <p className="text-gray-600 text-base sm:text-lg font-medium mb-1 sm:mb-2">
-            Nenhuma aula agendada no momento
-          </p>
-          <p className="text-gray-500 text-xs sm:text-sm">
-            Em breve o cronograma será atualizado com as próximas aulas.
-          </p>
-        </div>
-      ) : (
-        <div className="bg-white p-3 sm:p-4 md:p-6 rounded-2xl shadow-lg border border-gray-200 overflow-x-auto">
-          <ScheduleCalendar
-            cronograma={cronograma}
-            professores={professores}
-            ciclos={ciclos}
-            onDayClick={handleDayClick}
-          />
-        </div>
-      )}
+      {/* Componente Principal */}
+      <PortalAcademico 
+        rawData={cronograma} 
+        professores={professores}
+      />
     </div>
   );
 }

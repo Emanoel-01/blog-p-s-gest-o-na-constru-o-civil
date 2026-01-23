@@ -154,24 +154,34 @@ Deno.serve(async (req) => {
     const roiEmails = discentesList.filter(d => d.email).map(d => d.email);
     const existingRoiReminders = await getExistingNotifications(base44, roiEmails);
     
-    for (let i = 0; i < discentesList.length; i++) {
-      const discente = discentesList[i];
+    // OTIMIZAÇÃO: Buscar TODAS as atividades de UMA VEZ e agrupar por aluno_id
+    const [allFreelancers, allRelatorios, allProducoes, allEventos, allCanteiros, allArtigos] = await Promise.all([
+      base44.asServiceRole.entities.FreelancerNetwork.list(),
+      base44.asServiceRole.entities.RelatorioTecnico.list(),
+      base44.asServiceRole.entities.ProducaoTecnologica.list(),
+      base44.asServiceRole.entities.Evento.list(),
+      base44.asServiceRole.entities.CanteiroDidatico.list(),
+      base44.asServiceRole.entities.ArtigoCientifico.list()
+    ]);
+    
+    // Agrupar atividades por aluno_id
+    const atividadesPorAluno = {};
+    [...allFreelancers, ...allRelatorios, ...allProducoes, ...allEventos, ...allCanteiros, ...allArtigos].forEach(atividade => {
+      if (atividade.aluno_id) {
+        if (!atividadesPorAluno[atividade.aluno_id]) {
+          atividadesPorAluno[atividade.aluno_id] = [];
+        }
+        atividadesPorAluno[atividade.aluno_id].push(atividade);
+      }
+    });
+    
+    for (const discente of discentesList) {
       if (!discente.email) continue;
       
-      // Buscar última atividade do aluno na incubadora
-      const [freelancers, relatorios, producoes, eventos, canteiros, artigos] = await Promise.all([
-        base44.asServiceRole.entities.FreelancerNetwork.filter({ aluno_id: discente.id }),
-        base44.asServiceRole.entities.RelatorioTecnico.filter({ aluno_id: discente.id }),
-        base44.asServiceRole.entities.ProducaoTecnologica.filter({ aluno_id: discente.id }),
-        base44.asServiceRole.entities.Evento.filter({ aluno_id: discente.id }),
-        base44.asServiceRole.entities.CanteiroDidatico.filter({ aluno_id: discente.id }),
-        base44.asServiceRole.entities.ArtigoCientifico.filter({ aluno_id: discente.id })
-      ]);
+      const alunoAtividades = atividadesPorAluno[discente.id] || [];
       
-      const allActivities = [...freelancers, ...relatorios, ...producoes, ...eventos, ...canteiros, ...artigos];
-      
-      if (allActivities.length > 0) {
-        const lastActivity = allActivities.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+      if (alunoAtividades.length > 0) {
+        const lastActivity = alunoAtividades.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
         
         if (new Date(lastActivity.created_date) < thirtyDaysAgo) {
           const existingReminder = existingRoiReminders[discente.email] || [];
@@ -189,11 +199,6 @@ Deno.serve(async (req) => {
             });
           }
         }
-      }
-      
-      // Delay para evitar rate limit
-      if ((i + 1) % 10 === 0) {
-        await delay(300);
       }
     }
     

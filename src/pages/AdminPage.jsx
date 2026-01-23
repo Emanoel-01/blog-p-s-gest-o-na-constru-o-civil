@@ -5239,14 +5239,7 @@ Seja detalhado, prático e objetivo na análise.`;
         >
           Comentários
         </Button>
-        <Button
-          onClick={() => setActiveTab('cronograma')}
-          variant={activeTab === 'cronograma' ? 'default' : 'outline'}
-          className={activeTab === 'cronograma' ? 'bg-cyan-600' : ''}
-        >
-          <Calendar className="w-4 h-4 mr-2" />
-          Cronograma de Aulas
-        </Button>
+
         <Button
           onClick={() => setActiveTab('incubadora')}
           variant={activeTab === 'incubadora' ? 'default' : 'outline'}
@@ -5332,7 +5325,7 @@ Seja detalhado, prático e objetivo na análise.`;
             </div>
           </div>
         )}
-        {activeTab === 'cronograma' && renderCronogramaTab()}
+
         {activeTab === 'incubadora' && renderIncubadoraTab()}
         {activeTab === 'chatbot' && renderChatbotTab()}
         {activeTab === 'leads' && renderLeadsTab()}

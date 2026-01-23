@@ -380,36 +380,38 @@ Deno.serve(async (req) => {
       stats.total++;
     }
     
-    // Processar em lotes para evitar rate limit
-    const BATCH_SIZE = 50;
+    // Processar em lotes menores para evitar rate limit e timeout
+    const CREATE_BATCH_SIZE = 25; // Reduzir de 50 para 25
     
     if (toCreate.length > 0) {
-      for (let i = 0; i < toCreate.length; i += BATCH_SIZE) {
-        const batch = toCreate.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < toCreate.length; i += CREATE_BATCH_SIZE) {
+        const batch = toCreate.slice(i, i + CREATE_BATCH_SIZE);
         await base44.asServiceRole.entities.Inscrito.bulkCreate(batch);
         
         // Delay entre lotes
-        if (i + BATCH_SIZE < toCreate.length) {
-          await new Promise(resolve => setTimeout(resolve, 200));
+        if (i + CREATE_BATCH_SIZE < toCreate.length) {
+          await new Promise(resolve => setTimeout(resolve, 800)); // Aumentar de 200ms para 800ms
         }
       }
     }
     
-    // Processar updates em lotes também
-    for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
-      for (let j = i; j < Math.min(i + BATCH_SIZE, toUpdate.length); j++) {
+    // Processar updates em lotes menores e com mais delay
+    const UPDATE_BATCH_SIZE = 10; // Reduzir de 50 para 10
+    
+    for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH_SIZE) {
+      for (let j = i; j < Math.min(i + UPDATE_BATCH_SIZE, toUpdate.length); j++) {
         const { id, ...data } = toUpdate[j];
         await base44.asServiceRole.entities.Inscrito.update(id, data);
         
-        // Pequeno delay entre updates individuais
+        // Delay entre updates individuais
         if (j < toUpdate.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 150)); // Aumentar de 100ms para 150ms
         }
       }
       
       // Delay maior entre lotes
-      if (i + BATCH_SIZE < toUpdate.length) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+      if (i + UPDATE_BATCH_SIZE < toUpdate.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Aumentar de 200ms para 1000ms
       }
     }
     

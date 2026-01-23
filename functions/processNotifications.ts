@@ -16,13 +16,14 @@ const getExistingNotifications = async (base44, emailsToCheck) => {
       results
     })));
     
-    if (batch.length >= 5) {
+    // Reduzir tamanho do batch de 5 para 3 para evitar rate limit
+    if (batch.length >= 3) {
       const results = await Promise.all(batch);
       for (const { email: e, results: r } of results) {
         existing[e] = r;
       }
       batch.length = 0;
-      await delay(200); // Pequeno delay entre batches
+      await delay(500); // Aumentar delay entre batches de 200ms para 500ms
     }
   }
   
@@ -154,52 +155,54 @@ Deno.serve(async (req) => {
     const roiEmails = discentesList.filter(d => d.email).map(d => d.email);
     const existingRoiReminders = await getExistingNotifications(base44, roiEmails);
     
-    // OTIMIZAÇÃO: Buscar TODAS as atividades de UMA VEZ e agrupar por aluno_id
-    const [allFreelancers, allRelatorios, allProducoes, allEventos, allCanteiros, allArtigos] = await Promise.all([
-      base44.asServiceRole.entities.FreelancerNetwork.list(),
-      base44.asServiceRole.entities.RelatorioTecnico.list(),
-      base44.asServiceRole.entities.ProducaoTecnologica.list(),
-      base44.asServiceRole.entities.Evento.list(),
-      base44.asServiceRole.entities.CanteiroDidatico.list(),
-      base44.asServiceRole.entities.ArtigoCientifico.list()
-    ]);
+    // Processar em lotes menores para evitar rate limit
+    const DISCENTE_BATCH_SIZE = 5;
     
-    // Agrupar atividades por aluno_id
-    const atividadesPorAluno = {};
-    [...allFreelancers, ...allRelatorios, ...allProducoes, ...allEventos, ...allCanteiros, ...allArtigos].forEach(atividade => {
-      if (atividade.aluno_id) {
-        if (!atividadesPorAluno[atividade.aluno_id]) {
-          atividadesPorAluno[atividade.aluno_id] = [];
-        }
-        atividadesPorAluno[atividade.aluno_id].push(atividade);
-      }
-    });
-    
-    for (const discente of discentesList) {
-      if (!discente.email) continue;
+    for (let i = 0; i < discentesList.length; i += DISCENTE_BATCH_SIZE) {
+      const batch = discentesList.slice(i, i + DISCENTE_BATCH_SIZE);
       
-      const alunoAtividades = atividadesPorAluno[discente.id] || [];
-      
-      if (alunoAtividades.length > 0) {
-        const lastActivity = alunoAtividades.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+      for (const discente of batch) {
+        if (!discente.email) continue;
         
-        if (new Date(lastActivity.created_date) < thirtyDaysAgo) {
-          const existingReminder = existingRoiReminders[discente.email] || [];
-          const recentReminder = existingReminder.filter(n => 
-            n.titulo === 'Atualize seu Portfólio' && new Date(n.created_date) > thirtyDaysAgo
-          );
+        // Buscar última atividade do aluno na incubadora
+        const [freelancers, relatorios, producoes, eventos, canteiros, artigos] = await Promise.all([
+          base44.asServiceRole.entities.FreelancerNetwork.filter({ aluno_id: discente.id }),
+          base44.asServiceRole.entities.RelatorioTecnico.filter({ aluno_id: discente.id }),
+          base44.asServiceRole.entities.ProducaoTecnologica.filter({ aluno_id: discente.id }),
+          base44.asServiceRole.entities.Evento.filter({ aluno_id: discente.id }),
+          base44.asServiceRole.entities.CanteiroDidatico.filter({ aluno_id: discente.id }),
+          base44.asServiceRole.entities.ArtigoCientifico.filter({ aluno_id: discente.id })
+        ]);
+        
+        const allActivities = [...freelancers, ...relatorios, ...producoes, ...eventos, ...canteiros, ...artigos];
+        
+        if (allActivities.length > 0) {
+          const lastActivity = allActivities.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
           
-          if (recentReminder.length === 0) {
-            notifications.push({
-              destinatario_email: discente.email,
-              tipo: 'Carreira',
-              titulo: 'Atualize seu Portfólio',
-              mensagem: 'Teve alguma conquista profissional ou economia em obra este mês? Registre na Incubadora e valorize seu perfil.',
-              link_destino: 'IncubadoraProfissionalPage'
-            });
+          if (new Date(lastActivity.created_date) < thirtyDaysAgo) {
+            const existingReminder = existingRoiReminders[discente.email] || [];
+            const recentReminder = existingReminder.filter(n => 
+              n.titulo === 'Atualize seu Portfólio' && new Date(n.created_date) > thirtyDaysAgo
+            );
+            
+            if (recentReminder.length === 0) {
+              notifications.push({
+                destinatario_email: discente.email,
+                tipo: 'Carreira',
+                titulo: 'Atualize seu Portfólio',
+                mensagem: 'Teve alguma conquista profissional ou economia em obra este mês? Registre na Incubadora e valorize seu perfil.',
+                link_destino: 'IncubadoraProfissionalPage'
+              });
+            }
           }
         }
+        
+        // Delay entre cada discente processado
+        await delay(200);
       }
+      
+      // Delay maior entre batches
+      await delay(800);
     }
     
     // 5. PROVA SOCIAL (Item marcado como destaque)
@@ -237,14 +240,14 @@ Deno.serve(async (req) => {
     // Este gatilho requer sistema de tracking de visualizações
     // Por ora, está marcado como "Planejado" no sistema
     
-    // Criar todas as notificações em batches para evitar rate limit
+    // Criar todas as notificações em batches menores para evitar rate limit
     if (notifications.length > 0) {
-      const batchSize = 50;
+      const batchSize = 25; // Reduzir de 50 para 25
       for (let i = 0; i < notifications.length; i += batchSize) {
         const batch = notifications.slice(i, i + batchSize);
         await base44.asServiceRole.entities.Notificacao.bulkCreate(batch);
         if (i + batchSize < notifications.length) {
-          await delay(300); // Delay entre batches
+          await delay(1000); // Aumentar delay de 300ms para 1000ms
         }
       }
     }

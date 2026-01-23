@@ -5163,15 +5163,8 @@ Seja detalhado, prático e objetivo na análise.`;
         </p>
       </div>
 
-      {/* Mostrar apenas a aba CRM & Marketing para usuários com crm_access mas não super admin */}
-      {hasCrmAccess && !isSuperAdmin && (
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          {renderCRMTab()}
-        </div>
-      )}
-
-      {/* Mostrar tudo para super admin */}
-      {isSuperAdmin && (
+      {/* Mostrar todas as abas para usuários com acesso (admin, crm_access ou super admin) */}
+      {hasCrmAccess && (
         <>
           <div className="flex gap-2 mb-6 flex-wrap">
             <Button

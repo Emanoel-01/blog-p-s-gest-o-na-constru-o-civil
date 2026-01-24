@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Share2, Calendar, Tag, MessageCircle, Send, User, Users, Handshake, Image as ImageIcon, Video, FileText, ExternalLink, ThumbsUp, Reply } from 'lucide-react';
+import { ArrowLeft, Share2, Calendar, Tag, User, Users, Handshake, Image as ImageIcon, Video, FileText, ExternalLink } from 'lucide-react';
 import ImageViewer from '../components/blog/ImageViewer';
 import PDFGallery from '../components/blog/PDFGallery';
 import { toast } from 'sonner';
@@ -32,8 +32,6 @@ export default function PostPage() {
   
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [novoComentario, setNovoComentario] = useState({});
-  const [respostaComentarioId, setRespostaComentarioId] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -51,11 +49,6 @@ export default function PostPage() {
     return slug === postSlug;
   });
 
-  const { data: allComentarios = [] } = useQuery({
-    queryKey: ['comentarios'],
-    queryFn: () => base44.entities.Comentario.list('-created_date')
-  });
-
   const { data: discentes = [] } = useQuery({
     queryKey: ['discentes'],
     queryFn: () => base44.entities.Discente.list('nome')
@@ -71,100 +64,10 @@ export default function PostPage() {
     queryFn: () => base44.entities.Parceiro.list('nome')
   });
 
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: async () => {
-      try {
-        return await base44.auth.me();
-      } catch {
-        return null;
-      }
-    }
-  });
-
-  const createComentarioMutation = useMutation({
-    mutationFn: async (data) => {
-      const comentario = await base44.entities.Comentario.create(data);
-      
-      try {
-        await base44.functions.invoke('notifyAdminNewContent', {
-          tipo: 'comentario',
-          dados: {
-            autor_nome: data.autor_nome,
-            autor_email: data.autor_email,
-            conteudo: data.conteudo,
-            post_titulo: post?.titulo || 'Post'
-          }
-        });
-      } catch (error) {
-        console.error('Erro ao notificar admins:', error);
-      }
-      
-      return comentario;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['comentarios']);
-      toast.success('Comentário publicado com sucesso!');
-      setNovoComentario({});
-      setRespostaComentarioId(null);
-    },
-    onError: (error) => {
-      console.error('Erro ao enviar comentário:', error);
-      toast.error('Erro ao enviar comentário. Tente novamente.');
-    }
-  });
-
-  const likeComentarioMutation = useMutation({
-    mutationFn: async (comentarioId) => {
-      const comentario = allComentarios.find(c => c.id === comentarioId);
-      const likes = comentario.likes || 0;
-      await base44.entities.Comentario.update(comentarioId, { likes: likes + 1 });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['comentarios']);
-    }
-  });
-
-  const getComentariosAprovados = (postId) => {
-    return allComentarios
-      .filter(c => c.post_id === postId && c.aprovado && !c.comentario_pai_id)
-      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-  };
-
-  const getRespostas = (comentarioId) => {
-    return allComentarios
-      .filter(c => c.comentario_pai_id === comentarioId && c.aprovado)
-      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-  };
-
   const handleImageClick = (imageUrl, allImages) => {
     const index = allImages.indexOf(imageUrl);
     setSelectedImages(allImages);
     setSelectedImageIndex(index >= 0 ? index : 0);
-  };
-
-  const handleSubmitComentario = () => {
-    const comentario = novoComentario;
-    if (!comentario?.autor_nome || !comentario?.conteudo || !comentario?.autor_email) {
-      toast.error('Preencha nome, email e comentário');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(comentario.autor_email)) {
-      toast.error('Informe um email válido');
-      return;
-    }
-
-    createComentarioMutation.mutate({
-      post_id: post.id,
-      autor_nome: comentario.autor_nome,
-      autor_email: comentario.autor_email,
-      conteudo: comentario.conteudo,
-      comentario_pai_id: respostaComentarioId,
-      aprovado: false,
-      likes: 0
-    });
   };
 
   const handleShare = async () => {
@@ -689,164 +592,7 @@ export default function PostPage() {
               </div>
             )}
 
-            <div className="border-t-2 border-pink-200 pt-6">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <MessageCircle className="w-6 h-6 text-pink-600" />
-                Comentários ({getComentariosAprovados(post.id).length})
-              </h3>
 
-              <div className="bg-pink-50 p-4 rounded-lg border border-pink-200 mb-6">
-                <h5 className="text-sm font-semibold text-gray-700 mb-3">
-                  {respostaComentarioId ? 'Respondendo comentário' : 'Deixe seu comentário'}
-                </h5>
-                <div className="space-y-3">
-                  <Input
-                    placeholder="Seu nome *"
-                    value={novoComentario?.autor_nome || ''}
-                    onChange={(e) => setNovoComentario(prev => ({
-                      ...prev,
-                      autor_nome: e.target.value
-                    }))}
-                  />
-                  <Input
-                    placeholder="Seu email *"
-                    type="email"
-                    value={novoComentario?.autor_email || ''}
-                    onChange={(e) => setNovoComentario(prev => ({
-                      ...prev,
-                      autor_email: e.target.value
-                    }))}
-                  />
-                  <Textarea
-                    placeholder="Seu comentário *"
-                    rows={4}
-                    value={novoComentario?.conteudo || ''}
-                    onChange={(e) => setNovoComentario(prev => ({
-                      ...prev,
-                      conteudo: e.target.value
-                    }))}
-                  />
-                  <div className="flex gap-2">
-                    {respostaComentarioId && (
-                      <Button
-                        onClick={() => {
-                          setRespostaComentarioId(null);
-                          setNovoComentario({});
-                        }}
-                        variant="outline"
-                        className="flex-1"
-                      >
-                        Cancelar Resposta
-                      </Button>
-                    )}
-                    <Button
-                      onClick={handleSubmitComentario}
-                      className="flex-1 bg-pink-600 hover:bg-pink-700"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      Enviar Comentário
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500 italic">
-                    * Campos obrigatórios - Seu email não será exibido publicamente
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {getComentariosAprovados(post.id).length === 0 ? (
-                  <p className="text-sm text-gray-500 italic text-center py-4">
-                    Seja o primeiro a comentar!
-                  </p>
-                ) : (
-                  getComentariosAprovados(post.id).map((comentario) => {
-                    const respostas = getRespostas(comentario.id);
-                    return (
-                      <div key={comentario.id} className="bg-white p-4 rounded-lg border border-gray-200">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold flex-shrink-0">
-                            {comentario.autor_nome.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="font-semibold text-gray-800">
-                                {comentario.autor_nome}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {new Date(comentario.created_date).toLocaleString('pt-BR')}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                              {comentario.conteudo}
-                            </p>
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() => likeComentarioMutation.mutate(comentario.id)}
-                                className="flex items-center gap-1 text-sm text-gray-600 hover:text-pink-600 transition-colors"
-                              >
-                                <ThumbsUp className="w-4 h-4" />
-                                <span>{comentario.likes || 0}</span>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setRespostaComentarioId(comentario.id);
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                className="flex items-center gap-1 text-sm text-gray-600 hover:text-pink-600 transition-colors"
-                              >
-                                <Reply className="w-4 h-4" />
-                                Responder
-                              </button>
-                            </div>
-                            {comentario.resposta_admin && (
-                              <div className="mt-3 bg-pink-50 p-3 rounded border-l-2 border-pink-400">
-                                <p className="text-xs font-semibold text-pink-800 mb-1">
-                                  Resposta da Coordenação:
-                                </p>
-                                <p className="text-sm text-gray-700">
-                                  {comentario.resposta_admin}
-                                </p>
-                              </div>
-                            )}
-                            {respostas.length > 0 && (
-                              <div className="mt-4 ml-4 space-y-3 border-l-2 border-pink-200 pl-4">
-                                {respostas.map((resposta) => (
-                                  <div key={resposta.id} className="bg-gray-50 p-3 rounded">
-                                    <div className="flex items-start gap-2">
-                                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs flex-shrink-0">
-                                        {resposta.autor_nome.charAt(0).toUpperCase()}
-                                      </div>
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <span className="font-semibold text-sm text-gray-800">
-                                            {resposta.autor_nome}
-                                          </span>
-                                          <span className="text-xs text-gray-500">
-                                            {new Date(resposta.created_date).toLocaleString('pt-BR')}
-                                          </span>
-                                        </div>
-                                        <p className="text-sm text-gray-700">{resposta.conteudo}</p>
-                                        <button
-                                          onClick={() => likeComentarioMutation.mutate(resposta.id)}
-                                          className="flex items-center gap-1 text-xs text-gray-600 hover:text-pink-600 transition-colors mt-2"
-                                        >
-                                          <ThumbsUp className="w-3 h-3" />
-                                          <span>{resposta.likes || 0}</span>
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
           </div>
         </article>
       </div>

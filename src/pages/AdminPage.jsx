@@ -20,7 +20,6 @@ import AtividadeForm from '../components/admin/incubadora/AtividadeForm';
 import AtividadeList from '../components/admin/incubadora/AtividadeList';
 import AtividadeEditForm from '../components/admin/incubadora/AtividadeEditForm';
 import LeadCRM from '../components/admin/LeadCRM';
-import ComentariosManager from '../components/admin/ComentariosManager';
 import NotificationCenter from '../components/admin/NotificationCenter';
 
 import BulkEnrollStudents from '../components/admin/BulkEnrollStudents';
@@ -5233,14 +5232,6 @@ Seja detalhado, prático e objetivo na análise.`;
           Blog "Em Ação"
         </Button>
         <Button
-          onClick={() => setActiveTab('comentarios')}
-          variant={activeTab === 'comentarios' ? 'default' : 'outline'}
-          className={activeTab === 'comentarios' ? 'bg-rose-600' : ''}
-        >
-          Comentários
-        </Button>
-
-        <Button
           onClick={() => setActiveTab('incubadora')}
           variant={activeTab === 'incubadora' ? 'default' : 'outline'}
           className={activeTab === 'incubadora' ? 'bg-teal-600' : ''}
@@ -5305,26 +5296,6 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'analise' && renderAnaliseCursosTab()}
         {activeTab === 'relatorios' && renderRelatoriosTab()}
         {activeTab === 'posts' && renderPostsTab()}
-        {activeTab === 'comentarios' && (
-          <div>
-            <BulkActionsPanel 
-              type="comentarios" 
-              items={comentarios.filter(c => !c.aprovado)} 
-            />
-            <div className="mt-6">
-              <ComentariosManager
-                comentarios={comentarios}
-                posts={posts}
-                onApprove={(id) => updateComentarioMutation.mutate({ id, data: { aprovado: true } })}
-                onReject={(id) => deleteComentarioMutation.mutate(id)}
-                onReply={(id, resposta) => updateComentarioMutation.mutate({ 
-                  id, 
-                  data: { resposta_admin: resposta, aprovado: true } 
-                })}
-              />
-            </div>
-          </div>
-        )}
 
         {activeTab === 'incubadora' && renderIncubadoraTab()}
         {activeTab === 'chatbot' && renderChatbotTab()}

@@ -220,22 +220,27 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
             <div className="flex items-center justify-between pt-3 border-t border-gray-50">
               <span className="font-mono font-bold text-sm text-gray-700">{evt.dateString}</span>
               {isAdmin && !evt.isHoliday && (
-                <Button size="sm" variant="ghost" onClick={() => { 
-                  setSelectedEvent(evt); 
-                  setFormData({
-                    data: evt.dateString.split('/').reverse().join('-'),
-                    tipo: evt.type,
-                    disciplina_nome: evt.title,
-                    professor_id: professores.find(p => p.nome === evt.professor)?.id || '',
-                    ciclo_id: '',
-                    horario_inicio: '',
-                    horario_fim: '',
-                    observacoes: evt.details || ''
-                  });
-                  setView('admin'); 
-                }}>
-                  Editar
-                </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => { 
+                    setSelectedEvent(evt); 
+                    setFormData({
+                      data: evt.dateString.split('/').reverse().join('-'),
+                      tipo: evt.type,
+                      disciplina_nome: evt.title,
+                      professor_id: professores.find(p => p.nome === evt.professor)?.id || '',
+                      ciclo_id: '',
+                      horario_inicio: '',
+                      horario_fim: '',
+                      observacoes: evt.details || ''
+                    });
+                    setView('admin'); 
+                  }}>
+                    Editar
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700" onClick={(e) => handleQuickDelete(evt, e)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               )}
             </div>
           </div>
@@ -282,22 +287,27 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                          </div>
                        )}
                        {isAdmin && !evt.isHoliday && (
-                         <Button variant="link" size="sm" className="h-auto p-0 text-xs text-green-700 mt-2" onClick={() => { 
-                           setSelectedEvent(evt); 
-                           setFormData({
-                             data: evt.dateString.split('/').reverse().join('-'),
-                             tipo: evt.type,
-                             disciplina_nome: evt.title,
-                             professor_id: professores.find(p => p.nome === evt.professor)?.id || '',
-                             ciclo_id: '',
-                             horario_inicio: '',
-                             horario_fim: '',
-                             observacoes: evt.details || ''
-                           });
-                           setView('admin'); 
-                         }}>
-                           Editar
-                         </Button>
+                         <div className="flex gap-2 mt-2">
+                           <Button variant="link" size="sm" className="h-auto p-0 text-xs text-green-700" onClick={() => { 
+                             setSelectedEvent(evt); 
+                             setFormData({
+                               data: evt.dateString.split('/').reverse().join('-'),
+                               tipo: evt.type,
+                               disciplina_nome: evt.title,
+                               professor_id: professores.find(p => p.nome === evt.professor)?.id || '',
+                               ciclo_id: '',
+                               horario_inicio: '',
+                               horario_fim: '',
+                               observacoes: evt.details || ''
+                             });
+                             setView('admin'); 
+                           }}>
+                             Editar
+                           </Button>
+                           <Button variant="link" size="sm" className="h-auto p-0 text-xs text-red-600 hover:text-red-700" onClick={(e) => { e.stopPropagation(); handleQuickDelete(evt, e); }}>
+                             Excluir
+                           </Button>
+                         </div>
                        )}
                     </td>
                     <td className="px-6 py-4 align-top">

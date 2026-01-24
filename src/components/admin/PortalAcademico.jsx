@@ -414,6 +414,19 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     );
   };
 
+  const handleQuickDelete = async (evt, e) => {
+    e.stopPropagation();
+    if (!window.confirm(`Excluir "${evt.title}" de ${evt.dateString}?`)) return;
+    
+    try {
+      await base44.entities.CronogramaAula.delete(evt.id);
+      toast.success('Aula excluída!');
+      window.location.reload();
+    } catch (error) {
+      toast.error('Erro ao excluir: ' + error.message);
+    }
+  };
+
   const renderCalendarView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {Array.from({ length: 12 }).map((_, i) => {
@@ -441,8 +454,8 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                   let cellClass = "text-gray-600 hover:bg-gray-50";
                   if (hasEvt) {
                       if (isHol) cellClass = "bg-red-100 text-red-800 line-through font-bold";
-                      else if (dayEvts[0].type === 'EAD') cellClass = "bg-orange-100 text-orange-800 font-bold border border-orange-200 cursor-pointer";
-                      else cellClass = "bg-blue-100 text-blue-800 font-bold border border-blue-200 cursor-pointer";
+                      else if (dayEvts[0].type === 'EAD') cellClass = "bg-orange-100 text-orange-800 font-bold border border-orange-200 cursor-pointer relative group";
+                      else cellClass = "bg-blue-100 text-blue-800 font-bold border border-blue-200 cursor-pointer relative group";
                   } else if (isAdmin) {
                       cellClass = "text-gray-600 hover:bg-green-50 hover:border hover:border-green-300 cursor-pointer";
                   }
@@ -474,6 +487,15 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                       }}
                     >
                       {day}
+                      {isAdmin && hasEvt && !isHol && (
+                        <button
+                          onClick={(e) => handleQuickDelete(dayEvts[0], e)}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-red-600"
+                          title="Excluir aula"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                   )
                })}

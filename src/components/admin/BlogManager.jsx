@@ -11,6 +11,26 @@ import RichTextEditor from '../editor/RichTextEditor';
 
 const categorias = [
   {
+    nome: 'Inovação & Empreendedorismo',
+    subcategorias: ['Projetos da Incubadora', 'Tecnologia & Tendências', 'Estudos de Caso', 'Mentoria & Desenvolvimento']
+  },
+  {
+    nome: 'Carreira & Mercado',
+    subcategorias: ['Desenvolvimento Profissional', 'Oportunidades no Setor', 'Networking', 'Habilidades do Futuro']
+  },
+  {
+    nome: 'Conteúdo Multimídia',
+    subcategorias: ['Podcasts & Entrevistas', 'Esudacast', 'Insights 4.0 com Emanoel Amorim', 'Vídeos & Tutoriais YouTube', 'Dicas Rápidas Instagram', 'Webinars & Lives']
+  },
+  {
+    nome: 'Vida Acadêmica ESUDA',
+    subcategorias: ['Nossos Cursos', 'Ciclos & Disciplinas', 'Corpo Docente', 'Eventos & Workshops']
+  },
+  {
+    nome: 'Atualidades & Análise',
+    subcategorias: ['Notícias do Setor', 'Artigos Científicos', 'Análise de Mercado']
+  },
+  {
     nome: 'Eventos',
     subcategorias: ['Workshop', 'Masterclass', 'Palestra', 'Seminário', 'Conferência']
   },
@@ -50,6 +70,9 @@ export default function BlogManager({
 }) {
   const [novaTag, setNovaTag] = useState('');
   const [editorMode, setEditorMode] = useState('visual');
+  const [novaCategoria, setNovaCategoria] = useState('');
+  const [novaSubcategoria, setNovaSubcategoria] = useState('');
+  const [mostrarCamposPersonalizados, setMostrarCamposPersonalizados] = useState(false);
 
   const handleUploadImagemDestaque = async (e) => {
     const file = e.target.files?.[0];
@@ -264,7 +287,15 @@ export default function BlogManager({
                   <label className="text-sm font-medium text-gray-700 mb-1 block">Categoria Principal</label>
                   <Select
                     value={postForm.categoria_principal || ''}
-                    onValueChange={(v) => setPostForm({...postForm, categoria_principal: v, subcategoria: ''})}
+                    onValueChange={(v) => {
+                      if (v === '__outra__') {
+                        setMostrarCamposPersonalizados(true);
+                        setPostForm({...postForm, categoria_principal: '', subcategoria: ''});
+                      } else {
+                        setMostrarCamposPersonalizados(false);
+                        setPostForm({...postForm, categoria_principal: v, subcategoria: ''});
+                      }
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione uma categoria" />
@@ -273,6 +304,7 @@ export default function BlogManager({
                       {categorias.map(cat => (
                         <SelectItem key={cat.nome} value={cat.nome}>{cat.nome}</SelectItem>
                       ))}
+                      <SelectItem value="__outra__">➕ Criar Nova Categoria</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -281,7 +313,7 @@ export default function BlogManager({
                   <Select
                     value={postForm.subcategoria || ''}
                     onValueChange={(v) => setPostForm({...postForm, subcategoria: v})}
-                    disabled={!postForm.categoria_principal}
+                    disabled={!postForm.categoria_principal || mostrarCamposPersonalizados}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione uma subcategoria" />
@@ -294,7 +326,71 @@ export default function BlogManager({
                   </Select>
                 </div>
               </div>
-              {postForm.categoria_principal && (
+
+              {/* Campos Personalizados */}
+              {mostrarCamposPersonalizados && (
+                <div className="mt-4 p-3 bg-white rounded-lg border border-purple-300 space-y-3">
+                  <p className="text-xs font-semibold text-purple-800">✨ Criar Categoria Personalizada</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-600 mb-1 block">Nome da Categoria</label>
+                      <Input
+                        value={novaCategoria}
+                        onChange={(e) => setNovaCategoria(e.target.value)}
+                        placeholder="Ex: Mestre Amorim"
+                        className="text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600 mb-1 block">Subcategoria (opcional)</label>
+                      <Input
+                        value={novaSubcategoria}
+                        onChange={(e) => setNovaSubcategoria(e.target.value)}
+                        placeholder="Ex: Dicas Rápidas"
+                        className="text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (novaCategoria.trim()) {
+                          setPostForm({
+                            ...postForm,
+                            categoria_principal: novaCategoria.trim(),
+                            subcategoria: novaSubcategoria.trim()
+                          });
+                          setMostrarCamposPersonalizados(false);
+                          setNovaCategoria('');
+                          setNovaSubcategoria('');
+                          toast.success('Categoria personalizada definida!');
+                        } else {
+                          toast.error('Digite o nome da categoria');
+                        }
+                      }}
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Confirmar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setMostrarCamposPersonalizados(false);
+                        setNovaCategoria('');
+                        setNovaSubcategoria('');
+                      }}
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {postForm.categoria_principal && !mostrarCamposPersonalizados && (
                 <div className="mt-3 text-xs text-purple-700">
                   📍 {postForm.categoria_principal} {postForm.subcategoria && `→ ${postForm.subcategoria}`}
                 </div>

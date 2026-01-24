@@ -330,7 +330,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     
     // Primeiro, agrupa disciplinas comuns do mesmo dia
     filteredEvents.forEach(evt => {
-        if(evt.isHoliday) return;
+        if(evt.typeKey === 'FERIADO') return;
         
         const dateKey = evt.dateString;
         const disciplineKey = `${dateKey}-${evt.title}`;
@@ -338,7 +338,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
         if (!groupedEvents[disciplineKey]) {
           groupedEvents[disciplineKey] = {
             ...evt,
-            courses: evt.category === 'COMMON' ? ['BIM', 'MANUT', 'GPO', 'LEGAL'] : []
+            courses: evt.turmaContext === 'Todos' ? ['BIM', 'MANUT', 'GPO', 'LEGAL'] : []
           };
         }
     });
@@ -364,8 +364,9 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                  
                  <div className="space-y-3">
                      {evts.map((evt, idx) => {
-                       const bgColor = evt.type === 'EAD' ? 'from-orange-500 to-orange-600' : 'from-blue-600 to-blue-700';
-                       const hoverBg = evt.type === 'EAD' ? 'hover:from-orange-600 hover:to-orange-700' : 'hover:from-blue-700 hover:to-blue-800';
+                       const style = EVENT_TYPES[evt.typeKey];
+                       const bgColor = evt.typeKey === 'EAD' ? 'from-green-500 to-green-600' : evt.typeKey === 'ELETIVA' ? 'from-purple-500 to-purple-600' : 'from-blue-600 to-blue-700';
+                       const hoverBg = evt.typeKey === 'EAD' ? 'hover:from-green-600 hover:to-green-700' : evt.typeKey === 'ELETIVA' ? 'hover:from-purple-600 hover:to-purple-700' : 'hover:from-blue-700 hover:to-blue-800';
                        
                        return (
                          <div key={evt.id} className="group grid grid-cols-[50px_1fr] gap-4 items-center">
@@ -377,7 +378,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                              </div>
                              
                              <div 
-                                className={`bg-gradient-to-r ${bgColor} ${hoverBg} rounded-lg px-4 py-3 shadow-md group-hover:shadow-lg transition-all duration-300 cursor-pointer border border-white/20`}
+                                className={`bg-gradient-to-r ${bgColor} ${hoverBg} rounded-lg px-4 py-3 shadow-md group-hover:shadow-lg transition-all duration-300 cursor-pointer border border-white/20 relative`}
                                 onClick={() => { setSelectedEvent(evt); setIsModalOpen(true); }}
                              >
                                  <div className="flex justify-between items-start gap-3">
@@ -386,7 +387,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                                        {evt.title}
                                      </h4>
                                      
-                                     {evt.category === 'COMMON' && (
+                                     {evt.courses && evt.courses.length > 0 && (
                                        <div className="flex items-center gap-1 flex-wrap mt-2">
                                          {evt.courses.map(course => (
                                            <span key={course} className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-medium">
@@ -404,15 +405,21 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                                    
                                    <div className="flex flex-col items-end gap-1">
                                      <span className="text-[10px] uppercase bg-white/20 text-white px-2 py-1 rounded font-bold tracking-wide">
-                                       {evt.type}
+                                       {evt.typeLabel}
                                      </span>
-                                     {evt.category === 'COMMON' && (
-                                       <span className="text-[9px] bg-white/30 text-white px-2 py-0.5 rounded-full">
-                                         Ciclo Comum
-                                       </span>
-                                     )}
                                    </div>
                                  </div>
+
+                                 {/* Botão Deletar - Aparece no hover (Admin) */}
+                                 {isAdmin && (
+                                   <button
+                                     onClick={(e) => handleQuickDelete(evt, e)}
+                                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-red-600"
+                                     title="Excluir aula"
+                                   >
+                                     <X className="w-4 h-4" />
+                                   </button>
+                                 )}
                              </div>
                          </div>
                        );

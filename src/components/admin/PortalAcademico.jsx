@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   GraduationCap, Download, List, BarChart, Calendar as CalendarIcon, 
   Settings, Filter, User, MessageSquare, X, AlertCircle, CheckCircle,
-  PlusCircle, Search, Clock, Info
+  PlusCircle, Search, Clock, Info, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,8 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import html2pdf from 'html2pdf.js';
 import { toast } from 'sonner';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // --- CONSTANTES & CORES ---
 const FERIADOS = { 
@@ -33,6 +35,8 @@ const EVENT_TYPES = {
 const COURSES_OPTIONS = ['BIM', 'GPO', 'MANUT', 'LEGAL'];
 
 export default function PortalAcademico({ rawData = [], professores = [], currentUser = null }) {
+  const queryClient = useQueryClient();
+  
   // --- ESTADOS ---
   // Ordem alterada: Calendário primeiro
   const [view, setView] = useState('calendario'); 
@@ -40,6 +44,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
   const [filterTurma, setFilterTurma] = useState('TODAS');
   const [filterProf, setFilterProf] = useState('TODOS');
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingEventId, setEditingEventId] = useState(null);
 
   // Estados do Formulário de Gestão
   const [formData, setFormData] = useState({
@@ -68,11 +73,46 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
 
   const contentRef = useRef(null);
 
+  // --- QUERIES & MUTATIONS ---
+  const { data: cronogramaData = [], isLoading } = useQuery({
+    queryKey: ['cronograma'],
+    queryFn: () => base44.entities.CronogramaAula.list(),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.CronogramaAula.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['cronograma']);
+      toast.success('Aula cadastrada com sucesso!');
+    },
+    onError: () => toast.error('Erro ao cadastrar aula')
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.CronogramaAula.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['cronograma']);
+      toast.success('Aula atualizada com sucesso!');
+      setEditingEventId(null);
+    },
+    onError: () => toast.error('Erro ao atualizar aula')
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.CronogramaAula.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['cronograma']);
+      toast.success('Aula excluída com sucesso!');
+    },
+    onError: () => toast.error('Erro ao excluir aula')
+  });
+
   // --- PROCESSAMENTO DE DADOS ---
   useEffect(() => {
-    if (!rawData) return;
+    const dataSource = cronogramaData.length > 0 ? cronogramaData : rawData;
+    if (!dataSource || dataSource.length === 0) return;
 
-    const processed = rawData.map((item, index) => {
+    const processed = dataSource.map((item, index) => {
       const getData = (keys) => {
         for (const k of keys) if (item[k] !== undefined) return item[k];
         return null;
@@ -105,7 +145,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     }).sort((a, b) => a.dateObj - b.dateObj);
 
     setEvents(processed);
-  }, [rawData]);
+  }, [cronogramaData, rawData]);
 
   const parseDateSafe = (dateInput) => {
     if (!dateInput) return new Date();
@@ -151,7 +191,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     });
   };
 
-  const handleSaveClass = () => {
+  const handleSaveClass = async () => {
     // Validação
     if (!formData.date1 || !formData.discipline) {
       toast.error("Preencha a data e a disciplina!");
@@ -164,17 +204,63 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
       return;
     }
 
-    // Simulação de Salvamento (Aqui você conectaria com o Base44)
-    toast.success(`Aula "${formData.discipline}" agendada!`);
-    if (formData.hasSecondDate && formData.date2) {
-      toast.success(`Aula replicada para ${formData.date2}`);
+    // Encontrar ID do professor
+    const professorObj = professores.find(p => p.nome === finalProfessor);
+    
+    // Preparar dados
+    const aulaData = {
+      data: formData.date1.split('-').reverse().join('/'),
+      tipo: formData.type,
+      disciplina_nome: formData.discipline,
+      professor_id: professorObj?.id || '',
+      observacoes: formData.details,
+      ordem: 1
+    };
+
+    // Se tem cursos selecionados, adicionar ao observações
+    if (formData.courses.length > 0) {
+      aulaData.observacoes = `Turmas: ${formData.courses.join(', ')}${formData.details ? ' | ' + formData.details : ''}`;
     }
 
-    // Limpar form simples
-    setFormData({
-      date1: '', date2: '', hasSecondDate: false, type: 'Presencial',
-      discipline: '', professor: '', manualProfessor: '', courses: [], details: ''
-    });
+    try {
+      if (editingEventId) {
+        // Modo edição
+        await updateMutation.mutateAsync({ id: editingEventId, data: aulaData });
+      } else {
+        // Modo criação
+        await createMutation.mutateAsync(aulaData);
+        
+        // Se tem segunda data, criar outra aula
+        if (formData.hasSecondDate && formData.date2) {
+          const aulaData2 = {
+            ...aulaData,
+            data: formData.date2.split('-').reverse().join('/')
+          };
+          await createMutation.mutateAsync(aulaData2);
+        }
+      }
+
+      // Limpar form
+      setFormData({
+        date1: '', date2: '', hasSecondDate: false, type: 'Presencial',
+        discipline: '', professor: '', manualProfessor: '', courses: [], details: ''
+      });
+      setEditingEventId(null);
+      
+    } catch (error) {
+      console.error('Erro ao salvar aula:', error);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    if (!confirm('Tem certeza que deseja excluir esta aula?')) return;
+    
+    try {
+      await deleteMutation.mutateAsync(eventId);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+    }
   };
 
   const handleDownloadPDF = () => {
@@ -255,6 +341,16 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                               <p className="font-bold mb-1">{evt.title}</p>
                               <p className="opacity-80 mb-1">{evt.professor}</p>
                               <p className="text-[10px] uppercase bg-white/20 inline-block px-1 rounded">{evt.typeLabel}</p>
+                              {isAdmin && evt.id && (
+                                <Button 
+                                  size="sm" 
+                                  variant="destructive" 
+                                  className="w-full mt-2 h-6 text-[10px]"
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt.id); }}
+                                >
+                                  <Trash2 className="w-3 h-3 mr-1" /> Excluir
+                                </Button>
+                              )}
                             </TooltipContent>
                           )}
                         </Tooltip>
@@ -519,9 +615,32 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                 />
              </div>
 
-             <Button className="w-full bg-green-700 hover:bg-green-800 h-12 text-lg" onClick={handleSaveClass}>
-                <PlusCircle className="w-5 h-5 mr-2" /> Cadastrar Aula
+             <Button 
+                className="w-full bg-green-700 hover:bg-green-800 h-12 text-lg" 
+                onClick={handleSaveClass}
+                disabled={createMutation.isPending || updateMutation.isPending}
+             >
+                {editingEventId ? (
+                  <><CheckCircle className="w-5 h-5 mr-2" /> Salvar Alterações</>
+                ) : (
+                  <><PlusCircle className="w-5 h-5 mr-2" /> Cadastrar Aula</>
+                )}
              </Button>
+             {editingEventId && (
+               <Button 
+                  variant="outline" 
+                  className="w-full mt-2" 
+                  onClick={() => {
+                    setEditingEventId(null);
+                    setFormData({
+                      date1: '', date2: '', hasSecondDate: false, type: 'Presencial',
+                      discipline: '', professor: '', manualProfessor: '', courses: [], details: ''
+                    });
+                  }}
+               >
+                  Cancelar Edição
+               </Button>
+             )}
           </div>
        </div>
     </div>
@@ -657,21 +776,31 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                     </p>
                  </div>
               </div>
-              <DialogFooter>
-                 {isAdmin && (
-                    <Button className="w-full bg-green-700" onClick={() => { 
-                       setIsModalOpen(false); 
-                       setFormData({
-                          ...formData, 
-                          discipline: selectedEvent.title,
-                          professor: selectedEvent.professor,
-                          details: selectedEvent.details,
-                          date1: selectedEvent.dateString.split('/').reverse().join('-') 
-                       });
-                       setView('admin'); 
-                    }}>
-                       Editar Esta Aula
-                    </Button>
+              <DialogFooter className="gap-2">
+                 {isAdmin && selectedEvent?.id && (
+                    <>
+                      <Button variant="destructive" onClick={() => handleDeleteEvent(selectedEvent.id)} className="flex-1">
+                         <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                      </Button>
+                      <Button className="flex-1 bg-green-700" onClick={() => { 
+                         setIsModalOpen(false); 
+                         setEditingEventId(selectedEvent.id);
+                         setFormData({
+                            date1: selectedEvent.dateString.split('/').reverse().join('-'),
+                            date2: '',
+                            hasSecondDate: false,
+                            type: selectedEvent.typeLabel,
+                            discipline: selectedEvent.title,
+                            professor: selectedEvent.professor,
+                            manualProfessor: '',
+                            courses: [],
+                            details: selectedEvent.details || ''
+                         });
+                         setView('admin'); 
+                      }}>
+                         Editar
+                      </Button>
+                    </>
                  )}
               </DialogFooter>
            </DialogContent>

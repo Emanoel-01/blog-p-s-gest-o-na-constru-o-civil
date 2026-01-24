@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   GraduationCap, Download, List, BarChart, Calendar as CalendarIcon, 
   Settings, Filter, User, MessageSquare, X, AlertCircle, CheckCircle,
-  PlusCircle, BookOpen, Search
+  PlusCircle, BookOpen, Search, ArrowLeft, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import html2pdf from 'html2pdf.js';
 import { toast } from 'sonner';
+import { base44 } from '@/api/base44Client';
 
 // --- CONSTANTES ---
 const FERIADOS = { 
@@ -29,6 +30,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
   const [events, setEvents] = useState([]);
   const [filterTurma, setFilterTurma] = useState('TODAS');
   const [filterProf, setFilterProf] = useState('TODOS');
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Verificar se é admin (apenas emanoel.s.amorim@gmail.com)
   const isAdmin = currentUser?.email === 'emanoel.s.amorim@gmail.com';
@@ -41,6 +43,18 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     { type: 'bot', text: 'Olá! Sou seu assistente acadêmico IA. Pergunte sobre datas de aulas, professores ou conteúdo programático.' }
   ]);
   const [chatInput, setChatInput] = useState('');
+
+  // Form Admin
+  const [formData, setFormData] = useState({
+    data: '',
+    tipo: 'Presencial',
+    disciplina_nome: '',
+    professor_id: '',
+    ciclo_id: '',
+    horario_inicio: '',
+    horario_fim: '',
+    observacoes: ''
+  });
 
   // Refs
   const contentRef = useRef(null);
@@ -118,6 +132,12 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
 
   // --- FILTROS ---
   const filteredEvents = events.filter(evt => {
+    const matchesSearch = searchTerm === '' || 
+      evt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      evt.professor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (evt.details && evt.details.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (!matchesSearch) return false;
     if (filterProf !== 'TODOS' && !evt.professor.includes(filterProf)) return false;
     if (filterTurma !== 'TODAS') {
         // Se for aula comum, aparece para todos. Se for específica, filtra.
@@ -152,12 +172,13 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
   // --- RENDERIZADORES ---
 
   const renderListView = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in duration-300">
-      <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 bg-gray-50/50" data-html2canvas-ignore>
+    <div className="space-y-4">
+      {/* Filtros Mobile/Desktop */}
+      <div className="p-4 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row gap-4" data-html2canvas-ignore>
         <div className="flex items-center gap-2 flex-1">
           <Filter className="w-4 h-4 text-gray-500" />
           <Select value={filterTurma} onValueChange={setFilterTurma}>
-            <SelectTrigger className="w-[180px] bg-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px] bg-white"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="TODAS">Todas as Turmas</SelectItem>
               {POS_COURSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -167,7 +188,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
         <div className="flex items-center gap-2 flex-1">
           <User className="w-4 h-4 text-gray-500" />
           <Select value={filterProf} onValueChange={setFilterProf}>
-            <SelectTrigger className="w-[180px] bg-white"><SelectValue placeholder="Professor" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px] bg-white"><SelectValue placeholder="Professor" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="TODOS">Todos os Professores</SelectItem>
               {professores.map(p => <SelectItem key={p.id} value={p.nome}>{p.nome}</SelectItem>)}
@@ -176,57 +197,118 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-50 text-gray-600 font-bold uppercase text-xs">
-            <tr>
-              <th className="px-6 py-4">Data / Formato</th>
-              <th className="px-6 py-4">Disciplina / Conteúdo</th>
-              <th className="px-6 py-4">Detalhes</th>
-              <th className="px-6 py-4">Turma</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {filteredEvents.map((evt) => {
-              const tagColor = evt.isHoliday ? 'bg-red-50 text-red-700 border-red-200' : evt.type === 'EAD' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-blue-50 text-blue-700 border-blue-200';
-              return (
-                <tr key={evt.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 align-top w-[160px]">
-                    <div className="font-mono font-bold text-gray-900">{evt.dateString}</div>
-                    <Badge variant="outline" className={`mt-2 border ${tagColor}`}>{evt.type}</Badge>
-                  </td>
-                  <td className="px-6 py-4 align-top">
-                    {evt.isHoliday ? (
-                      <span className="font-bold text-red-600 uppercase tracking-wide">{evt.title || "FERIADO"}</span>
-                    ) : (
-                      <>
-                        <div className="font-bold text-gray-900 text-base">{evt.title}</div>
-                        <div className="flex items-center gap-2 mt-1 text-gray-600 text-xs">
-                          <User className="w-3 h-3" /> {evt.professor}
-                        </div>
-                      </>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 align-top">
-                     {evt.details && (
-                       <div className="text-xs text-yellow-800 bg-yellow-50 p-2 rounded border border-yellow-100 flex gap-2 items-start max-w-[200px]">
-                         <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" /> {evt.details}
-                       </div>
-                     )}
-                     {isAdmin && !evt.isHoliday && (
-                       <Button variant="link" size="sm" className="h-auto p-0 text-xs text-green-700 mt-2" onClick={() => { setSelectedEvent(evt); setView('admin'); }}>
-                         Editar
-                       </Button>
-                     )}
-                  </td>
-                  <td className="px-6 py-4 align-top">
-                    <Badge variant="outline" className="bg-gray-100 text-gray-600">{evt.turmaContext === 'Todos / 2026.1' ? 'Ciclo Comum' : evt.turmaContext}</Badge>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+      {/* VERSÃO MOBILE (Cards) */}
+      <div className="block md:hidden space-y-3">
+        {filteredEvents.map(evt => (
+          <div key={evt.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3">
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col flex-1">
+                <span className="font-bold text-gray-900 text-base leading-tight">{evt.title}</span>
+                <span className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                  <User className="w-3 h-3" /> {evt.professor}
+                </span>
+              </div>
+              <Badge variant={evt.type === 'EAD' ? 'secondary' : 'default'} className={evt.isHoliday ? 'bg-red-100 text-red-700' : ''}>{evt.type}</Badge>
+            </div>
+            
+            {evt.details && (
+              <div className="text-xs text-yellow-800 bg-yellow-50 p-2 rounded border border-yellow-100 flex gap-2 items-start">
+                <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" /> {evt.details}
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+              <span className="font-mono font-bold text-sm text-gray-700">{evt.dateString}</span>
+              {isAdmin && !evt.isHoliday && (
+                <Button size="sm" variant="ghost" onClick={() => { 
+                  setSelectedEvent(evt); 
+                  setFormData({
+                    data: evt.dateString.split('/').reverse().join('-'),
+                    tipo: evt.type,
+                    disciplina_nome: evt.title,
+                    professor_id: professores.find(p => p.nome === evt.professor)?.id || '',
+                    ciclo_id: '',
+                    horario_inicio: '',
+                    horario_fim: '',
+                    observacoes: evt.details || ''
+                  });
+                  setView('admin'); 
+                }}>
+                  Editar
+                </Button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* VERSÃO DESKTOP (Tabela Original) */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in duration-300">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-50 text-gray-600 font-bold uppercase text-xs">
+              <tr>
+                <th className="px-6 py-4">Data / Formato</th>
+                <th className="px-6 py-4">Disciplina / Conteúdo</th>
+                <th className="px-6 py-4">Detalhes</th>
+                <th className="px-6 py-4">Turma</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredEvents.map((evt) => {
+                const tagColor = evt.isHoliday ? 'bg-red-50 text-red-700 border-red-200' : evt.type === 'EAD' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-blue-50 text-blue-700 border-blue-200';
+                return (
+                  <tr key={evt.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 align-top w-[160px]">
+                      <div className="font-mono font-bold text-gray-900">{evt.dateString}</div>
+                      <Badge variant="outline" className={`mt-2 border ${tagColor}`}>{evt.type}</Badge>
+                    </td>
+                    <td className="px-6 py-4 align-top">
+                      {evt.isHoliday ? (
+                        <span className="font-bold text-red-600 uppercase tracking-wide">{evt.title || "FERIADO"}</span>
+                      ) : (
+                        <>
+                          <div className="font-bold text-gray-900 text-base">{evt.title}</div>
+                          <div className="flex items-center gap-2 mt-1 text-gray-600 text-xs">
+                            <User className="w-3 h-3" /> {evt.professor}
+                          </div>
+                        </>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 align-top">
+                       {evt.details && (
+                         <div className="text-xs text-yellow-800 bg-yellow-50 p-2 rounded border border-yellow-100 flex gap-2 items-start max-w-[200px]">
+                           <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" /> {evt.details}
+                         </div>
+                       )}
+                       {isAdmin && !evt.isHoliday && (
+                         <Button variant="link" size="sm" className="h-auto p-0 text-xs text-green-700 mt-2" onClick={() => { 
+                           setSelectedEvent(evt); 
+                           setFormData({
+                             data: evt.dateString.split('/').reverse().join('-'),
+                             tipo: evt.type,
+                             disciplina_nome: evt.title,
+                             professor_id: professores.find(p => p.nome === evt.professor)?.id || '',
+                             ciclo_id: '',
+                             horario_inicio: '',
+                             horario_fim: '',
+                             observacoes: evt.details || ''
+                           });
+                           setView('admin'); 
+                         }}>
+                           Editar
+                         </Button>
+                       )}
+                    </td>
+                    <td className="px-6 py-4 align-top">
+                      <Badge variant="outline" className="bg-gray-100 text-gray-600">{evt.turmaContext === 'Todos / 2026.1' ? 'Ciclo Comum' : evt.turmaContext}</Badge>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -361,13 +443,35 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                       if (isHol) cellClass = "bg-red-100 text-red-800 line-through font-bold";
                       else if (dayEvts[0].type === 'EAD') cellClass = "bg-orange-100 text-orange-800 font-bold border border-orange-200 cursor-pointer";
                       else cellClass = "bg-blue-100 text-blue-800 font-bold border border-blue-200 cursor-pointer";
+                  } else if (isAdmin) {
+                      cellClass = "text-gray-600 hover:bg-green-50 hover:border hover:border-green-300 cursor-pointer";
                   }
 
                   return (
                     <div 
                       key={day} 
                       className={`aspect-square flex items-center justify-center rounded text-xs transition-colors ${cellClass}`}
-                      onClick={() => { if(hasEvt && !isHol) { setSelectedEvent(dayEvts[0]); setIsModalOpen(true); } }}
+                      onClick={() => { 
+                        if (hasEvt && !isHol) { 
+                          setSelectedEvent(dayEvts[0]); 
+                          setIsModalOpen(true); 
+                        } else if (isAdmin) {
+                          const dateToCreate = `${year}-${String(i+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                          setFormData({ 
+                            data: dateToCreate,
+                            tipo: 'Presencial',
+                            disciplina_nome: '',
+                            professor_id: '',
+                            ciclo_id: '',
+                            horario_inicio: '',
+                            horario_fim: '',
+                            observacoes: ''
+                          });
+                          setSelectedEvent(null);
+                          setView('admin');
+                          toast.info(`Criando aula para ${day}/${i+1}/${year}`);
+                        }
+                      }}
                     >
                       {day}
                     </div>
@@ -380,58 +484,149 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     </div>
   );
 
+  const handleSaveAula = async () => {
+    if (!formData.data || !formData.tipo || !formData.disciplina_nome) {
+      toast.error('Preencha data, tipo e disciplina!');
+      return;
+    }
+
+    try {
+      const dataFormatada = new Date(formData.data).toLocaleDateString('pt-BR');
+      const professorNome = professores.find(p => p.id === formData.professor_id)?.nome || 'A Definir';
+
+      const aulaData = {
+        data: dataFormatada,
+        tipo: formData.tipo,
+        disciplina_nome: formData.disciplina_nome,
+        professor_id: formData.professor_id,
+        ciclo_id: formData.ciclo_id,
+        horario_inicio: formData.horario_inicio,
+        horario_fim: formData.horario_fim,
+        observacoes: formData.observacoes
+      };
+
+      if (selectedEvent) {
+        await base44.entities.CronogramaAula.update(selectedEvent.id, aulaData);
+        toast.success('Aula atualizada com sucesso!');
+      } else {
+        await base44.entities.CronogramaAula.create(aulaData);
+        toast.success('Aula criada com sucesso!');
+      }
+
+      window.location.reload();
+    } catch (error) {
+      toast.error('Erro ao salvar: ' + error.message);
+    }
+  };
+
+  const handleDeleteAula = async () => {
+    if (!selectedEvent) return;
+    if (!window.confirm('Tem certeza que deseja excluir esta aula?')) return;
+
+    try {
+      await base44.entities.CronogramaAula.delete(selectedEvent.id);
+      toast.success('Aula excluída com sucesso!');
+      window.location.reload();
+    } catch (error) {
+      toast.error('Erro ao excluir: ' + error.message);
+    }
+  };
+
   const renderAdminView = () => (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in slide-in-from-right-4">
-       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex items-center gap-3 mb-6 border-b pb-4">
-             <div className="bg-yellow-100 p-2 rounded-lg text-yellow-700"><Settings className="w-6 h-6" /></div>
-             <div>
-                <h2 className="text-xl font-bold text-gray-900">Gestão de Cronograma</h2>
-                <p className="text-sm text-gray-500">Adicione ou edite aulas. As alterações refletem para todos os alunos.</p>
-             </div>
+    <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
+        <Settings className="w-5 h-5 text-green-700" />
+        {selectedEvent ? 'Editar Aula' : 'Nova Aula'}
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Coluna 1: O Que e Quem */}
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Disciplina</label>
+            <Input 
+              value={formData.disciplina_nome} 
+              onChange={e => setFormData({...formData, disciplina_nome: e.target.value})}
+              placeholder="Nome da disciplina..."
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="space-y-4">
-                <h3 className="font-bold text-sm text-gray-700 uppercase">Adicionar Novo Evento</h3>
-                <div className="space-y-2">
-                   <label className="text-xs font-bold text-gray-500">Data</label>
-                   <Input type="date" />
-                </div>
-                <div className="space-y-2">
-                   <label className="text-xs font-bold text-gray-500">Tipo</label>
-                   <Select>
-                      <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                      <SelectContent>
-                         <SelectItem value="Presencial">Presencial</SelectItem>
-                         <SelectItem value="EAD">EAD</SelectItem>
-                         <SelectItem value="Feriado">Feriado</SelectItem>
-                      </SelectContent>
-                   </Select>
-                </div>
-                <div className="space-y-2">
-                   <label className="text-xs font-bold text-gray-500">Disciplina</label>
-                   <Input placeholder="Nome da disciplina" />
-                </div>
-                <Button className="w-full bg-green-700 hover:bg-green-800 text-white"><PlusCircle className="w-4 h-4 mr-2" /> Adicionar</Button>
-             </div>
-
-             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 className="font-bold text-sm text-gray-700 uppercase mb-4">Edição Rápida (Últimos Eventos)</h3>
-                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                   {events.slice(0, 5).map(evt => (
-                      <div key={evt.id} className="bg-white p-3 rounded border border-gray-200 text-xs flex justify-between items-center">
-                         <div>
-                            <span className="font-bold block">{evt.dateString}</span>
-                            <span className="text-gray-500 truncate block max-w-[150px]">{evt.title}</span>
-                         </div>
-                         <Button variant="ghost" size="icon" className="h-6 w-6"><Settings className="w-3 h-3" /></Button>
-                      </div>
-                   ))}
-                </div>
-             </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Professor</label>
+            <Select value={formData.professor_id} onValueChange={v => setFormData({...formData, professor_id: v})}>
+              <SelectTrigger><SelectValue placeholder="Selecione o docente" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>A Definir</SelectItem>
+                {professores.map(p => (
+                  <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-       </div>
+        </div>
+
+        {/* Coluna 2: Quando e Como */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase">Data</label>
+              <Input type="date" value={formData.data} onChange={e => setFormData({...formData, data: e.target.value})} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase">Tipo</label>
+              <Select value={formData.tipo} onValueChange={v => setFormData({...formData, tipo: v})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Presencial">Presencial</SelectItem>
+                  <SelectItem value="EAD">EAD</SelectItem>
+                  <SelectItem value="Prévias">Prévias</SelectItem>
+                  <SelectItem value="Carnaval">Carnaval</SelectItem>
+                  <SelectItem value="Data Magna">Data Magna</SelectItem>
+                  <SelectItem value="Sexta Santa">Sexta Santa</SelectItem>
+                  <SelectItem value="Dia do Trabalho">Dia do Trabalho</SelectItem>
+                  <SelectItem value="Intervalo">Intervalo</SelectItem>
+                  <SelectItem value="7 de Setembro">7 de Setembro</SelectItem>
+                  <SelectItem value="Dia Sem aula">Dia Sem aula</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase">Início</label>
+              <Input type="time" value={formData.horario_inicio} onChange={e => setFormData({...formData, horario_inicio: e.target.value})} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase">Fim</label>
+              <Input type="time" value={formData.horario_fim} onChange={e => setFormData({...formData, horario_fim: e.target.value})} />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-500 uppercase">Observações / Links</label>
+            <Textarea 
+              className="h-20 resize-none text-xs" 
+              placeholder="Detalhes da aula, link do Meet ou local..."
+              value={formData.observacoes}
+              onChange={e => setFormData({...formData, observacoes: e.target.value})}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 flex justify-end gap-3">
+        {selectedEvent && (
+          <Button variant="destructive" onClick={handleDeleteAula}>
+            <Trash2 className="w-4 h-4 mr-2" />
+            Excluir Aula
+          </Button>
+        )}
+        <Button className="bg-green-700 hover:bg-green-800 min-w-[150px]" onClick={handleSaveAula}>
+          <CheckCircle className="w-4 h-4 mr-2" />
+          {selectedEvent ? 'Atualizar' : 'Agendar Aula'}
+        </Button>
+      </div>
     </div>
   );
 
@@ -441,22 +636,41 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
       <div className="max-w-[1400px] w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col min-h-[85vh]">
         
         {/* HEADER */}
-        <header className="bg-white border-b border-gray-200 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-700 text-white rounded-xl flex items-center justify-center shadow-lg shadow-green-700/20">
-                 <GraduationCap className="w-6 h-6" />
+        <header className="bg-white border-b border-gray-200 p-4 sm:p-6">
+          <div className="flex flex-col gap-4 w-full">
+            <div className="flex justify-between items-center">
+              {/* Botão Voltar Integrado ao Título */}
+              <div className="flex items-center gap-2 sm:gap-4">
+                <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-700 text-white rounded-xl flex items-center justify-center shadow-lg shadow-green-700/20">
+                    <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </div>
+                  <div>
+                    <h1 className="text-lg sm:text-xl font-bold text-gray-900">Portal Acadêmico 2026</h1>
+                    <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Engenharia e Arquitetura - ESUDA</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                 <h1 className="text-xl font-bold text-gray-900">Portal Acadêmico 2026</h1>
-                 <p className="text-sm text-gray-500">Engenharia e Arquitetura - ESUDA</p>
-              </div>
-           </div>
-           
-           <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={handleDownloadPDF} className="border-gray-300">
-                 <Download className="w-4 h-4 mr-2" /> PDF
+              {/* Ações */}
+              <Button variant="outline" onClick={handleDownloadPDF} className="border-gray-300" size="sm">
+                <Download className="w-4 h-4 mr-2" /> PDF
               </Button>
-           </div>
+            </div>
+            
+            {/* Barra de Busca (Aparece em todas as abas) */}
+            <div className="relative">
+              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+              <Input 
+                placeholder="Busque por disciplina, professor ou conteúdo..." 
+                className="pl-10 bg-gray-50 border-gray-200"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
         </header>
 
         {/* NAV */}

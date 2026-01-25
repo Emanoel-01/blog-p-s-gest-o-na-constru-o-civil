@@ -223,7 +223,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
         // Modo edição
         await updateMutation.mutateAsync({ id: editingEventId, data: aulaData });
       } else {
-        // Modo criação
+        // Modo criação - primeira aula
         await createMutation.mutateAsync(aulaData);
         
         // Se tem segunda data, criar outra aula
@@ -233,6 +233,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
             data: formData.date2.split('-').reverse().join('/')
           };
           await createMutation.mutateAsync(aulaData2);
+          toast.success(`Aula também cadastrada para ${formData.date2.split('-').reverse().join('/')}`);
         }
       }
 
@@ -245,6 +246,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
       
     } catch (error) {
       console.error('Erro ao salvar aula:', error);
+      toast.error('Erro ao salvar aula: ' + error.message);
     }
   };
 

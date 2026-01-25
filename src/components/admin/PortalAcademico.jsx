@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   GraduationCap, Download, List, BarChart, Calendar as CalendarIcon, 
   Settings, Filter, User, MessageSquare, X, AlertCircle, CheckCircle,
-  PlusCircle, Search, Clock, Info, Trash2
+  PlusCircle, Search, Clock, Info, Trash2, LayoutGrid
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,8 +38,8 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
   const queryClient = useQueryClient();
   
   // --- ESTADOS ---
-  // Ordem alterada: Calendário primeiro
-  const [view, setView] = useState('calendario'); 
+  const [view, setView] = useState('calendario');
+  const [viewMode, setViewMode] = useState(typeof window !== 'undefined' && window.innerWidth < 768 ? 'list' : 'grid'); 
   const [events, setEvents] = useState([]);
   const [filterTurma, setFilterTurma] = useState('TODAS');
   const [filterProf, setFilterProf] = useState('TODOS');
@@ -333,10 +333,94 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     }
   };
 
+  // Listener de redimensionamento para ajustar viewMode
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && viewMode === 'grid') setViewMode('list');
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewMode]);
+
+  // Helper: obter nome do dia
+  const getDayName = (date) => date.toLocaleDateString('pt-BR', { weekday: 'short' });
+
+  // Helper: verificar se é hoje
+  const isToday = (date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() && 
+           date.getMonth() === today.getMonth() && 
+           date.getFullYear() === today.getFullYear();
+  };
+
   // --- RENDERIZADORES ---
 
   // 1. CALENDÁRIO (Agora o principal)
-  const renderCalendarView = () => (
+  const renderCalendarView = () => {
+    if (viewMode === 'list') {
+      return renderCalendarListView();
+    }
+    return renderCalendarGridView();
+  };
+
+  // 1a. CALENDÁRIO MODO LISTA (Mobile-First)
+  const renderCalendarListView = () => {
+    // Agrupar eventos por mês
+    const eventsByMonth = {};
+    filteredEvents.forEach(evt => {
+      const month = evt.dateObj.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+      if (!eventsByMonth[month]) eventsByMonth[month] = [];
+      eventsByMonth[month].push(evt);
+    });
+
+    return (
+      <div className="space-y-8 animate-in fade-in duration-300">
+        {Object.entries(eventsByMonth).map(([month, evts]) => (
+          <div key={month}>
+            <h3 className="text-xl font-bold text-gray-800 capitalize mb-4 sticky top-16 bg-gray-50 py-2 z-10">{month}</h3>
+            <div className="space-y-3">
+              {evts.map((evt) => {
+                const style = EVENT_TYPES[evt.typeKey];
+                return (
+                  <div key={evt.id} className={`flex gap-4 bg-white p-4 rounded-xl shadow-sm border transition-all hover:shadow-md ${isToday(evt.dateObj) ? 'border-blue-300 ring-1 ring-blue-100' : 'border-gray-100'}`}>
+                    {/* Data */}
+                    <div className="flex flex-col items-center justify-center min-w-[60px] border-r border-gray-100 pr-4">
+                      <span className="text-3xl font-bold text-gray-800">{evt.dateObj.getDate()}</span>
+                      <span className="text-xs uppercase font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full mt-1">
+                        {getDayName(evt.dateObj)}
+                      </span>
+                    </div>
+                    
+                    {/* Conteúdo */}
+                    <div className="flex-1" onClick={() => { setSelectedEvent(evt); setIsModalOpen(true); }}>
+                      <Badge className={`${style.color} mb-2`}>{evt.typeLabel}</Badge>
+                      <h4 className="font-bold text-gray-900 mb-1">{evt.title}</h4>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <User className="w-3 h-3" /> {evt.professor}
+                      </div>
+                      {evt.cursos && (
+                        <div className="flex gap-1 flex-wrap mt-2">
+                          {evt.cursos.map((c, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{c}</Badge>
+                          ))}
+                        </div>
+                      )}
+                      {evt.details && (
+                        <p className="text-xs text-gray-500 mt-2 italic">{evt.details}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // 1b. CALENDÁRIO MODO GRADE (Desktop)
+  const renderCalendarGridView = () => (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Legendas */}
       <div className="flex flex-wrap gap-4 justify-center bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
@@ -764,6 +848,23 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
         {/* HEADER */}
         <header className="bg-white border-b border-gray-200 p-6 space-y-4">
            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              {/* Toggle Grid/List no Header (apenas para Calendário) */}
+              {view === 'calendario' && (
+                <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                  <button 
+                    onClick={() => setViewMode('grid')}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'grid' ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <CalendarIcon className="w-4 h-4" /> <span className="hidden sm:inline">Grade</span>
+                  </button>
+                  <button 
+                    onClick={() => setViewMode('list')}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'list' ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <List className="w-4 h-4" /> <span className="hidden sm:inline">Lista</span>
+                  </button>
+                </div>
+              )}
                <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-green-700 text-white rounded-xl flex items-center justify-center shadow-lg shadow-green-700/20">
                      <GraduationCap className="w-6 h-6" />

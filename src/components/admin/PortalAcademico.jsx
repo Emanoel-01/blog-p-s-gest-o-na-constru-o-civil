@@ -13,7 +13,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import html2pdf from 'html2pdf.js';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -261,77 +260,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     }
   };
 
-  const handleDownloadPDF = async () => {
-    toast.info("Gerando PDF com todas as visualizações...");
-    
-    // Criar container temporário
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.width = '1200px';
-    document.body.appendChild(tempContainer);
 
-    try {
-      // Renderizar cada visualização
-      const calendarHTML = `
-        <div style="padding: 20px;">
-          <h1 style="text-align: center; color: #166534; margin-bottom: 20px;">Calendário Acadêmico 2026</h1>
-          ${contentRef.current.innerHTML}
-        </div>
-      `;
-      
-      tempContainer.innerHTML = calendarHTML;
-      
-      // Salvar visualização atual
-      const currentView = view;
-      
-      // Gerar PDF com calendário
-      const opt = {
-        margin: 10,
-        filename: 'Cronograma_ESUDA_2026_Completo.pdf',
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      
-      const worker = html2pdf().set(opt);
-      
-      // Adicionar calendário
-      await worker.from(tempContainer).toPdf().get('pdf').then(async (pdf) => {
-        // Adicionar lista
-        setView('lista');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        tempContainer.innerHTML = `
-          <div style="padding: 20px;">
-            <h1 style="text-align: center; color: #166534; margin-bottom: 20px;">Lista Detalhada</h1>
-            ${contentRef.current.innerHTML}
-          </div>
-        `;
-        pdf.addPage();
-        
-        // Adicionar timeline
-        setView('gantt');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        tempContainer.innerHTML = `
-          <div style="padding: 20px;">
-            <h1 style="text-align: center; color: #166534; margin-bottom: 20px;">Timeline (Gantt)</h1>
-            ${contentRef.current.innerHTML}
-          </div>
-        `;
-        pdf.addPage();
-        
-        // Restaurar visualização original
-        setView(currentView);
-      }).save();
-      
-      toast.success("PDF gerado com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao gerar PDF");
-      console.error(error);
-    } finally {
-      document.body.removeChild(tempContainer);
-    }
-  };
 
   // Listener de redimensionamento para ajustar viewMode
   useEffect(() => {
@@ -885,10 +814,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                         onChange={e => setSearchTerm(e.target.value)}
                      />
                   </div>
-                  <Button variant="outline" onClick={handleDownloadPDF} className="border-gray-300">
-                     <Download className="w-4 h-4" /> <span className="hidden sm:inline ml-2">PDF</span>
-                  </Button>
-               </div>
+                  </div>
            </div>
         </header>
 

@@ -153,6 +153,7 @@ export default function AdminPage() {
     lattes: '',
     site: '',
     especializacoes: [],
+    credenciais: [],
     ordem: 0
   });
   const [uploadingFotoProfessor, setUploadingFotoProfessor] = useState(false);
@@ -1259,6 +1260,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       lattes: '',
       site: '',
       especializacoes: [],
+      credenciais: [],
       ordem: 0
     });
     setShowProfessorForm(false);
@@ -1308,6 +1310,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       lattes: professorForm.lattes,
       site: professorForm.site,
       especializacoes: professorForm.especializacoes,
+      credenciais: professorForm.credenciais,
       ordem: parseInt(professorForm.ordem) || 0
     };
 
@@ -1331,6 +1334,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
       lattes: professor.lattes || '',
       site: professor.site || '',
       especializacoes: professor.especializacoes || [],
+      credenciais: professor.credenciais || [],
       ordem: professor.ordem || 0
     });
     setEditingProfessor(professor);
@@ -3404,6 +3408,163 @@ Seja detalhado, prático e objetivo na análise.`;
                       />
                       <span className="text-sm">{espec.nome}</span>
                     </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Credenciais */}
+            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="text-sm font-bold text-indigo-900">🎓 Credenciais Acadêmicas e Profissionais</h4>
+                <Button
+                  onClick={() => setProfessorForm(prev => ({
+                    ...prev,
+                    credenciais: [...prev.credenciais, {
+                      instituicao_nome: '',
+                      logo_url: '',
+                      cargo_titulo: '',
+                      descricao: '',
+                      periodo: ''
+                    }]
+                  }))}
+                  size="sm"
+                  variant="outline"
+                  className="border-indigo-300 text-indigo-700"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Adicionar Credencial
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {professorForm.credenciais.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic text-center py-4">
+                    Nenhuma credencial cadastrada. Adicione instituições de ensino ou empresas.
+                  </p>
+                ) : (
+                  professorForm.credenciais.map((cred, idx) => (
+                    <div key={idx} className="bg-white p-4 rounded-lg border border-indigo-200 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <span className="text-xs font-bold text-indigo-700">Credencial {idx + 1}</span>
+                        <Button
+                          onClick={() => setProfessorForm(prev => ({
+                            ...prev,
+                            credenciais: prev.credenciais.filter((_, i) => i !== idx)
+                          }))}
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 text-red-600"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs font-medium text-gray-700">Instituição/Empresa *</label>
+                          <Input
+                            value={cred.instituicao_nome}
+                            onChange={(e) => {
+                              const newCreds = [...professorForm.credenciais];
+                              newCreds[idx].instituicao_nome = e.target.value;
+                              setProfessorForm(prev => ({...prev, credenciais: newCreds}));
+                            }}
+                            placeholder="Ex: Universidade Federal de PE"
+                            className="text-sm"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-xs font-medium text-gray-700">Cargo/Título *</label>
+                          <Input
+                            value={cred.cargo_titulo}
+                            onChange={(e) => {
+                              const newCreds = [...professorForm.credenciais];
+                              newCreds[idx].cargo_titulo = e.target.value;
+                              setProfessorForm(prev => ({...prev, credenciais: newCreds}));
+                            }}
+                            placeholder="Ex: Mestre em Engenharia Civil"
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-gray-700">Logo/Marca da Instituição (URL)</label>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            value={cred.logo_url}
+                            onChange={(e) => {
+                              const newCreds = [...professorForm.credenciais];
+                              newCreds[idx].logo_url = e.target.value;
+                              setProfessorForm(prev => ({...prev, credenciais: newCreds}));
+                            }}
+                            placeholder="https://... ou faça upload"
+                            className="text-sm flex-1"
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.accept = 'image/*';
+                              input.onchange = async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                try {
+                                  toast.info('Enviando logo...');
+                                  const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                                  const newCreds = [...professorForm.credenciais];
+                                  newCreds[idx].logo_url = file_url;
+                                  setProfessorForm(prev => ({...prev, credenciais: newCreds}));
+                                  toast.success('Logo enviado!');
+                                } catch (error) {
+                                  toast.error('Erro ao enviar logo');
+                                }
+                              };
+                              input.click();
+                            }}
+                          >
+                            <Upload className="w-3 h-3 mr-1" />
+                            Upload
+                          </Button>
+                        </div>
+                        {cred.logo_url && (
+                          <img src={cred.logo_url} alt="Logo" className="w-16 h-16 object-contain mt-2 border rounded" />
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-gray-700">Período</label>
+                        <Input
+                          value={cred.periodo}
+                          onChange={(e) => {
+                            const newCreds = [...professorForm.credenciais];
+                            newCreds[idx].periodo = e.target.value;
+                            setProfessorForm(prev => ({...prev, credenciais: newCreds}));
+                          }}
+                          placeholder="Ex: 2020 - atual"
+                          className="text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-gray-700">Descrição</label>
+                        <Textarea
+                          value={cred.descricao}
+                          onChange={(e) => {
+                            const newCreds = [...professorForm.credenciais];
+                            newCreds[idx].descricao = e.target.value;
+                            setProfessorForm(prev => ({...prev, credenciais: newCreds}));
+                          }}
+                          placeholder="Atividades, conquistas, especializações..."
+                          className="text-sm"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
                   ))
                 )}
               </div>

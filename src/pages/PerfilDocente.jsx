@@ -159,12 +159,13 @@ export default function PerfilDocente() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <GraduationCap className="w-5 h-5 text-gray-700" />
-              Credenciais Acadêmicas
+              Credenciais Acadêmicas e Profissionais
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 flex-shrink-0">
+          <CardContent className="space-y-4">
+            {/* ESUDA sempre exibida */}
+            <div className="flex items-start gap-4 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+              <div className="w-16 h-16 flex-shrink-0">
                 <img 
                   src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" 
                   alt="ESUDA"
@@ -173,10 +174,39 @@ export default function PerfilDocente() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-900">ESUDA</h3>
-                <p className="text-gray-600">Faculdade ESUDA</p>
-                <p className="text-sm text-gray-500 mt-1">{professor.titulo} • Corpo Docente</p>
+                <p className="text-gray-600 font-semibold">{professor.titulo}</p>
+                <p className="text-sm text-gray-500 mt-1">Faculdade ESUDA • Corpo Docente</p>
               </div>
             </div>
+
+            {/* Outras credenciais */}
+            {professor.credenciais && professor.credenciais.length > 0 && (
+              <div className="space-y-3 pt-3 border-t border-gray-200">
+                {professor.credenciais.map((cred, idx) => (
+                  <div key={idx} className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
+                    {cred.logo_url && (
+                      <div className="w-16 h-16 flex-shrink-0">
+                        <img 
+                          src={cred.logo_url} 
+                          alt={cred.instituicao_nome}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900">{cred.instituicao_nome}</h3>
+                      <p className="text-gray-700 font-semibold">{cred.cargo_titulo}</p>
+                      {cred.periodo && (
+                        <p className="text-sm text-gray-500 mt-1">{cred.periodo}</p>
+                      )}
+                      {cred.descricao && (
+                        <p className="text-sm text-gray-600 mt-2">{cred.descricao}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

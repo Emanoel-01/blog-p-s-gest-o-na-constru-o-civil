@@ -32,7 +32,7 @@ const EVENT_TYPES = {
   ELETIVA: { label: 'Eletiva / Opcional', color: 'bg-purple-100 text-purple-800 border-purple-200', dot: 'bg-purple-600' }
 };
 
-const COURSES_OPTIONS = ['BIM', 'GPO', 'MANUT', 'LEGAL'];
+const COURSES_OPTIONS = ['BIM', 'GPO', 'LEGAL', 'MANUTENÇÃO 4.0', 'TODOS'];
 
 export default function PortalAcademico({ rawData = [], professores = [], currentUser = null }) {
   const queryClient = useQueryClient();
@@ -122,7 +122,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
       const tipoRaw = getData(['Tipo', 'tipo', 'type']) || 'Presencial';
       const disciplina = getData(['Nome da Discisciplina ', 'disciplina_nome', 'disciplina', 'Disciplina']) || 'Sem Título';
       const docente = getData(['Docente', 'professor_nome', 'professor']) || 'A Definir';
-      const turma = getData(['Curso / Turma', 'turma', 'curso']) || 'Todos';
+      const cursos = getData(['cursos']) || ['TODOS'];
       const obs = getData(['Recomendações Preliminares', 'observacoes', 'details']) || '';
 
       // Normalização do Tipo para Cores
@@ -139,7 +139,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
         typeKey: normalizedType,
         title: disciplina,
         professor: docente,
-        turmaContext: turma,
+        cursos: Array.isArray(cursos) ? cursos : [cursos || 'TODOS'],
         details: obs,
       };
     }).sort((a, b) => a.dateObj - b.dateObj);
@@ -170,13 +170,12 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     if (!matchesSearch) return false;
     if (filterProf !== 'TODOS' && !evt.professor.includes(filterProf)) return false;
     
-    // Filtro de Turma (Curso)
+    // Filtro de Curso
     if (filterTurma !== 'TODAS') {
-        const turmaUpper = evt.turmaContext ? evt.turmaContext.toUpperCase() : '';
-        const titleUpper = evt.title.toUpperCase();
-        // Se for aula comum (Todos), mostra sempre. Se for específica, filtra.
-        const isCommon = turmaUpper.includes('TODOS') || turmaUpper.includes('TODAS');
-        if (!isCommon && !turmaUpper.includes(filterTurma) && !titleUpper.includes(filterTurma)) return false;
+        const eventCursos = evt.cursos || ['TODOS'];
+        const hasTodos = eventCursos.some(c => c.toUpperCase() === 'TODOS');
+        const hasCurso = eventCursos.some(c => c.toUpperCase().includes(filterTurma));
+        if (!hasTodos && !hasCurso) return false;
     }
     return true;
   });
@@ -213,14 +212,11 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
       tipo: formData.type,
       disciplina_nome: formData.discipline,
       professor_id: professorObj?.id || '',
+      professor_nome: finalProfessor,
+      cursos: formData.courses.length > 0 ? formData.courses : ['TODOS'],
       observacoes: formData.details,
       ordem: 1
     };
-
-    // Se tem cursos selecionados, adicionar ao observações
-    if (formData.courses.length > 0) {
-      aulaData.observacoes = `Turmas: ${formData.courses.join(', ')}${formData.details ? ' | ' + formData.details : ''}`;
-    }
 
     try {
       if (editingEventId) {
@@ -263,16 +259,76 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
     }
   };
 
-  const handleDownloadPDF = () => {
-    const element = contentRef.current;
-    const opt = {
-      margin: 5, filename: 'Cronograma_ESUDA_2026.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
-    toast.success("Download iniciado!");
+  const handleDownloadPDF = async () => {
+    toast.info("Gerando PDF com todas as visualizações...");
+    
+    // Criar container temporário
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.width = '1200px';
+    document.body.appendChild(tempContainer);
+
+    try {
+      // Renderizar cada visualização
+      const calendarHTML = `
+        <div style="padding: 20px;">
+          <h1 style="text-align: center; color: #166534; margin-bottom: 20px;">Calendário Acadêmico 2026</h1>
+          ${contentRef.current.innerHTML}
+        </div>
+      `;
+      
+      tempContainer.innerHTML = calendarHTML;
+      
+      // Salvar visualização atual
+      const currentView = view;
+      
+      // Gerar PDF com calendário
+      const opt = {
+        margin: 10,
+        filename: 'Cronograma_ESUDA_2026_Completo.pdf',
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      const worker = html2pdf().set(opt);
+      
+      // Adicionar calendário
+      await worker.from(tempContainer).toPdf().get('pdf').then(async (pdf) => {
+        // Adicionar lista
+        setView('lista');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        tempContainer.innerHTML = `
+          <div style="padding: 20px;">
+            <h1 style="text-align: center; color: #166534; margin-bottom: 20px;">Lista Detalhada</h1>
+            ${contentRef.current.innerHTML}
+          </div>
+        `;
+        pdf.addPage();
+        
+        // Adicionar timeline
+        setView('gantt');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        tempContainer.innerHTML = `
+          <div style="padding: 20px;">
+            <h1 style="text-align: center; color: #166534; margin-bottom: 20px;">Timeline (Gantt)</h1>
+            ${contentRef.current.innerHTML}
+          </div>
+        `;
+        pdf.addPage();
+        
+        // Restaurar visualização original
+        setView(currentView);
+      }).save();
+      
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao gerar PDF");
+      console.error(error);
+    } finally {
+      document.body.removeChild(tempContainer);
+    }
   };
 
   // --- RENDERIZADORES ---
@@ -337,10 +393,20 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                             </div>
                           </TooltipTrigger>
                           {hasEvt && (
-                            <TooltipContent className="bg-gray-900 text-white border-none text-xs p-3 max-w-[200px]">
+                            <TooltipContent className="bg-gray-900 text-white border-none text-xs p-3 max-w-[250px]">
                               <p className="font-bold mb-1">{evt.title}</p>
                               <p className="opacity-80 mb-1">{evt.professor}</p>
-                              <p className="text-[10px] uppercase bg-white/20 inline-block px-1 rounded">{evt.typeLabel}</p>
+                              <div className="flex gap-1 flex-wrap mb-1">
+                                <span className="text-[10px] uppercase bg-white/20 px-1 rounded">{evt.typeLabel}</span>
+                                {evt.cursos && evt.cursos.map((c, i) => (
+                                  <span key={i} className="text-[10px] bg-blue-500/30 px-1 rounded">{c}</span>
+                                ))}
+                              </div>
+                              {evt.details && (
+                                <p className="text-[10px] mt-2 pt-2 border-t border-white/20 opacity-90">
+                                  {evt.details}
+                                </p>
+                              )}
                               {isAdmin && evt.id && (
                                 <Button 
                                   size="sm" 
@@ -375,7 +441,7 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
               <th className="px-6 py-4">Data / Formato</th>
               <th className="px-6 py-4">Disciplina / Conteúdo</th>
               <th className="px-6 py-4">Professor</th>
-              <th className="px-6 py-4">Turma</th>
+              <th className="px-6 py-4">Cursos</th>
               <th className="px-6 py-4 w-1/4">Detalhes</th>
             </tr>
           </thead>
@@ -400,11 +466,15 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                       {evt.professor}
                     </div>
                   </td>
-                  {/* TURMA */}
+                  {/* CURSOS */}
                   <td className="px-6 py-4 align-top">
-                    <Badge variant="secondary" className="bg-gray-100 text-gray-600 border-gray-200">
-                      {evt.turmaContext}
-                    </Badge>
+                    <div className="flex gap-1 flex-wrap">
+                      {evt.cursos && evt.cursos.map((c, i) => (
+                        <Badge key={i} variant="secondary" className="bg-gray-100 text-gray-600 border-gray-200">
+                          {c}
+                        </Badge>
+                      ))}
+                    </div>
                   </td>
                   {/* DETALHES */}
                   <td className="px-6 py-4 align-top text-xs text-gray-500">
@@ -472,9 +542,11 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                                     <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
                                       <User className="w-3 h-3" /> {evt.professor}
                                     </div>
-                                    <div className="flex gap-2 mt-2">
+                                    <div className="flex gap-2 mt-2 flex-wrap">
                                        <Badge className={style.color}>{evt.typeLabel}</Badge>
-                                       {evt.turmaContext !== 'Todos' && <Badge variant="outline">{evt.turmaContext}</Badge>}
+                                       {evt.cursos && evt.cursos.map((c, i) => (
+                                         <Badge key={i} variant="outline">{c}</Badge>
+                                       ))}
                                     </div>
                                   </div>
                                 </div>
@@ -542,7 +614,8 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
 
              {/* Cursos (Checkbox) */}
              <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
-                <Label className="text-xs font-bold uppercase text-gray-500">Cursos Envolvidos (Turmas)</Label>
+                <Label className="text-xs font-bold uppercase text-gray-500">Cursos</Label>
+                <p className="text-xs text-gray-500 mb-2">Selecione os cursos. Se nenhum for selecionado, será considerado TODOS.</p>
                 <div className="grid grid-cols-2 gap-3">
                    {COURSES_OPTIONS.map(course => (
                       <div key={course} className="flex items-center space-x-2">
@@ -785,15 +858,19 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                       <Button className="flex-1 bg-green-700" onClick={() => { 
                          setIsModalOpen(false); 
                          setEditingEventId(selectedEvent.id);
+                         
+                         // Verificar se o professor está na lista
+                         const professorExists = professores.some(p => p.nome === selectedEvent.professor);
+                         
                          setFormData({
                             date1: selectedEvent.dateString.split('/').reverse().join('-'),
                             date2: '',
                             hasSecondDate: false,
                             type: selectedEvent.typeLabel,
                             discipline: selectedEvent.title,
-                            professor: selectedEvent.professor,
-                            manualProfessor: '',
-                            courses: [],
+                            professor: professorExists ? selectedEvent.professor : 'OUTRO',
+                            manualProfessor: professorExists ? '' : selectedEvent.professor,
+                            courses: selectedEvent.cursos || [],
                             details: selectedEvent.details || ''
                          });
                          setView('admin'); 

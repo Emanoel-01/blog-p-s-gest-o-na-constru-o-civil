@@ -376,15 +376,21 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                           <TooltipTrigger asChild>
                             <div 
                               className={`
-                                aspect-square flex items-center justify-center rounded-lg text-xs transition-all
+                                aspect-square flex items-center justify-center rounded-lg text-xs transition-all relative
                                 ${hasEvt 
                                   ? `${style?.color} font-bold cursor-pointer hover:brightness-95 border` 
                                   : 'text-gray-400 hover:bg-gray-50'}
                               `}
                               onClick={() => {
-                                if(hasEvt) { setSelectedEvent(evt); setIsModalOpen(true); }
+                                if(hasEvt) { 
+                                  if (dayEvts.length === 1) {
+                                    setSelectedEvent(dayEvts[0]); 
+                                  } else {
+                                    setSelectedEvent({ ...dayEvts[0], multipleEvents: dayEvts });
+                                  }
+                                  setIsModalOpen(true); 
+                                }
                                 else if(isAdmin) { 
-                                  // Atalho para criar aula no dia clicado
                                   setFormData(prev => ({...prev, date1: `2026-${String(i+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`}));
                                   setView('admin');
                                   toast.info(`Criando aula para ${day}/${i+1}`);
@@ -392,32 +398,61 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
                               }}
                             >
                               {day}
+                              {dayEvts.length > 1 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                                  {dayEvts.length}
+                                </span>
+                              )}
                             </div>
                           </TooltipTrigger>
                           {hasEvt && (
-                            <TooltipContent className="bg-gray-900 text-white border-none text-xs p-3 max-w-[250px]">
-                              <p className="font-bold mb-1">{evt.title}</p>
-                              <p className="opacity-80 mb-1">{evt.professor}</p>
-                              <div className="flex gap-1 flex-wrap mb-1">
-                                <span className="text-[10px] uppercase bg-white/20 px-1 rounded">{evt.typeLabel}</span>
-                                {evt.cursos && evt.cursos.map((c, i) => (
-                                  <span key={i} className="text-[10px] bg-blue-500/30 px-1 rounded">{c}</span>
-                                ))}
-                              </div>
-                              {evt.details && (
-                                <p className="text-[10px] mt-2 pt-2 border-t border-white/20 opacity-90">
-                                  {evt.details}
-                                </p>
-                              )}
-                              {isAdmin && evt.id && (
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive" 
-                                  className="w-full mt-2 h-6 text-[10px]"
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt.id); }}
-                                >
-                                  <Trash2 className="w-3 h-3 mr-1" /> Excluir
-                                </Button>
+                            <TooltipContent className="bg-gray-900 text-white border-none text-xs p-3 max-w-[300px]">
+                              {dayEvts.length === 1 ? (
+                                <>
+                                  <p className="font-bold mb-1">{evt.title}</p>
+                                  <p className="opacity-80 mb-1">{evt.professor}</p>
+                                  <div className="flex gap-1 flex-wrap mb-1">
+                                    <span className="text-[10px] uppercase bg-white/20 px-1 rounded">{evt.typeLabel}</span>
+                                    {evt.cursos && evt.cursos.map((c, i) => (
+                                      <span key={i} className="text-[10px] bg-blue-500/30 px-1 rounded">{c}</span>
+                                    ))}
+                                  </div>
+                                  {evt.details && (
+                                    <p className="text-[10px] mt-2 pt-2 border-t border-white/20 opacity-90">
+                                      {evt.details}
+                                    </p>
+                                  )}
+                                  {isAdmin && evt.id && (
+                                    <Button 
+                                      size="sm" 
+                                      variant="destructive" 
+                                      className="w-full mt-2 h-6 text-[10px]"
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt.id); }}
+                                    >
+                                      <Trash2 className="w-3 h-3 mr-1" /> Excluir
+                                    </Button>
+                                  )}
+                                </>
+                              ) : (
+                                <div className="space-y-2">
+                                  <p className="font-bold mb-2 text-center border-b border-white/20 pb-2">
+                                    {dayEvts.length} aulas neste dia
+                                  </p>
+                                  {dayEvts.map((e, idx) => (
+                                    <div key={idx} className="bg-white/10 p-2 rounded space-y-1 border-t border-white/20">
+                                      <p className="font-bold">{e.title}</p>
+                                      <p className="opacity-80 text-[10px]">{e.professor}</p>
+                                      <div className="flex gap-1 flex-wrap">
+                                        <span className="text-[9px] uppercase bg-white/20 px-1 rounded">{e.typeLabel}</span>
+                                        {e.cursos && e.cursos.map((c, i) => (
+                                          <span key={i} className="text-[9px] bg-blue-500/30 px-1 rounded">{c}</span>
+                                        ))}
+                                      </div>
+                                      {e.details && <p className="text-[9px] opacity-80 italic">{e.details}</p>}
+                                    </div>
+                                  ))}
+                                  <p className="text-[9px] text-center mt-2 opacity-70">Clique no dia para ver detalhes</p>
+                                </div>
                               )}
                             </TooltipContent>
                           )}
@@ -822,66 +857,137 @@ export default function PortalAcademico({ rawData = [], professores = [], curren
 
         {/* MODAL DETALHES DO EVENTO */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-           <DialogContent className="sm:max-w-md">
+           <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                  <DialogTitle className="flex items-center gap-2 text-green-700">
                     <CalendarIcon className="w-5 h-5" /> {selectedEvent?.dateString}
+                    {selectedEvent?.multipleEvents && (
+                      <Badge className="bg-red-500 text-white ml-2">
+                        {selectedEvent.multipleEvents.length} aulas
+                      </Badge>
+                    )}
                  </DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <div className="flex justify-between items-start mb-2">
-                       <Badge className={selectedEvent ? EVENT_TYPES[selectedEvent.typeKey].color : ''}>
-                          {selectedEvent?.typeLabel}
-                       </Badge>
-                       <span className="text-xs text-gray-400 font-mono">ID: {selectedEvent?.id}</span>
+              
+              {selectedEvent?.multipleEvents ? (
+                <div className="space-y-4 py-4">
+                  {selectedEvent.multipleEvents.map((evt, idx) => (
+                    <div key={evt.id || idx} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex justify-between items-start mb-2">
+                         <Badge className={EVENT_TYPES[evt.typeKey].color}>
+                            {evt.typeLabel}
+                         </Badge>
+                         {evt.cursos && (
+                           <div className="flex gap-1 flex-wrap">
+                             {evt.cursos.map((c, i) => (
+                               <Badge key={i} variant="outline" className="text-[10px]">{c}</Badge>
+                             ))}
+                           </div>
+                         )}
+                      </div>
+                      <h3 className="font-bold text-gray-900 text-lg mb-2">{evt.title}</h3>
+                      <div className="flex items-center gap-2 text-gray-600 text-sm mb-2">
+                         <User className="w-4 h-4" /> {evt.professor}
+                      </div>
+                      {evt.details && (
+                        <div className="bg-yellow-50 p-2 rounded border border-yellow-100 text-sm text-gray-700">
+                          {evt.details}
+                        </div>
+                      )}
+                      {isAdmin && evt.id && (
+                        <div className="flex gap-2 mt-3">
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDeleteEvent(evt.id)}
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" /> Excluir
+                          </Button>
+                          <Button 
+                            size="sm"
+                            className="bg-green-700"
+                            onClick={() => { 
+                              setIsModalOpen(false); 
+                              setEditingEventId(evt.id);
+                              const professorExists = professores.some(p => p.nome === evt.professor);
+                              setFormData({
+                                 date1: evt.dateString.split('/').reverse().join('-'),
+                                 date2: '',
+                                 hasSecondDate: false,
+                                 type: evt.typeLabel,
+                                 discipline: evt.title,
+                                 professor: professorExists ? evt.professor : 'OUTRO',
+                                 manualProfessor: professorExists ? '' : evt.professor,
+                                 courses: evt.cursos || [],
+                                 details: evt.details || ''
+                              });
+                              setView('admin'); 
+                            }}
+                          >
+                            Editar
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="font-bold text-gray-900 text-xl leading-tight mb-2">{selectedEvent?.title}</h3>
-                    <div className="flex items-center gap-2 text-gray-600 text-sm">
-                       <User className="w-4 h-4" /> {selectedEvent?.professor}
-                    </div>
-                 </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4 py-4">
+                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="flex justify-between items-start mb-2">
+                           <Badge className={selectedEvent ? EVENT_TYPES[selectedEvent.typeKey].color : ''}>
+                              {selectedEvent?.typeLabel}
+                           </Badge>
+                           <span className="text-xs text-gray-400 font-mono">ID: {selectedEvent?.id}</span>
+                        </div>
+                        <h3 className="font-bold text-gray-900 text-xl leading-tight mb-2">{selectedEvent?.title}</h3>
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                           <User className="w-4 h-4" /> {selectedEvent?.professor}
+                        </div>
+                     </div>
 
-                 <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2">
-                       <Info className="w-3 h-3"/> Detalhes / Observações
-                    </h4>
-                    <p className="text-sm text-gray-700 bg-white p-3 rounded border border-gray-200 min-h-[60px]">
-                       {selectedEvent?.details || "Nenhum detalhe informado."}
-                    </p>
-                 </div>
-              </div>
-              <DialogFooter className="gap-2">
-                 {isAdmin && selectedEvent?.id && (
-                    <>
-                      <Button variant="destructive" onClick={() => handleDeleteEvent(selectedEvent.id)} className="flex-1">
-                         <Trash2 className="w-4 h-4 mr-2" /> Excluir
-                      </Button>
-                      <Button className="flex-1 bg-green-700" onClick={() => { 
-                         setIsModalOpen(false); 
-                         setEditingEventId(selectedEvent.id);
-                         
-                         // Verificar se o professor está na lista
-                         const professorExists = professores.some(p => p.nome === selectedEvent.professor);
-                         
-                         setFormData({
-                            date1: selectedEvent.dateString.split('/').reverse().join('-'),
-                            date2: '',
-                            hasSecondDate: false,
-                            type: selectedEvent.typeLabel,
-                            discipline: selectedEvent.title,
-                            professor: professorExists ? selectedEvent.professor : 'OUTRO',
-                            manualProfessor: professorExists ? '' : selectedEvent.professor,
-                            courses: selectedEvent.cursos || [],
-                            details: selectedEvent.details || ''
-                         });
-                         setView('admin'); 
-                      }}>
-                         Editar
-                      </Button>
-                    </>
-                 )}
-              </DialogFooter>
+                     <div className="space-y-2">
+                        <h4 className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2">
+                           <Info className="w-3 h-3"/> Detalhes / Observações
+                        </h4>
+                        <p className="text-sm text-gray-700 bg-white p-3 rounded border border-gray-200 min-h-[60px]">
+                           {selectedEvent?.details || "Nenhum detalhe informado."}
+                        </p>
+                     </div>
+                  </div>
+                  <DialogFooter className="gap-2">
+                     {isAdmin && selectedEvent?.id && (
+                        <>
+                          <Button variant="destructive" onClick={() => handleDeleteEvent(selectedEvent.id)} className="flex-1">
+                             <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                          </Button>
+                          <Button className="flex-1 bg-green-700" onClick={() => { 
+                             setIsModalOpen(false); 
+                             setEditingEventId(selectedEvent.id);
+                             
+                             const professorExists = professores.some(p => p.nome === selectedEvent.professor);
+                             
+                             setFormData({
+                                date1: selectedEvent.dateString.split('/').reverse().join('-'),
+                                date2: '',
+                                hasSecondDate: false,
+                                type: selectedEvent.typeLabel,
+                                discipline: selectedEvent.title,
+                                professor: professorExists ? selectedEvent.professor : 'OUTRO',
+                                manualProfessor: professorExists ? '' : selectedEvent.professor,
+                                courses: selectedEvent.cursos || [],
+                                details: selectedEvent.details || ''
+                             });
+                             setView('admin'); 
+                          }}>
+                             Editar
+                          </Button>
+                        </>
+                     )}
+                  </DialogFooter>
+                </>
+              )}
            </DialogContent>
         </Dialog>
 

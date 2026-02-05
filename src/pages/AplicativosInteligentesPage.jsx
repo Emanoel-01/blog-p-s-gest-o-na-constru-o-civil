@@ -45,7 +45,8 @@ export default function AplicativosInteligentesPage() {
     { nome: 'LaudoAcess Pro', categoria: 'Laudos', icon: FileText, gradient: 'from-yellow-600 to-amber-600', badge: 'bg-yellow-100 text-yellow-800', url: 'https://amorimtech-acessibilidade.base44.app', descricao: 'Laudos de Acessibilidade.' },
     { nome: 'Gestor Predial 4.0', categoria: 'Gestão Pública', icon: Building2, gradient: 'from-cyan-600 to-blue-600', badge: 'bg-cyan-100 text-cyan-800', url: 'https://gestorpredial-amorimtech.base44.app', descricao: 'CMMS para Órgãos Públicos.' },
     { nome: 'InspeçãoIA', categoria: 'Inspeção', icon: Shield, gradient: 'from-slate-600 to-gray-700', badge: 'bg-slate-100 text-slate-800', url: 'https://laudo-de-inspecao.base44.app', descricao: 'Inspeção Predial Inteligente.' },
-    { nome: 'Avalia Predial ESUDA', categoria: 'Educação', icon: FileText, gradient: 'from-red-600 to-pink-600', badge: 'bg-red-100 text-red-800', url: 'https://avalia-predial-esuda.base44.app', descricao: 'Feedback e Planos de Estudo.' }
+    { nome: 'Avalia Predial ESUDA', categoria: 'Educação', icon: FileText, gradient: 'from-red-600 to-pink-600', badge: 'bg-red-100 text-red-800', url: 'https://avalia-predial-esuda.base44.app', descricao: 'Feedback e Planos de Estudo.' },
+    { nome: 'Licitações 4.0 - Assistente Virtual', categoria: 'Licitações', icon: FileText, gradient: 'from-emerald-600 to-teal-600', badge: 'bg-emerald-100 text-emerald-800', url: 'https://licitacoesia.base44.app', descricao: 'Otimize seus processos de licitação com inteligência artificial. Garantir conformidade documental, maximizar oportunidades e aumentar seus contratos públicos.' }
   ];
 
   // --- QUERIES ---

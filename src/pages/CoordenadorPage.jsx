@@ -75,7 +75,7 @@ export default function CoordenadorPage() {
   const getIconBg = (iconType) => {
     switch(iconType) {
       case 'tech': return 'bg-purple-100 border-purple-300';
-      case 'academic': return 'bg-blue-100 border-blue-300';
+      case 'academic': return 'bg-gray-100 border-gray-300';
       case 'work': return 'bg-green-100 border-green-300';
       case 'project': return 'bg-orange-100 border-orange-300';
       default: return 'bg-gray-100 border-gray-300';
@@ -236,17 +236,19 @@ export default function CoordenadorPage() {
               {timeline.map((item, index) => (
                 <div 
                   key={index} 
-                  className="flex-shrink-0 w-80 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all p-4"
+                  className="flex-shrink-0 w-64 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all p-3"
                 >
-                  <div className="text-center mb-3">
-                    <div className="inline-block bg-blue-50 px-4 py-1 rounded-full">
-                      <span className="text-sm font-bold text-blue-700">{item.year}</span>
+                  <div className="text-center mb-2">
+                    <div className="inline-block bg-blue-50 px-3 py-0.5 rounded-full">
+                      <span className="text-xs font-bold text-blue-700">{item.year}</span>
                     </div>
                   </div>
 
-                  <div className="flex justify-center mb-3">
-                    <div className={`w-16 h-16 rounded-full border-2 ${getIconBg(item.icon)} flex items-center justify-center overflow-hidden`}>
-                      {item.imageUrl ? (
+                  <div className="flex justify-center mb-2">
+                    <div className={`w-14 h-14 rounded-full border-2 ${getIconBg(item.icon)} flex items-center justify-center overflow-hidden`}>
+                      {item.icon === 'academic' ? (
+                        <GraduationCap className="w-7 h-7 text-green-600" />
+                      ) : item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
                       ) : (
                         getIconComponent(item.icon)
@@ -254,11 +256,11 @@ export default function CoordenadorPage() {
                     </div>
                   </div>
 
-                  <h4 className="font-bold text-sm text-gray-900 mb-2 text-center min-h-[40px] line-clamp-2">
+                  <h4 className="font-bold text-xs text-gray-900 mb-1.5 text-center min-h-[32px] line-clamp-2">
                     {item.title}
                   </h4>
                   
-                  <p className="text-xs text-gray-600 text-center leading-relaxed line-clamp-4">
+                  <p className="text-[10px] text-gray-600 text-center leading-relaxed line-clamp-3">
                     {item.description}
                   </p>
                 </div>

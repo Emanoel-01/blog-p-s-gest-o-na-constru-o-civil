@@ -16,6 +16,12 @@ export default function CiclosPage() {
   const [allExpanded, setAllExpanded] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const contentRef = useRef(null);
+  
+  // Estados para opções do PDF
+  const [includeEmentaDetalhada, setIncludeEmentaDetalhada] = useState(true);
+  const [includeConhecimento, setIncludeConhecimento] = useState(true);
+  const [includeHabilidadeTecnica, setIncludeHabilidadeTecnica] = useState(true);
+  const [includeHabilidadeComportamental, setIncludeHabilidadeComportamental] = useState(true);
 
   const { data: ciclos = [], isLoading } = useQuery({
     queryKey: ['ciclos'],

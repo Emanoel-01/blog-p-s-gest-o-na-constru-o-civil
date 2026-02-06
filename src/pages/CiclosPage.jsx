@@ -284,7 +284,7 @@ export default function CiclosPage() {
             return (
               <Card 
                 key={ciclo.id} 
-                className="overflow-hidden border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300"
+                className="card-ciclo overflow-hidden border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300"
               >
                 <div className={`bg-gradient-to-r ${gradientClass} p-4 sm:p-6 text-gray-800`}>
                   <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">

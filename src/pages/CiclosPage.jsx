@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { ArrowRight, ChevronDown, ChevronUp, BookOpen, Clock, GraduationCap, Maximize2, Minimize2, FileText } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronUp, BookOpen, Clock, GraduationCap, Maximize2, Minimize2, FileText, Settings } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 
 export default function CiclosPage() {

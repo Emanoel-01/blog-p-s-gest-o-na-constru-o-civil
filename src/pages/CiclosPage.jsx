@@ -424,7 +424,7 @@ export default function CiclosPage() {
 
                                 {isDiscExpanded && (
                                   <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 space-y-3 sm:space-y-4">
-                                    {disciplina.ementa_detalhada && (
+                                    {includeEmentaDetalhada && disciplina.ementa_detalhada && (
                                       <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
                                         <h4 className="text-xs sm:text-sm font-bold text-gray-900 mb-1 sm:mb-2 flex items-center gap-2">
                                           📖 Ementa Detalhada
@@ -435,7 +435,7 @@ export default function CiclosPage() {
                                       </div>
                                     )}
 
-                                    {disciplina.conhecimento_adquirido && (
+                                    {includeConhecimento && disciplina.conhecimento_adquirido && (
                                       <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
                                         <h4 className="text-xs sm:text-sm font-bold text-green-900 mb-1 sm:mb-2 flex items-center gap-2">
                                           🎓 Conhecimento Adquirido
@@ -446,7 +446,7 @@ export default function CiclosPage() {
                                       </div>
                                     )}
 
-                                    {disciplina.habilidade_tecnica && (
+                                    {includeHabilidadeTecnica && disciplina.habilidade_tecnica && (
                                       <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
                                         <h4 className="text-xs sm:text-sm font-bold text-blue-900 mb-1 sm:mb-2 flex items-center gap-2">
                                           🔧 Habilidade Técnica (Entregável)
@@ -457,7 +457,7 @@ export default function CiclosPage() {
                                       </div>
                                     )}
 
-                                    {disciplina.habilidade_comportamental && (
+                                    {includeHabilidadeComportamental && disciplina.habilidade_comportamental && (
                                       <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
                                         <h4 className="text-xs sm:text-sm font-bold text-gray-900 mb-1 sm:mb-2 flex items-center gap-2">
                                           💡 Habilidade Comportamental

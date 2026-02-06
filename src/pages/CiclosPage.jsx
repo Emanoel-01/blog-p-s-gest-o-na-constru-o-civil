@@ -349,7 +349,7 @@ export default function CiclosPage() {
                     ) : (
                       <div className="space-y-3 sm:space-y-4">
                         {disciplinasArray.map((disciplina, discIndex) => {
-                          const isDiscExpanded = expandedDisciplina === `${ciclo.id}-${discIndex}`;
+                          const isDiscExpanded = allExpanded || expandedDisciplina === `${ciclo.id}-${discIndex}`;
                           const discKey = `${ciclo.id}-${discIndex}`;
                           
                           // Se for string (formato antigo), mostrar apenas o nome

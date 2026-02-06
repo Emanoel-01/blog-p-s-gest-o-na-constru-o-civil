@@ -182,6 +182,52 @@ export default function CiclosPage() {
             )}
           </Button>
         </div>
+        
+        {/* Opções de Personalização do PDF */}
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200 max-w-2xl mx-auto">
+          <div className="flex items-center gap-2 mb-3">
+            <Settings className="w-5 h-5 text-blue-700" />
+            <h3 className="font-bold text-blue-900">Personalizar Conteúdo do PDF</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeEmentaDetalhada}
+                onChange={(e) => setIncludeEmentaDetalhada(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded"
+              />
+              <span className="text-gray-700">Ementa Detalhada</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeConhecimento}
+                onChange={(e) => setIncludeConhecimento(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded"
+              />
+              <span className="text-gray-700">Conhecimento Adquirido</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeHabilidadeTecnica}
+                onChange={(e) => setIncludeHabilidadeTecnica(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded"
+              />
+              <span className="text-gray-700">Habilidade Técnica</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeHabilidadeComportamental}
+                onChange={(e) => setIncludeHabilidadeComportamental(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded"
+              />
+              <span className="text-gray-700">Habilidade Comportamental</span>
+            </label>
+          </div>
+        </div>
       </div>
 
       {/* Ciclos Grid */}

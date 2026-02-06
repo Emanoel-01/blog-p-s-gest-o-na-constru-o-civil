@@ -246,6 +246,21 @@ export default function CiclosPage() {
         </Card>
       ) : (
         <div className="space-y-6" ref={contentRef}>
+          {/* Cabeçalho do PDF - visível apenas na impressão */}
+          <div className="pdf-header hidden print:block">
+            <div className="flex justify-between items-center pb-4 mb-6 border-b-2 border-green-600">
+              <img 
+                src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" 
+                alt="ESUDA Logo" 
+                className="h-12"
+              />
+              <div className="text-right">
+                <h1 className="text-xl font-bold text-gray-900">Ciclos de Conhecimento</h1>
+                <p className="text-sm text-gray-600">Pós-Graduação ESUDA</p>
+              </div>
+            </div>
+          </div>
+          
           {ciclos.map((ciclo, index) => {
             const isExpanded = allExpanded || expandedCiclo === ciclo.id;
             const gradientClass = gradientColors[index % gradientColors.length];

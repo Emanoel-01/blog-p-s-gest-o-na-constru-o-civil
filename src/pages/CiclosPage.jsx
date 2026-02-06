@@ -480,6 +480,22 @@ export default function CiclosPage() {
               </Card>
             );
           })}
+          
+          {/* Rodapé do PDF - visível apenas na impressão */}
+          <div className="pdf-footer hidden print:block">
+            <div className="mt-6 pt-4 border-t-2 border-green-600">
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <div>
+                  <p className="font-semibold">ESUDA - Pós-Graduação</p>
+                  <p>contato@esuda.edu.br | (81) 3413-3939</p>
+                </div>
+                <div className="text-right">
+                  <p>Rua Frei Cassimiro, 91 - Santo Amaro</p>
+                  <p>Recife - PE | www.esuda.edu.br</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

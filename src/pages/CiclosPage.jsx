@@ -99,6 +99,37 @@ export default function CiclosPage() {
 
   return (
     <>
+      <style>{`
+        @media print {
+          .card-ciclo {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .disciplina-detalhes {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .pdf-header {
+            display: block !important;
+            position: running(header);
+          }
+          .pdf-footer {
+            display: block !important;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+          }
+          body {
+            padding-bottom: 60px;
+          }
+          /* Ocultar elementos desnecessários na impressão */
+          button, .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
       <Helmet>
         <title>Ciclos de Conhecimento ESUDA | Arquitetura Curricular Modular em Construção Civil</title>
         <meta name="description" content="Arquitetura curricular modular ESUDA: ciclos de conhecimento que você combina para formar sua especialização. BIM, Gestão, Manutenção, Legal e Tecnologias 4.0." />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
-import { ArrowRight, ChevronDown, ChevronUp, BookOpen, Clock, GraduationCap } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronUp, BookOpen, Clock, GraduationCap, Maximize2, Minimize2, FileText } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 export default function CiclosPage() {
   const [expandedCiclo, setExpandedCiclo] = useState(null);
   const [expandedDisciplina, setExpandedDisciplina] = useState(null);
+  const [allExpanded, setAllExpanded] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const contentRef = useRef(null);
 
   const { data: ciclos = [], isLoading } = useQuery({
     queryKey: ['ciclos'],
@@ -30,6 +34,52 @@ export default function CiclosPage() {
 
   const toggleDisciplina = (discIndex) => {
     setExpandedDisciplina(expandedDisciplina === discIndex ? null : discIndex);
+  };
+
+  const expandAll = () => {
+    if (allExpanded) {
+      // Colapsar todos
+      setExpandedCiclo(null);
+      setExpandedDisciplina(null);
+      setAllExpanded(false);
+    } else {
+      // Expandir todos os ciclos (as disciplinas expandem automaticamente quando o ciclo está expandido)
+      setAllExpanded(true);
+    }
+  };
+
+  const handlePrintPDF = async () => {
+    setIsGeneratingPDF(true);
+    
+    // Expandir tudo antes de gerar o PDF
+    const wasExpanded = allExpanded;
+    if (!wasExpanded) {
+      setAllExpanded(true);
+      // Aguardar renderização
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    const element = contentRef.current;
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: 'ciclos-de-conhecimento-esuda.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      alert('Erro ao gerar PDF. Tente novamente.');
+    } finally {
+      setIsGeneratingPDF(false);
+      // Restaurar estado anterior
+      if (!wasExpanded) {
+        setAllExpanded(false);
+      }
+    }
   };
 
   const gradientColors = [
@@ -87,6 +137,45 @@ export default function CiclosPage() {
         <p className="text-gray-600 text-sm sm:text-base md:text-lg max-w-3xl mx-auto">
           Nossa arquitetura curricular modular permite que você construa sua especialização de forma inteligente e estratégica
         </p>
+        
+        {/* Botões de Ação */}
+        <div className="flex flex-wrap justify-center gap-3 mt-4">
+          <Button
+            onClick={expandAll}
+            variant="outline"
+            className="border-green-600 text-green-700 hover:bg-green-50"
+          >
+            {allExpanded ? (
+              <>
+                <Minimize2 className="w-4 h-4 mr-2" />
+                Recolher Todos
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-4 h-4 mr-2" />
+                Expandir Todos
+              </>
+            )}
+          </Button>
+          
+          <Button
+            onClick={handlePrintPDF}
+            disabled={isGeneratingPDF}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isGeneratingPDF ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Gerando PDF...
+              </>
+            ) : (
+              <>
+                <FileText className="w-4 h-4 mr-2" />
+                Exportar PDF
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Ciclos Grid */}
@@ -104,9 +193,9 @@ export default function CiclosPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6" ref={contentRef}>
           {ciclos.map((ciclo, index) => {
-            const isExpanded = expandedCiclo === ciclo.id;
+            const isExpanded = allExpanded || expandedCiclo === ciclo.id;
             const gradientClass = gradientColors[index % gradientColors.length];
             const disciplinasArray = Array.isArray(ciclo.disciplinas) ? ciclo.disciplinas : [];
             const hasDisciplinas = disciplinasArray.length > 0;

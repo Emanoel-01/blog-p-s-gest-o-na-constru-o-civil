@@ -365,7 +365,7 @@ export default function CiclosPage() {
                           return (
                             <div 
                               key={discIndex} 
-                              className="bg-white rounded-lg border-2 border-gray-200 hover:border-green-600 transition-all shadow-md"
+                              className="disciplina-detalhes bg-white rounded-lg border-2 border-gray-200 hover:border-green-600 transition-all shadow-md"
                             >
                               <div className="p-3 sm:p-4">
                                 <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">

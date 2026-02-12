@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
@@ -135,18 +135,12 @@ export default function BulkEnrollStudents() {
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Turma
           </label>
-          <Select value={selectedTurma} onValueChange={setSelectedTurma}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione a turma (Ex: T01/2025)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="T01/2025">T01/2025</SelectItem>
-              <SelectItem value="T02/2025">T02/2025</SelectItem>
-              <SelectItem value="T01/2026">T01/2026</SelectItem>
-              <SelectItem value="T02/2026">T02/2026</SelectItem>
-              <SelectItem value="T01/2027">T01/2027</SelectItem>
-            </SelectContent>
-          </Select>
+          <Input
+            value={selectedTurma}
+            onChange={(e) => setSelectedTurma(e.target.value)}
+            placeholder="Ex: T01/2026"
+            className="bg-white"
+          />
         </div>
 
         <div>

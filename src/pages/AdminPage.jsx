@@ -24,6 +24,7 @@ import NotificationCenter from '../components/admin/NotificationCenter';
 import EventosManager from '../components/admin/EventosManager';
 import CampanhaEmailManager from '../components/admin/CampanhaEmailManager';
 import NotificacoesDiscentesPage from '../components/admin/NotificacoesDiscentesPage';
+import GPOChatbot from '../components/admin/GPOChatbot';
 
 import BulkEnrollStudents from '../components/admin/BulkEnrollStudents';
 import NotificationManager from '../components/admin/NotificationManager';
@@ -5103,6 +5104,9 @@ Seja detalhado, prático e objetivo na análise.`;
             Gerencie leads ativos, crie campanhas com IA e execute ações em massa
           </p>
         </div>
+
+        {/* GPO Intelligence Chatbot */}
+        <GPOChatbot />
 
         <div className="flex gap-2 flex-wrap">
           <Button

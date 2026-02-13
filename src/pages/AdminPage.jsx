@@ -21,6 +21,7 @@ import AtividadeList from '../components/admin/incubadora/AtividadeList';
 import AtividadeEditForm from '../components/admin/incubadora/AtividadeEditForm';
 import LeadCRM from '../components/admin/LeadCRM';
 import NotificationCenter from '../components/admin/NotificationCenter';
+import EventosManager from '../components/admin/EventosManager';
 
 import BulkEnrollStudents from '../components/admin/BulkEnrollStudents';
 import NotificationManager from '../components/admin/NotificationManager';
@@ -5422,6 +5423,14 @@ Seja detalhado, prático e objetivo na análise.`;
           Notificações
         </Button>
         <Button
+          onClick={() => setActiveTab('eventos-discentes')}
+          variant={activeTab === 'eventos-discentes' ? 'default' : 'outline'}
+          className={activeTab === 'eventos-discentes' ? 'bg-amber-600' : ''}
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          Eventos Discentes
+        </Button>
+        <Button
           onClick={() => setActiveTab('aplicativos')}
           variant={activeTab === 'aplicativos' ? 'default' : 'outline'}
           className={activeTab === 'aplicativos' ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}
@@ -5463,6 +5472,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'leads' && renderLeadsTab()}
 
         {activeTab === 'notificacoes' && renderNotificacoesTab()}
+        {activeTab === 'eventos-discentes' && <EventosManager />}
         {activeTab === 'aplicativos' && <AplicativosManager />}
         {activeTab === 'crm' && renderCRMTab()}
         {activeTab === 'usuarios' && <GerenciamentoUsuarios />}

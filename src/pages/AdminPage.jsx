@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Shield, Plus, Edit, Trash2, Save, X, ExternalLink, Upload, Sparkles, Star, CheckCircle2, Calendar, Download, Mail, Tag, Users, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import RichTextEditor from '../components/editor/RichTextEditor';
+import html2pdf from 'html2pdf.js';
 
 import DetailedReport from '../components/admin/DetailedReport';
 import ManagerialReport from '../components/admin/ManagerialReport';
@@ -233,6 +235,7 @@ export default function AdminPage() {
   });
   const [analiseResult, setAnaliseResult] = useState(null);
   const [loadingAnalise, setLoadingAnalise] = useState(false);
+  const [isGeneratingAnalisePDF, setIsGeneratingAnalisePDF] = useState(false); // New state for PDF generation
 
   // Novo estado para gerenciar disciplinas editáveis e selecionadas
   const [disciplinasEditaveis, setDisciplinasEditaveis] = useState({});
@@ -358,8 +361,6 @@ export default function AdminPage() {
     queryKey: ['perguntas-sem-resposta'],
     queryFn: () => base44.entities.PerguntaSemResposta.list('-created_date')
   });
-
-
 
   const { data: allNotificacoes = [] } = useQuery({
     queryKey: ['admin-notificacoes'],
@@ -2214,7 +2215,112 @@ Seja detalhado, prático e objetivo na análise.`;
     toast.success('Formulário de nova especialização preenchido! Revise e complete os dados.');
   };
 
-  // ========== HANDLERS PARA CHATBOT FAQs ==========
+  const handleDownloadAnalisePDF = async () => {
+    setIsGeneratingAnalisePDF(true);
+    try {
+      const element = document.createElement('div');
+      element.style.padding = '20px';
+      element.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; margin-bottom: 24px; border-bottom: 2px solid #16a34a;">
+          <img src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" alt="ESUDA Logo" style="height: 48px;" />
+          <div style="text-align: right;">
+            <h1 style="font-size: 24px; font-weight: bold; margin: 0;">Análise de Viabilidade de Pós-Graduação</h1>
+            <p style="font-size: 14px; color: #666; margin: 0;">Gerado em: ${new Date().toLocaleDateString('pt-BR')}</p>
+          </div>
+        </div>
+
+        ${analiseResult.resumo_executivo ? `
+          <h2 style="font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #4338ca;">Resumo Executivo</h2>
+          <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; text-align: justify;">${analiseResult.resumo_executivo}</p>
+        ` : ''}
+
+        ${analiseResult.sinergia_geral ? `
+          <h2 style="font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #16a34a;">Sinergia Geral</h2>
+          <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; text-align: justify;">${analiseResult.sinergia_geral}</p>
+        ` : ''}
+
+        ${analiseResult.conflitos_potenciais && analiseResult.conflitos_potenciais.length > 0 ? `
+          <h2 style="font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #dc2626;">Conflitos Potenciais</h2>
+          <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+            ${analiseResult.conflitos_potenciais.map(item => `
+              <li style="margin-bottom: 15px; border-left: 3px solid #dc2626; padding-left: 10px;">
+                <p style="font-weight: bold; margin: 0; font-size: 14px;">${item.conflito}</p>
+                <p style="font-size: 13px; color: #4b5563; margin-top: 5px; text-align: justify;">Estratégia de Mitigação: ${item.mitigacao_sugerida}</p>
+              </li>
+            `).join('')}
+          </ul>
+        ` : ''}
+
+        ${analiseResult.duplicidades_identificadas && analiseResult.duplicidades_identificadas.length > 0 ? `
+          <h2 style="font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #d97706;">Duplicidades Identificadas</h2>
+          <ul style="list-style: disc; margin-left: 20px; margin-bottom: 20px; font-size: 14px;">
+            ${analiseResult.duplicidades_identificadas.map(dup => `<li>${dup}</li>`).join('')}
+          </ul>
+        ` : ''}
+
+        ${analiseResult.sugestoes_otimizacao && analiseResult.sugestoes_otimizacao.length > 0 ? `
+          <h2 style="font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #2563eb;">Sugestões de Otimização</h2>
+          <ul style="list-style: disc; margin-left: 20px; margin-bottom: 20px; font-size: 14px;">
+            ${analiseResult.sugestoes_otimizacao.map(sug => `<li>${sug}</li>`).join('')}
+          </ul>
+        ` : ''}
+
+        ${analiseResult.sugestoes_disciplinas_ciclos_vazios && analiseResult.sugestoes_disciplinas_ciclos_vazios.length > 0 ? `
+          <h2 style="font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #f59e0b;">Sugestões de Disciplinas para Ciclos sem Conteúdo</h2>
+          ${analiseResult.sugestoes_disciplinas_ciclos_vazios.map(cicloSugestao => `
+            <h3 style="font-size: 18px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; color: #f59e0b;">📚 ${cicloSugestao.nome_ciclo}</h3>
+            <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+              ${cicloSugestao.disciplinas_sugeridas.map(disc => `
+                <li style="margin-bottom: 10px; border-left: 3px solid #f59e0b; padding-left: 10px;">
+                  <p style="font-weight: bold; margin: 0; font-size: 14px;">${disc.disciplina}</p>
+                  <p style="font-size: 13px; color: #4b5563; margin-top: 5px; text-align: justify;">${disc.justificativa}</p>
+                </li>
+              `).join('')}
+            </ul>
+          `).join('')}
+        ` : ''}
+
+        ${analiseResult.analise_mercado && analiseResult.analise_mercado.length > 0 ? `
+          <h2 style="font-size: 20px; font-weight: bold; margin-top: 30px; margin-bottom: 15px; color: #6d28d9;">Análise de Mercado - Cursos Similares</h2>
+          ${analiseResult.analise_mercado.map(curso => `
+            <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 15px;">
+              <h3 style="font-size: 16px; font-weight: bold; margin: 0;">${curso.url_curso ? `<a href="${curso.url_curso}" target="_blank" rel="noopener noreferrer" style="color: #6d28d9; text-decoration: underline;">${curso.nome_curso_mercado}</a>` : curso.nome_curso_mercado}</h3>
+              <p style="font-size: 13px; color: #4b5563;">${curso.instituicao}</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                ${curso.formato ? `<span style="font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 9999px; background-color: #e0f2fe; color: #0369a1;">${curso.formato}</span>` : ''}
+                ${curso.duracao ? `<span style="font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 9999px; background-color: #f0fdf4; color: #16a34a;">Duração: ${curso.duracao}</span>` : ''}
+                ${curso.valor ? `<span style="font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 9999px; background-color: #fffbeb; color: #d97706;">Valor: ${curso.valor}</span>` : ''}
+              </div>
+              ${curso.disciplinas_principais && curso.disciplinas_principais.length > 0 ? `
+                <p style="font-size: 13px; font-weight: 600; color: #4b5563; margin-top: 10px; margin-bottom: 5px;">Disciplinas Principais:</p>
+                <ul style="list-style: disc; margin-left: 20px; font-size: 13px; color: #4b5563;">
+                  ${curso.disciplinas_principais.map(disc => `<li>${disc}</li>`).join('')}
+                </ul>
+              ` : ''}
+            </div>
+          `).join('')}
+        ` : ''}
+      `;
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `analise-viabilidade-${analiseForm.nome_proposto.toLowerCase().replace(/\s+/g, '-') || 'curso'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      toast.success('Análise de curso baixada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar PDF da análise:', error);
+      toast.error('Erro ao baixar a análise de curso.');
+    } finally {
+      setIsGeneratingAnalisePDF(false);
+    }
+  };
+
+
   const handleCriarFAQDePergunta = (pergunta) => {
     setFaqForm({
       pergunta: pergunta.pergunta,
@@ -3870,6 +3976,27 @@ Seja detalhado, prático e objetivo na análise.`;
               </CardContent>
             </Card>
           )}
+
+          {/* Botão para Baixar PDF */}
+          <div className="flex justify-end mt-4">
+            <Button
+              onClick={handleDownloadAnalisePDF}
+              disabled={isGeneratingAnalisePDF}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isGeneratingAnalisePDF ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Gerando PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Baixar Análise (PDF)
+                </>
+              )}
+            </Button>
+          </div>
 
           {/* Resumo Executivo - Destaque Principal */}
           {analiseResult.resumo_executivo && (

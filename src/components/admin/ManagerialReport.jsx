@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +8,8 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 export default function ManagerialReport({ especializacoes, ciclos, professores, parceiros, tecnologias }) {
+  console.log('ManagerialReport renderizado com props:', { especializacoes, ciclos, professores, parceiros, tecnologias });
+
   const getCicloById = (id) => ciclos.find(c => c.id === id);
 
   const exportToPDF = async () => {

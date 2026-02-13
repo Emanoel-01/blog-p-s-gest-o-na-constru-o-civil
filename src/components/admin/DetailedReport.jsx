@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,8 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
 export default function DetailedReport({ especializacoes, ciclos, professores, parceiros, tecnologias }) {
+  console.log('DetailedReport renderizado com props:', { especializacoes, ciclos, professores, parceiros, tecnologias });
+
   const getCicloById = (id) => ciclos.find(c => c.id === id);
   const getProfessorById = (id) => professores.find(p => p.id === id);
   const getParceiroById = (id) => parceiros.find(p => p.id === id);
@@ -151,7 +154,7 @@ export default function DetailedReport({ especializacoes, ciclos, professores, p
                   {/* Informações Adicionais */}
                   {(espec.formato_aulas || espec.dias_aulas || espec.horario_inicio) && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                      {espec.formato_aulas && espec.formato_aulas.length > 0 && (
+                      {espec.formato_aulas && especializacoes.formato_aulas && espec.formato_aulas.length > 0 && (
                         <div className="flex items-center gap-2">
                           <Video className="w-5 h-5 text-purple-600" />
                           <div>
@@ -160,7 +163,7 @@ export default function DetailedReport({ especializacoes, ciclos, professores, p
                           </div>
                         </div>
                       )}
-                      {espec.dias_aulas && espec.dias_aulas.length > 0 && (
+                      {espec.dias_aulas && especializacoes.dias_aulas && espec.dias_aulas.length > 0 && (
                         <div className="flex items-center gap-2">
                           <Calendar className="w-5 h-5 text-green-600" />
                           <div>
@@ -184,7 +187,7 @@ export default function DetailedReport({ especializacoes, ciclos, professores, p
                   )}
 
                   {/* Condições de Pagamento */}
-                  {espec.condicoes_pagamento && espec.condicoes_pagamento.length > 0 && (
+                  {espec.condicoes_pagamento && especializacoes.condicoes_pagamento && espec.condicoes_pagamento.length > 0 && (
                     <div>
                       <h5 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                         <DollarSign className="w-4 h-4 text-green-600" />

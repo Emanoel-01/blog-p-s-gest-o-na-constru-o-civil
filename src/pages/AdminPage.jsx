@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Shield, Plus, Edit, Trash2, Save, X, ExternalLink, Upload, Sparkles, Star, CheckCircle2, Calendar, Download, Mail, Tag, Users } from 'lucide-react';
+import { Shield, Plus, Edit, Trash2, Save, X, ExternalLink, Upload, Sparkles, Star, CheckCircle2, Calendar, Download, Mail, Tag, Users, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import RichTextEditor from '../components/editor/RichTextEditor';
 
@@ -22,6 +22,8 @@ import AtividadeEditForm from '../components/admin/incubadora/AtividadeEditForm'
 import LeadCRM from '../components/admin/LeadCRM';
 import NotificationCenter from '../components/admin/NotificationCenter';
 import EventosManager from '../components/admin/EventosManager';
+import CampanhaEmailManager from '../components/admin/CampanhaEmailManager';
+import NotificacoesDiscentesPage from '../components/admin/NotificacoesDiscentesPage';
 
 import BulkEnrollStudents from '../components/admin/BulkEnrollStudents';
 import NotificationManager from '../components/admin/NotificationManager';
@@ -5431,6 +5433,22 @@ Seja detalhado, prático e objetivo na análise.`;
           Eventos Discentes
         </Button>
         <Button
+          onClick={() => setActiveTab('notificacoes-discentes')}
+          variant={activeTab === 'notificacoes-discentes' ? 'default' : 'outline'}
+          className={activeTab === 'notificacoes-discentes' ? 'bg-indigo-600' : ''}
+        >
+          <Bell className="w-4 h-4 mr-2" />
+          Notificações Discentes
+        </Button>
+        <Button
+          onClick={() => setActiveTab('campanhas-email')}
+          variant={activeTab === 'campanhas-email' ? 'default' : 'outline'}
+          className={activeTab === 'campanhas-email' ? 'bg-cyan-600' : ''}
+        >
+          <Mail className="w-4 h-4 mr-2" />
+          Campanhas Email
+        </Button>
+        <Button
           onClick={() => setActiveTab('aplicativos')}
           variant={activeTab === 'aplicativos' ? 'default' : 'outline'}
           className={activeTab === 'aplicativos' ? 'bg-gradient-to-r from-blue-600 to-purple-600' : ''}
@@ -5473,6 +5491,8 @@ Seja detalhado, prático e objetivo na análise.`;
 
         {activeTab === 'notificacoes' && renderNotificacoesTab()}
         {activeTab === 'eventos-discentes' && <EventosManager />}
+        {activeTab === 'notificacoes-discentes' && <NotificacoesDiscentesPage />}
+        {activeTab === 'campanhas-email' && <CampanhaEmailManager currentUser={currentUser} />}
         {activeTab === 'aplicativos' && <AplicativosManager />}
         {activeTab === 'crm' && renderCRMTab()}
         {activeTab === 'usuarios' && <GerenciamentoUsuarios />}

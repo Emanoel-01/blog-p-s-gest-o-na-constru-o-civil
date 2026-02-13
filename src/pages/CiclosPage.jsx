@@ -15,6 +15,8 @@ export default function CiclosPage() {
   const [expandedDisciplina, setExpandedDisciplina] = useState(null);
   const [allExpanded, setAllExpanded] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [selectedCicloForPDF, setSelectedCicloForPDF] = useState('todos');
+  const [showPDFConfig, setShowPDFConfig] = useState(false);
   const contentRef = useRef(null);
   
   // Estados para opções do PDF
@@ -55,6 +57,11 @@ export default function CiclosPage() {
   };
 
   const handlePrintPDF = async () => {
+    if (selectedCicloForPDF === 'escolher') {
+      setShowPDFConfig(true);
+      return;
+    }
+
     setIsGeneratingPDF(true);
     
     // Expandir tudo antes de gerar o PDF
@@ -65,10 +72,36 @@ export default function CiclosPage() {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    const element = contentRef.current;
+    let element = contentRef.current;
+    
+    // Se um ciclo específico foi selecionado, criar elemento temporário apenas com esse ciclo
+    if (selectedCicloForPDF !== 'todos') {
+      const cicloSelecionado = ciclos.find(c => c.id === selectedCicloForPDF);
+      if (cicloSelecionado) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = `
+          <div style="padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; margin-bottom: 24px; border-bottom: 2px solid #16a34a;">
+              <img src="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" alt="ESUDA Logo" style="height: 48px;" />
+              <div style="text-align: right;">
+                <h1 style="font-size: 20px; font-weight: bold; margin: 0;">Ciclos de Conhecimento</h1>
+                <p style="font-size: 14px; color: #666; margin: 0;">Pós-Graduação ESUDA</p>
+              </div>
+            </div>
+            ${document.querySelector(`[data-ciclo-id="${selectedCicloForPDF}"]`)?.outerHTML || ''}
+          </div>
+        `;
+        element = tempDiv;
+      }
+    }
+
+    const filename = selectedCicloForPDF === 'todos' 
+      ? 'ciclos-de-conhecimento-esuda.pdf'
+      : `ciclo-${ciclos.find(c => c.id === selectedCicloForPDF)?.nome.toLowerCase().replace(/\s+/g, '-')}.pdf`;
+
     const opt = {
       margin: [10, 10, 10, 10],
-      filename: 'ciclos-de-conhecimento-esuda.pdf',
+      filename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -81,6 +114,7 @@ export default function CiclosPage() {
       alert('Erro ao gerar PDF. Tente novamente.');
     } finally {
       setIsGeneratingPDF(false);
+      setShowPDFConfig(false);
       // Restaurar estado anterior
       if (!wasExpanded) {
         setAllExpanded(false);
@@ -196,69 +230,108 @@ export default function CiclosPage() {
           </Button>
           
           <Button
-            onClick={handlePrintPDF}
+            onClick={() => setShowPDFConfig(true)}
             disabled={isGeneratingPDF}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {isGeneratingPDF ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                Gerando PDF...
-              </>
-            ) : (
-              <>
-                <FileText className="w-4 h-4 mr-2" />
-                Exportar PDF
-              </>
-            )}
+            <FileText className="w-4 h-4 mr-2" />
+            Exportar PDF
           </Button>
         </div>
         
-        {/* Opções de Personalização do PDF */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200 max-w-2xl mx-auto">
-          <div className="flex items-center gap-2 mb-3">
-            <Settings className="w-5 h-5 text-blue-700" />
-            <h3 className="font-bold text-blue-900">Personalizar Conteúdo do PDF</h3>
+        {/* Modal de Configuração do PDF */}
+        {showPDFConfig && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader className="bg-blue-50">
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-blue-700" />
+                  Configurar PDF
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Selecionar Ciclo</label>
+                  <select
+                    value={selectedCicloForPDF}
+                    onChange={(e) => setSelectedCicloForPDF(e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="todos">Todos os Ciclos</option>
+                    {ciclos.map(ciclo => (
+                      <option key={ciclo.id} value={ciclo.id}>{ciclo.nome}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Conteúdo a Incluir</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includeEmentaDetalhada}
+                        onChange={(e) => setIncludeEmentaDetalhada(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
+                      <span className="text-gray-700">Ementa Detalhada</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includeConhecimento}
+                        onChange={(e) => setIncludeConhecimento(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
+                      <span className="text-gray-700">Conhecimento Adquirido</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includeHabilidadeTecnica}
+                        onChange={(e) => setIncludeHabilidadeTecnica(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
+                      <span className="text-gray-700">Habilidade Técnica</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includeHabilidadeComportamental}
+                        onChange={(e) => setIncludeHabilidadeComportamental(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
+                      <span className="text-gray-700">Habilidade Comportamental</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={handlePrintPDF}
+                    disabled={isGeneratingPDF}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isGeneratingPDF ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        Gerando...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Gerar PDF
+                      </>
+                    )}
+                  </Button>
+                  <Button onClick={() => setShowPDFConfig(false)} variant="outline">
+                    Cancelar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={includeEmentaDetalhada}
-                onChange={(e) => setIncludeEmentaDetalhada(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded"
-              />
-              <span className="text-gray-700">Ementa Detalhada</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={includeConhecimento}
-                onChange={(e) => setIncludeConhecimento(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded"
-              />
-              <span className="text-gray-700">Conhecimento Adquirido</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={includeHabilidadeTecnica}
-                onChange={(e) => setIncludeHabilidadeTecnica(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded"
-              />
-              <span className="text-gray-700">Habilidade Técnica</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={includeHabilidadeComportamental}
-                onChange={(e) => setIncludeHabilidadeComportamental(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded"
-              />
-              <span className="text-gray-700">Habilidade Comportamental</span>
-            </label>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Ciclos Grid */}
@@ -314,7 +387,8 @@ export default function CiclosPage() {
 
             return (
               <Card 
-                key={ciclo.id} 
+                key={ciclo.id}
+                data-ciclo-id={ciclo.id}
                 className="card-ciclo overflow-hidden border-2 border-gray-200 hover:border-gray-300 hover:shadow-2xl transition-all duration-300"
               >
                 <div className={`bg-gradient-to-r ${gradientClass} p-4 sm:p-6 text-gray-800`}>

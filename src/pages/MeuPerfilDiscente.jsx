@@ -77,6 +77,12 @@ export default function MeuPerfilDiscente() {
     }
   }, [user, discentes]);
 
+  // Buscar especializações (ANTES dos returns condicionais)
+  const { data: especializacoes = [] } = useQuery({
+    queryKey: ['especializacoes'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
+  });
+
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.Discente.update(discente.id, data),
     onSuccess: () => {

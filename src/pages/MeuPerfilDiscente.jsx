@@ -138,11 +138,6 @@ export default function MeuPerfilDiscente() {
     );
   }
 
-  const { data: especializacoes = [] } = useQuery({
-    queryKey: ['especializacoes'],
-    queryFn: () => base44.entities.Especializacao.list('ordem')
-  });
-
   const minhasEspecializacoes = (discente.especializacoes || [])
     .map(id => especializacoes.find(e => e.id === id))
     .filter(Boolean);

@@ -34,7 +34,7 @@ export default function MeuPerfilDiscente() {
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
-  // Buscar usuário logado
+  // 1. Buscar usuário logado
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -47,11 +47,30 @@ export default function MeuPerfilDiscente() {
     fetchUser();
   }, []);
 
-  // Buscar perfil do discente baseado no email do usuário logado
+  // 2. Buscar perfil do discente baseado no email do usuário logado
   const { data: discentes = [] } = useQuery({
     queryKey: ['discentes'],
     queryFn: () => base44.entities.Discente.list(),
     enabled: !!user
+  });
+
+  // ✅ 3. HOOK CORRIGIDO: Movido para o topo, antes de qualquer "return"
+  const { data: especializacoes = [] } = useQuery({
+    queryKey: ['especializacoes'],
+    queryFn: () => base44.entities.Especializacao.list('ordem')
+  });
+
+  // 4. Mutation de atualização
+  const updateMutation = useMutation({
+    mutationFn: (data) => base44.entities.Discente.update(discente.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['discentes'] });
+      toast.success('Perfil atualizado com sucesso!');
+      setIsEditing(false);
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar perfil. Tente novamente.');
+    }
   });
 
   useEffect(() => {
@@ -77,24 +96,6 @@ export default function MeuPerfilDiscente() {
     }
   }, [user, discentes]);
 
-  // Buscar especializações (ANTES dos returns condicionais)
-  const { data: especializacoes = [] } = useQuery({
-    queryKey: ['especializacoes'],
-    queryFn: () => base44.entities.Especializacao.list('ordem')
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: (data) => base44.entities.Discente.update(discente.id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['discentes'] });
-      toast.success('Perfil atualizado com sucesso!');
-      setIsEditing(false);
-    },
-    onError: () => {
-      toast.error('Erro ao atualizar perfil. Tente novamente.');
-    }
-  });
-
   const handleSave = () => {
     updateMutation.mutate(formData);
   };
@@ -115,6 +116,7 @@ export default function MeuPerfilDiscente() {
     }
   };
 
+  // ✅ OS RETURNS ANTECIPADOS FICAM AQUI, APÓS TODOS OS HOOKS
   if (!user) {
     return (
       <div className="text-center py-12">
@@ -141,8 +143,6 @@ export default function MeuPerfilDiscente() {
   const minhasEspecializacoes = (discente.especializacoes || [])
     .map(id => especializacoes.find(e => e.id === id))
     .filter(Boolean);
-
-  const especializacoesCursadas = minhasEspecializacoes;
 
   return (
     <>

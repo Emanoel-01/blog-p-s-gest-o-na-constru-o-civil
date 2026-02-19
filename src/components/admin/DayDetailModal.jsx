@@ -13,8 +13,6 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
   const [editingAula, setEditingAula] = useState(null);
   const [novaData, setNovaData] = useState('');
 
-  if (!aulas || aulas.length === 0) return null;
-
   const updateDataMutation = useMutation({
     mutationFn: async ({ aulaId, newDate }) => {
       await base44.entities.CronogramaAula.update(aulaId, { data: newDate });

@@ -5,6 +5,7 @@ import { Download, FileText, Lock, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { generateDocumentation } from '../utils/functions/generateDocumentation';
 
 // Página standalone sem Layout - acessível apenas via Base44 Dev Menu
 export default function Documentation() {

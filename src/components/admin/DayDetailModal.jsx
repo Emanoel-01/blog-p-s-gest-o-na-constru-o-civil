@@ -30,6 +30,8 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
     }
   });
 
+  if (!aulas || aulas.length === 0) return null;
+
   const handleEditClick = (aula) => {
     setEditingAula(aula.id);
     // Converter data DD/MM/YYYY para YYYY-MM-DD

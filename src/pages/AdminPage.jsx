@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -43,6 +42,8 @@ import EmailTemplateManager from '../components/admin/EmailTemplateManager';
 import EmailCampaignLog from '../components/admin/EmailCampaignLog';
 import BlogManager from '../components/admin/BlogManager';
 import GerenciamentoUsuarios from '../components/admin/GerenciamentoUsuarios';
+import MarketingAIStudio from '../components/admin/MarketingAIStudio';
+import SystemAutomation from '../components/admin/SystemAutomation';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
@@ -5603,6 +5604,22 @@ Seja detalhado, prático e objetivo na análise.`;
           <Users className="w-4 h-4 mr-2" />
           Gerenciar Usuários
         </Button>
+        <Button
+          onClick={() => setActiveTab('marketing-ia')}
+          variant={activeTab === 'marketing-ia' ? 'default' : 'outline'}
+          className={activeTab === 'marketing-ia' ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Studio Marketing IA
+        </Button>
+        <Button
+          onClick={() => setActiveTab('automacao')}
+          variant={activeTab === 'automacao' ? 'default' : 'outline'}
+          className={activeTab === 'automacao' ? 'bg-gradient-to-r from-green-600 to-teal-600' : ''}
+        >
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          Automação Sistema
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -5627,6 +5644,8 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'aplicativos' && <AplicativosManager />}
         {activeTab === 'crm' && renderCRMTab()}
         {activeTab === 'usuarios' && <GerenciamentoUsuarios />}
+        {activeTab === 'marketing-ia' && <MarketingAIStudio />}
+        {activeTab === 'automacao' && <SystemAutomation />}
       </div>
         </>
       )}

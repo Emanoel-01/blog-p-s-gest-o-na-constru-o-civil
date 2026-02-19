@@ -909,7 +909,7 @@ O sistema está pronto para suportar o crescimento do portfólio de pós-gradua�
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      const { data } = await generateDocumentation();
+      const data = await base44.functions.invoke('generateDocumentation');
       if (data.success) {
         setMarkdownContent(data.markdown);
         toast.success('Documentação atualizada! ' + data.entities_count + ' entidades encontradas.');

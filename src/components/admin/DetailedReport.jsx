@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -236,7 +235,7 @@ export default function DetailedReport({ especializacoes, ciclos, professores, p
                                   <p className="text-xs text-gray-500 mb-2">Disciplinas ({ciclo.disciplinas.length}):</p>
                                   <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
                                     {ciclo.disciplinas.map((disc, idx) => (
-                                      <li key={idx}>{disc}</li>
+                                      <li key={idx}>{typeof disc === 'string' ? disc : disc.nome}</li>
                                     ))}
                                   </ul>
                                 </div>

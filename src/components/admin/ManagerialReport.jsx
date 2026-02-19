@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -44,7 +43,10 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
         (espec1.ciclos || []).forEach(cicloId => {
           const ciclo = getCicloById(cicloId);
           if (ciclo && ciclo.disciplinas) {
-            ciclo.disciplinas.forEach(d => disciplinas1.add(d.toLowerCase().trim()));
+            ciclo.disciplinas.forEach(d => {
+              const nome = typeof d === 'string' ? d : d.nome;
+              if (nome) disciplinas1.add(nome.toLowerCase().trim());
+            });
           }
         });
 
@@ -52,7 +54,10 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
         (espec2.ciclos || []).forEach(cicloId => {
           const ciclo = getCicloById(cicloId);
           if (ciclo && ciclo.disciplinas) {
-            ciclo.disciplinas.forEach(d => disciplinas2.add(d.toLowerCase().trim()));
+            ciclo.disciplinas.forEach(d => {
+              const nome = typeof d === 'string' ? d : d.nome;
+              if (nome) disciplinas2.add(nome.toLowerCase().trim());
+            });
           }
         });
 

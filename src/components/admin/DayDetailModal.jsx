@@ -13,7 +13,6 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
   const [editingAula, setEditingAula] = useState(null);
   const [novaData, setNovaData] = useState('');
 
-  // ✅ HOOKS DECLARADOS NO TOPO (ANTES DO RETURN CONDICIONAL)
   const updateDataMutation = useMutation({
     mutationFn: async ({ aulaId, newDate }) => {
       await base44.entities.CronogramaAula.update(aulaId, { data: newDate });
@@ -31,7 +30,6 @@ export default function DayDetailModal({ day, aulas, professores, ciclos, onClos
     }
   });
 
-  // ✅ RETURN CONDICIONAL APENAS DEPOIS DOS HOOKS
   if (!aulas || aulas.length === 0) return null;
 
   const handleEditClick = (aula) => {

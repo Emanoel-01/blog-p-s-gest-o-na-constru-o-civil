@@ -44,10 +44,12 @@ import BlogManager from '../components/admin/BlogManager';
 import GerenciamentoUsuarios from '../components/admin/GerenciamentoUsuarios';
 import MarketingAIStudio from '../components/admin/MarketingAIStudio';
 import SystemAutomation from '../components/admin/SystemAutomation';
+import AIReportGenerator from '../components/admin/AIReportGenerator';
+import AIContentCreator from '../components/admin/AIContentCreator';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('ciclos');
+  const [activeTab, setActiveTab] = useState('ai-tools');
   const [currentUser, setCurrentUser] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [hasCrmAccess, setHasCrmAccess] = useState(false);

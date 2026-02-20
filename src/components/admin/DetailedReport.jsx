@@ -28,20 +28,29 @@ export default function DetailedReport({ especializacoes, ciclos, professores, p
   const getTecnologiaById = (id) => tecnologias.find(t => t.id === id);
 
   const exportToPDF = async () => {
-    const element = document.getElementById('detailed-report-content');
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-    const imgX = (pdfWidth - imgWidth * ratio) / 2;
-    const imgY = 10;
-
-    pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+    
+    const sections = document.querySelectorAll('.page-break');
+    
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      const canvas = await html2canvas(section, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = pdfWidth / imgWidth;
+      const scaledHeight = imgHeight * ratio;
+      
+      if (i > 0) {
+        pdf.addPage();
+      }
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, scaledHeight);
+    }
+    
     pdf.save('relatorio-detalhado-posgraduacoes.pdf');
   };
 

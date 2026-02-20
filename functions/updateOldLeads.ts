@@ -11,13 +11,23 @@ Deno.serve(async (req) => {
 
     const { action = 'update' } = await req.json();
 
-    // Buscar leads antigos (outubro 2025 ou anteriores)
+    // Buscar leads antigos (outubro 2025 ou anteriores), excluindo cursos do grupo G1
     const allLeads = await base44.asServiceRole.entities.Lead.list();
     
     const oldLeads = allLeads.filter(lead => {
       const createdDate = new Date(lead.created_date);
       const cutoffDate = new Date('2025-11-01'); // Novembro 2025
-      return createdDate < cutoffDate;
+      
+      // Excluir leads com interesse em BIM, GPO ou grupo G1
+      const g1Courses = ['BIM', 'bim', 'Gestão de Projetos e Obras', 'gestão de projetos', 'gpo', 'GPO'];
+      const isG1 = g1Courses.some(course => 
+        (lead.interesse && lead.interesse.toLowerCase().includes(course.toLowerCase())) ||
+        (lead.categoria_interesse && lead.categoria_interesse.some(cat => 
+          cat.toLowerCase().includes(course.toLowerCase())
+        ))
+      );
+      
+      return createdDate < cutoffDate && !isG1;
     });
 
     if (oldLeads.length === 0) {

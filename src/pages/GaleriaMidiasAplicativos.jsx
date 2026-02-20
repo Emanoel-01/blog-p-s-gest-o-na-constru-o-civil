@@ -154,20 +154,21 @@ export default function GaleriaMidiasAplicativos() {
                   <Card className="h-full hover:shadow-2xl transition-all duration-300 border-2 border-gray-200">
                     <CardContent className="p-4">
                       {/* Mídia */}
-                      <div className="relative mb-4 rounded-lg overflow-hidden bg-gray-100">
+                      <div className="relative mb-4 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                         {midia.tipo_midia === 'imagem' ? (
                           <img
                             src={midia.url_midia}
                             alt={midia.titulo}
                             loading="lazy"
-                            className="w-full h-48 object-cover"
+                            className="w-full max-h-[500px] object-contain"
                           />
                         ) : (
                           <video
                             src={midia.url_midia}
                             controls
                             preload="metadata"
-                            className="w-full h-48 object-cover"
+                            className="w-full max-w-[320px] max-h-[568px] object-contain aspect-[9/16]"
+                            style={{ maxWidth: '320px' }}
                           />
                         )}
                         <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">

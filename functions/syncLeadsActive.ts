@@ -106,6 +106,22 @@ function parseDate(dateStr) {
   }
 }
 
+// Função de retry com backoff exponencial
+async function executeWithRetry(operation, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (attempt === maxRetries || !error.message.includes('rate limit')) {
+        throw error;
+      }
+      const waitTime = Math.pow(2, attempt) * 500;
+      console.warn(`Rate limit atingido. Tentativa ${attempt}. Aguardando ${waitTime}ms...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -142,32 +158,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Função de retry com backoff exponencial
-    async function executeWithRetry(operation, maxRetries = 3) {
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          return await operation();
-        } catch (error) {
-          if (attempt === maxRetries || !error.message.includes('rate limit')) {
-            throw error;
-          }
-          const waitTime = Math.pow(2, attempt) * 500;
-          console.warn(`Rate limit atingido. Tentativa ${attempt}. Aguardando ${waitTime}ms...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-      }
-    }
-
     const cutoffDate = new Date('2024-08-01');
     const stats = { total: 0, g1: 0, g2: 0, skipped: 0, updated: 0, created: 0, deleted_duplicates: 0, debug_samples: [] };
     
-    // OTIMIZAÇÃO: Extrair emails únicos da planilha primeiro
-    const emailsPlanilha = [...new Set(rows.slice(1).map(row => row[9]?.trim().toLowerCase()).filter(Boolean))];
-    
-    // Buscar apenas inscritos que possuem esses emails (filtro na origem)
-    const cleanedExisting = emailsPlanilha.length > 0 
-      ? await base44.asServiceRole.entities.Inscrito.list() // TODO: Implementar filtro email_in quando disponível
-      : [];
+
     
     const toCreate = [];
     const toUpdate = [];
@@ -331,6 +325,23 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Otimização: Buscar apenas os inscritos com emails da planilha
+    const emailsPlanilha = [...new Set(Array.from(processedLeads.values()).map(lead => lead.email))];
+    
+    // Buscar em lotes para evitar sobrecarga
+    const FETCH_BATCH_SIZE = 100;
+    const cleanedExisting = [];
+    
+    for (let i = 0; i < emailsPlanilha.length; i += FETCH_BATCH_SIZE) {
+      const emailsBatch = emailsPlanilha.slice(i, i + FETCH_BATCH_SIZE);
+      
+      // Buscar apenas os registros com esses emails
+      for (const email of emailsBatch) {
+        const records = await base44.asServiceRole.entities.Inscrito.filter({ email });
+        cleanedExisting.push(...records);
+      }
+    }
+    
     // Processar leads deduplicados
     for (const inscritoData of processedLeads.values()) {
       const existing = cleanedExisting.find(e => 
@@ -339,19 +350,16 @@ Deno.serve(async (req) => {
       );
 
       if (existing) {
-        // Atualizar tanto G1 quanto G2
         // Preservar status de "Matriculado" se já foi definido manualmente
         const status_crm = (existing.status_crm === 'Matriculado Turma Antiga' || existing.status_crm === 'Matriculado Turma Nova')
           ? existing.status_crm
           : inscritoData.status_crm;
 
-        // IMPORTANTE: Atualizar inscricao_paga se mudou na planilha (de não pago para pago)
         const inscricao_paga = inscritoData.inscricao_paga || existing.inscricao_paga;
 
         toUpdate.push({ id: existing.id, ...inscritoData, status_crm, inscricao_paga });
         stats.updated++;
       } else {
-        // Criar novo lead (tanto G1 quanto G2)
         toCreate.push(inscritoData);
         stats.created++;
       }
@@ -366,28 +374,29 @@ Deno.serve(async (req) => {
       stats.total++;
     }
     
-    // Processar em lotes maiores com retry inteligente (SEM delays fixos)
-    const BATCH_SIZE = 100;
+    // Processar criações com retry inteligente (lotes maiores)
+    const CREATE_BATCH_SIZE = 100;
     
     if (toCreate.length > 0) {
-      for (let i = 0; i < toCreate.length; i += BATCH_SIZE) {
-        const batch = toCreate.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < toCreate.length; i += CREATE_BATCH_SIZE) {
+        const batch = toCreate.slice(i, i + CREATE_BATCH_SIZE);
         await executeWithRetry(() => 
           base44.asServiceRole.entities.Inscrito.bulkCreate(batch)
         );
       }
     }
     
-    // Updates também em lotes maiores
-    if (toUpdate.length > 0) {
-      for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
-        const batch = toUpdate.slice(i, i + BATCH_SIZE);
-        await executeWithRetry(async () => {
-          for (const item of batch) {
-            const { id, ...data } = item;
-            await base44.asServiceRole.entities.Inscrito.update(id, data);
-          }
-        });
+    // Processar updates com retry inteligente (lotes maiores)
+    const UPDATE_BATCH_SIZE = 50;
+    
+    for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH_SIZE) {
+      const batch = toUpdate.slice(i, i + UPDATE_BATCH_SIZE);
+      
+      for (const item of batch) {
+        const { id, ...data } = item;
+        await executeWithRetry(() => 
+          base44.asServiceRole.entities.Inscrito.update(id, data)
+        );
       }
     }
     

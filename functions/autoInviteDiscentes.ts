@@ -9,8 +9,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Acesso negado: apenas administradores' }, { status: 403 });
     }
 
-    // Buscar todos os discentes
-    const discentes = await base44.asServiceRole.entities.Discente.list();
+    // Buscar todos os discentes (limite aumentado para 1000)
+    const discentes = await base44.asServiceRole.entities.Discente.list({ limit: 1000 });
 
     if (!discentes || discentes.length === 0) {
       return Response.json({ 
@@ -48,6 +48,9 @@ Deno.serve(async (req) => {
           nome: discente.nome,
           status: 'convidado'
         });
+        
+        // Pausa de 300ms entre convites para evitar rate limit
+        await new Promise(resolve => setTimeout(resolve, 300));
       } catch (error) {
         results.push({
           email: discente.email,

@@ -5622,6 +5622,14 @@ Seja detalhado, prático e objetivo na análise.`;
           <CheckCircle2 className="w-4 h-4 mr-2" />
           Automação Sistema
         </Button>
+        <Button
+          onClick={() => setActiveTab('ai-tools')}
+          variant={activeTab === 'ai-tools' ? 'default' : 'outline'}
+          className={activeTab === 'ai-tools' ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : ''}
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Ferramentas IA
+        </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -5648,6 +5656,13 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'usuarios' && <GerenciamentoUsuarios />}
         {activeTab === 'marketing-ia' && <MarketingAIStudio />}
         {activeTab === 'automacao' && <SystemAutomation />}
+        {activeTab === 'ai-tools' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Ferramentas de IA</h2>
+            <AIReportGenerator />
+            <AIContentCreator />
+          </div>
+        )}
       </div>
         </>
       )}

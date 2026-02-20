@@ -10,13 +10,15 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Save, User, Briefcase, Link as LinkIcon, Upload, Edit, Award, BookOpen, Instagram, Linkedin, Globe, Mail, GraduationCap, Book } from 'lucide-react';
+import { ArrowLeft, Save, User, Briefcase, Link as LinkIcon, Upload, Edit, Award, BookOpen, Instagram, Linkedin, Globe, Mail, GraduationCap, Book, LayoutDashboard } from 'lucide-react';
+import PainelDocente from '@/components/docente/PainelDocente';
 
 export default function MeuPerfilDocente() {
   const [user, setUser] = useState(null);
   const [professor, setProfessor] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('painel');
   const [formData, setFormData] = useState({
     foto_url: '',
     mini_bio: '',

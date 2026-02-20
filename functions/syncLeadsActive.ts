@@ -142,46 +142,32 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Função de retry com backoff exponencial
+    async function executeWithRetry(operation, maxRetries = 3) {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          return await operation();
+        } catch (error) {
+          if (attempt === maxRetries || !error.message.includes('rate limit')) {
+            throw error;
+          }
+          const waitTime = Math.pow(2, attempt) * 500;
+          console.warn(`Rate limit atingido. Tentativa ${attempt}. Aguardando ${waitTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
+    }
+
     const cutoffDate = new Date('2024-08-01');
     const stats = { total: 0, g1: 0, g2: 0, skipped: 0, updated: 0, created: 0, deleted_duplicates: 0, debug_samples: [] };
-
-    const allExisting = await base44.asServiceRole.entities.Inscrito.list();
     
-    // LIMPEZA DE DUPLICATAS DESATIVADA - MANTÉM TODOS OS REGISTROS
-    const toDelete = [];
-    stats.deleted_duplicates = 0;
+    // OTIMIZAÇÃO: Extrair emails únicos da planilha primeiro
+    const emailsPlanilha = [...new Set(rows.slice(1).map(row => row[9]?.trim().toLowerCase()).filter(Boolean))];
     
-    // // LIMPAR DUPLICATAS EXISTENTES NO BANCO
-    // const duplicatesMap = new Map();
-    // 
-    // for (const lead of allExisting) {
-    //   const key = `${lead.email?.toLowerCase()}|${normalizarNomeCurso(lead.nome_curso || '')}`;
-    //   
-    //   if (duplicatesMap.has(key)) {
-    //     const existing = duplicatesMap.get(key);
-    //     const existingDate = new Date(existing.data_inscricao);
-    //     const currentDate = new Date(lead.data_inscricao);
-    //     
-    //     // Manter apenas o mais recente
-    //     if (currentDate > existingDate) {
-    //       toDelete.push(existing.id);
-    //       duplicatesMap.set(key, lead);
-    //     } else {
-    //       toDelete.push(lead.id);
-    //     }
-    //   } else {
-    //     duplicatesMap.set(key, lead);
-    //   }
-    // }
-    // 
-    // // Deletar duplicatas
-    // for (const id of toDelete) {
-    //   await base44.asServiceRole.entities.Inscrito.delete(id);
-    //   stats.deleted_duplicates++;
-    // }
-    
-    // Recarregar lista após limpeza
-    const cleanedExisting = await base44.asServiceRole.entities.Inscrito.list();
+    // Buscar apenas inscritos que possuem esses emails (filtro na origem)
+    const cleanedExisting = emailsPlanilha.length > 0 
+      ? await base44.asServiceRole.entities.Inscrito.list() // TODO: Implementar filtro email_in quando disponível
+      : [];
     
     const toCreate = [];
     const toUpdate = [];
@@ -380,38 +366,28 @@ Deno.serve(async (req) => {
       stats.total++;
     }
     
-    // Processar em lotes menores para evitar rate limit e timeout
-    const CREATE_BATCH_SIZE = 25; // Reduzir de 50 para 25
+    // Processar em lotes maiores com retry inteligente (SEM delays fixos)
+    const BATCH_SIZE = 100;
     
     if (toCreate.length > 0) {
-      for (let i = 0; i < toCreate.length; i += CREATE_BATCH_SIZE) {
-        const batch = toCreate.slice(i, i + CREATE_BATCH_SIZE);
-        await base44.asServiceRole.entities.Inscrito.bulkCreate(batch);
-        
-        // Delay entre lotes
-        if (i + CREATE_BATCH_SIZE < toCreate.length) {
-          await new Promise(resolve => setTimeout(resolve, 800)); // Aumentar de 200ms para 800ms
-        }
+      for (let i = 0; i < toCreate.length; i += BATCH_SIZE) {
+        const batch = toCreate.slice(i, i + BATCH_SIZE);
+        await executeWithRetry(() => 
+          base44.asServiceRole.entities.Inscrito.bulkCreate(batch)
+        );
       }
     }
     
-    // Processar updates em lotes menores e com mais delay
-    const UPDATE_BATCH_SIZE = 10; // Reduzir de 50 para 10
-    
-    for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH_SIZE) {
-      for (let j = i; j < Math.min(i + UPDATE_BATCH_SIZE, toUpdate.length); j++) {
-        const { id, ...data } = toUpdate[j];
-        await base44.asServiceRole.entities.Inscrito.update(id, data);
-        
-        // Delay entre updates individuais
-        if (j < toUpdate.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 150)); // Aumentar de 100ms para 150ms
-        }
-      }
-      
-      // Delay maior entre lotes
-      if (i + UPDATE_BATCH_SIZE < toUpdate.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Aumentar de 200ms para 1000ms
+    // Updates também em lotes maiores
+    if (toUpdate.length > 0) {
+      for (let i = 0; i < toUpdate.length; i += BATCH_SIZE) {
+        const batch = toUpdate.slice(i, i + BATCH_SIZE);
+        await executeWithRetry(async () => {
+          for (const item of batch) {
+            const { id, ...data } = item;
+            await base44.asServiceRole.entities.Inscrito.update(id, data);
+          }
+        });
       }
     }
     

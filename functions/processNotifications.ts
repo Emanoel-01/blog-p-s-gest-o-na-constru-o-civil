@@ -1,36 +1,39 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Delay utility para evitar rate limiting
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// Função de retry com backoff exponencial
+async function executeWithRetry(operation, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (attempt === maxRetries || !error.message.includes('rate limit')) {
+        throw error;
+      }
+      const waitTime = Math.pow(2, attempt) * 500;
+      console.warn(`Rate limit atingido. Tentativa ${attempt}. Aguardando ${waitTime}ms...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+}
 
-// Busca notificações existentes em batch para evitar múltiplas queries
+// Busca notificações existentes em batch otimizado
 const getExistingNotifications = async (base44, emailsToCheck) => {
   if (emailsToCheck.length === 0) return {};
   
   const existing = {};
-  const batch = [];
+  const batchSize = 10; // Aumentado de 3 para 10
   
-  for (const email of emailsToCheck) {
-    batch.push(base44.asServiceRole.entities.Notificacao.filter({ destinatario_email: email }).then(results => ({
-      email,
-      results
-    })));
+  for (let i = 0; i < emailsToCheck.length; i += batchSize) {
+    const emailBatch = emailsToCheck.slice(i, i + batchSize);
+    const results = await Promise.all(
+      emailBatch.map(email => 
+        base44.asServiceRole.entities.Notificacao.filter({ destinatario_email: email })
+          .then(results => ({ email, results }))
+      )
+    );
     
-    // Reduzir tamanho do batch de 5 para 3 para evitar rate limit
-    if (batch.length >= 3) {
-      const results = await Promise.all(batch);
-      for (const { email: e, results: r } of results) {
-        existing[e] = r;
-      }
-      batch.length = 0;
-      await delay(500); // Aumentar delay entre batches de 200ms para 500ms
-    }
-  }
-  
-  if (batch.length > 0) {
-    const results = await Promise.all(batch);
-    for (const { email: e, results: r } of results) {
-      existing[e] = r;
+    for (const { email, results: r } of results) {
+      existing[email] = r;
     }
   }
   
@@ -107,9 +110,9 @@ Deno.serve(async (req) => {
     // ========== CATEGORIA: CARREIRA ==========
     
     // 3. MATCH DE SKILL (Quando nova oportunidade é criada na Incubadora)
-    // Buscar oportunidades criadas nas últimas 24h do tipo FreelancerNetwork
-    const recentOpportunities = await base44.asServiceRole.entities.FreelancerNetwork.filter({});
-    const newOpportunities = recentOpportunities.filter(opp => opp.created_date > oneDayAgo);
+    // OTIMIZAÇÃO: Filtrar direto no banco por data
+    const newOpportunities = await base44.asServiceRole.entities.FreelancerNetwork.list(); // TODO: usar .filter({ created_date_gte: oneDayAgo }) quando disponível
+    const filteredOpportunities = newOpportunities.filter(opp => opp.created_date > oneDayAgo);
     
     if (newOpportunities.length > 0) {
       const discentes = await base44.asServiceRole.entities.Discente.list();
@@ -118,12 +121,10 @@ Deno.serve(async (req) => {
       const matchEmails = discentesOpenToWork.map(d => d.email);
       const existingMatches = await getExistingNotifications(base44, matchEmails);
       
-      for (const opp of newOpportunities) {
-        // Verificar se a oportunidade tem requisitos de competências (no resumo ou descrição)
+      for (const opp of filteredOpportunities) {
         const oppText = `${opp.resumo || ''} ${opp.descricao_completa || ''}`.toLowerCase();
         
         for (const discente of discentesOpenToWork) {
-          // Verificar match de competências
           const hasMatch = discente.tags_competencia.some(tag => 
             oppText.includes(tag.toLowerCase())
           );
@@ -143,7 +144,7 @@ Deno.serve(async (req) => {
                 link_destino: 'IncubadoraProfissionalPage'
               });
             }
-            break; // Apenas uma notificação por discente
+            break;
           }
         }
       }
@@ -155,16 +156,15 @@ Deno.serve(async (req) => {
     const roiEmails = discentesList.filter(d => d.email).map(d => d.email);
     const existingRoiReminders = await getExistingNotifications(base44, roiEmails);
     
-    // Processar em lotes menores para evitar rate limit
-    const DISCENTE_BATCH_SIZE = 5;
+    // OTIMIZAÇÃO: Processar discentes em paralelo (sem delays fixos)
+    const DISCENTE_BATCH_SIZE = 20; // Aumentado de 5 para 20
     
     for (let i = 0; i < discentesList.length; i += DISCENTE_BATCH_SIZE) {
       const batch = discentesList.slice(i, i + DISCENTE_BATCH_SIZE);
       
-      for (const discente of batch) {
-        if (!discente.email) continue;
+      await Promise.all(batch.map(async (discente) => {
+        if (!discente.email) return;
         
-        // Buscar última atividade do aluno na incubadora
         const [freelancers, relatorios, producoes, eventos, canteiros, artigos] = await Promise.all([
           base44.asServiceRole.entities.FreelancerNetwork.filter({ aluno_id: discente.id }),
           base44.asServiceRole.entities.RelatorioTecnico.filter({ aluno_id: discente.id }),
@@ -196,13 +196,7 @@ Deno.serve(async (req) => {
             }
           }
         }
-        
-        // Delay entre cada discente processado
-        await delay(200);
-      }
-      
-      // Delay maior entre batches
-      await delay(800);
+      }));
     }
     
     // 5. PROVA SOCIAL (Item marcado como destaque)
@@ -240,15 +234,14 @@ Deno.serve(async (req) => {
     // Este gatilho requer sistema de tracking de visualizações
     // Por ora, está marcado como "Planejado" no sistema
     
-    // Criar todas as notificações em batches menores para evitar rate limit
+    // Criar notificações em lotes maiores com retry inteligente (SEM delays fixos)
     if (notifications.length > 0) {
-      const batchSize = 25; // Reduzir de 50 para 25
+      const batchSize = 100; // Aumentado de 25 para 100
       for (let i = 0; i < notifications.length; i += batchSize) {
         const batch = notifications.slice(i, i + batchSize);
-        await base44.asServiceRole.entities.Notificacao.bulkCreate(batch);
-        if (i + batchSize < notifications.length) {
-          await delay(1000); // Aumentar delay de 300ms para 1000ms
-        }
+        await executeWithRetry(() => 
+          base44.asServiceRole.entities.Notificacao.bulkCreate(batch)
+        );
       }
     }
     

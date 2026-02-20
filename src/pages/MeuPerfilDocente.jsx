@@ -146,6 +146,32 @@ export default function MeuPerfilDocente() {
       </Helmet>
 
       <div className="max-w-5xl mx-auto space-y-6">
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-gray-200 mb-6">
+          <Button
+            variant={activeTab === 'painel' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('painel')}
+            className="rounded-b-none"
+          >
+            <LayoutDashboard className="w-4 h-4 mr-2" />
+            Painel
+          </Button>
+          <Button
+            variant={activeTab === 'perfil' ? 'default' : 'ghost'}
+            onClick={() => setActiveTab('perfil')}
+            className="rounded-b-none"
+          >
+            <User className="w-4 h-4 mr-2" />
+            Meu Perfil
+          </Button>
+        </div>
+
+        {activeTab === 'painel' && (
+          <PainelDocente professorEmail={user.email} />
+        )}
+
+        {activeTab === 'perfil' && (
+        <>
         {/* Header do Perfil - Estilo Profissional */}
         <Card className="relative overflow-hidden border-2 border-indigo-300">
           {/* Banner Superior */}
@@ -430,6 +456,7 @@ export default function MeuPerfilDocente() {
               </div>
             </CardContent>
           </Card>
+        </>
         )}
       </div>
     </>

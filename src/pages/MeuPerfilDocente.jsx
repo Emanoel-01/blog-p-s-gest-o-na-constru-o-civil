@@ -456,6 +456,7 @@ export default function MeuPerfilDocente() {
               </div>
             </CardContent>
           </Card>
+        )}
         </>
         )}
       </div>

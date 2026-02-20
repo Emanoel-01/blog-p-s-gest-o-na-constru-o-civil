@@ -281,28 +281,33 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
           </CardContent>
         </Card>
 
-        {/* Análise de Similaridade de Disciplinas */}
+        {/* Análise de Similaridade de Ciclos Técnicos */}
         <Card className="border-2 border-red-300 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-red-600 to-pink-600 text-white">
             <CardTitle className="text-xl flex items-center gap-2">
               <AlertCircle className="w-6 h-6" />
-              Análise de Similaridade: Disciplinas Comuns
+              Análise de Similaridade: Ciclos Técnicos Compartilhados
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>ℹ️ Foco em Ciclos Técnicos:</strong> Esta análise identifica apenas ciclos técnicos compartilhados entre especializações (ciclos com disciplinas que possuem "habilidade técnica" definida). Ciclos comuns ou de gestão não são incluídos.
+              </p>
+            </div>
             {similarities.length === 0 ? (
               <p className="text-gray-500 italic">
-                Nenhuma especialização possui 2 ou mais disciplinas em comum.
+                Nenhuma especialização compartilha ciclos técnicos em comum.
               </p>
             ) : (
               <div className="space-y-4">
                 <div className="bg-yellow-50 border border-yellow-300 p-4 rounded-lg mb-4">
                   <AlertCircle className="w-5 h-5 text-yellow-600 inline mr-2" />
                   <span className="font-semibold text-yellow-800">
-                    Atenção: Encontradas {similarities.length} combinação(ões) de especializações com disciplinas em comum.
+                    Atenção: Encontradas {similarities.length} combinação(ões) de especializações com ciclos técnicos em comum.
                   </span>
                   <p className="text-sm text-yellow-700 mt-2">
-                    Considere avaliar se a abertura simultânea dessas especializações pode causar confusão ou canibalização de público.
+                    Considere avaliar se a abertura simultânea dessas especializações pode causar confusão ou canibalização de público-alvo.
                   </p>
                 </div>
 
@@ -313,21 +318,21 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
                         {sim.espec1} ↔ {sim.espec2}
                       </h5>
                       <Badge className="bg-red-600 text-white">
-                        {sim.count} disciplinas comuns
+                        {sim.count} ciclo{sim.count > 1 ? 's' : ''} técnico{sim.count > 1 ? 's' : ''} comum{sim.count > 1 ? 'ns' : ''}
                       </Badge>
                     </div>
                     <div className="mt-3">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Disciplinas em Comum:</p>
+                      <p className="text-xs font-semibold text-gray-600 mb-1">Ciclos Técnicos em Comum:</p>
                       <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
-                        {sim.disciplinasComuns.map((disc, idx) => (
-                          <li key={idx}>{disc}</li>
+                        {sim.ciclosTecnicosComuns.map((ciclo, idx) => (
+                          <li key={idx} className="capitalize">{ciclo}</li>
                         ))}
                       </ul>
                     </div>
                     <div className="mt-3 bg-yellow-100 p-3 rounded text-sm">
                       <p className="font-semibold text-yellow-800 mb-1">💡 Recomendação:</p>
                       <p className="text-yellow-700">
-                        Considere abrir estas especializações em períodos diferentes ou revisar o currículo para maior diferenciação.
+                        Considere abrir estas especializações em períodos diferentes ou revisar os ciclos técnicos para maior diferenciação de mercado.
                       </p>
                     </div>
                   </div>

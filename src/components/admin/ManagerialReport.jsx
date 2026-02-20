@@ -38,7 +38,18 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
     pdf.save('relatorio-gerencial-posgraduacoes.pdf');
   };
 
-  // Análise de similaridade de disciplinas entre especializações
+  // Função para identificar se um ciclo é técnico
+  const isCicloTecnico = (ciclo) => {
+    if (!ciclo || !ciclo.disciplinas || ciclo.disciplinas.length === 0) return false;
+    
+    // Um ciclo é técnico se pelo menos uma disciplina tem habilidade_tecnica definida
+    return ciclo.disciplinas.some(d => {
+      if (!d || typeof d === 'string') return false;
+      return d.habilidade_tecnica && d.habilidade_tecnica.trim().length > 0;
+    });
+  };
+
+  // Análise de similaridade de CICLOS TÉCNICOS entre especializações
   const analyzeEspecializacaoSimilarity = () => {
     const similarities = [];
 
@@ -47,40 +58,32 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
         const espec1 = especializacoes[i];
         const espec2 = especializacoes[j];
 
-        // Obter todas as disciplinas das duas especializações
-        const disciplinas1 = new Set();
+        // Obter apenas os ciclos técnicos de cada especialização
+        const ciclosTecnicos1 = new Set();
         (espec1.ciclos || []).forEach(cicloId => {
           const ciclo = getCicloById(cicloId);
-          if (ciclo && ciclo.disciplinas) {
-            ciclo.disciplinas.forEach(d => {
-              if (!d) return;
-              const nome = typeof d === 'string' ? d : (d?.nome || '');
-              if (nome && typeof nome === 'string') disciplinas1.add(nome.toLowerCase().trim());
-            });
+          if (ciclo && isCicloTecnico(ciclo)) {
+            ciclosTecnicos1.add(ciclo.nome.toLowerCase().trim());
           }
         });
 
-        const disciplinas2 = new Set();
+        const ciclosTecnicos2 = new Set();
         (espec2.ciclos || []).forEach(cicloId => {
           const ciclo = getCicloById(cicloId);
-          if (ciclo && ciclo.disciplinas) {
-            ciclo.disciplinas.forEach(d => {
-              if (!d) return;
-              const nome = typeof d === 'string' ? d : (d?.nome || '');
-              if (nome && typeof nome === 'string') disciplinas2.add(nome.toLowerCase().trim());
-            });
+          if (ciclo && isCicloTecnico(ciclo)) {
+            ciclosTecnicos2.add(ciclo.nome.toLowerCase().trim());
           }
         });
 
-        // Encontrar disciplinas comuns
-        const disciplinasComuns = [...disciplinas1].filter(d => disciplinas2.has(d));
+        // Encontrar ciclos técnicos comuns
+        const ciclosComunsTecnicos = [...ciclosTecnicos1].filter(c => ciclosTecnicos2.has(c));
 
-        if (disciplinasComuns.length >= 2) {
+        if (ciclosComunsTecnicos.length >= 1) {
           similarities.push({
             espec1: espec1.nome,
             espec2: espec2.nome,
-            disciplinasComuns: disciplinasComuns,
-            count: disciplinasComuns.length
+            ciclosTecnicosComuns: ciclosComunsTecnicos,
+            count: ciclosComunsTecnicos.length
           });
         }
       }

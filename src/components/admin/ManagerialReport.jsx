@@ -53,8 +53,9 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
           const ciclo = getCicloById(cicloId);
           if (ciclo && ciclo.disciplinas) {
             ciclo.disciplinas.forEach(d => {
-              const nome = typeof d === 'string' ? d : d.nome;
-              if (nome) disciplinas1.add(nome.toLowerCase().trim());
+              if (!d) return;
+              const nome = typeof d === 'string' ? d : (d?.nome || '');
+              if (nome && typeof nome === 'string') disciplinas1.add(nome.toLowerCase().trim());
             });
           }
         });
@@ -64,8 +65,9 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
           const ciclo = getCicloById(cicloId);
           if (ciclo && ciclo.disciplinas) {
             ciclo.disciplinas.forEach(d => {
-              const nome = typeof d === 'string' ? d : d.nome;
-              if (nome) disciplinas2.add(nome.toLowerCase().trim());
+              if (!d) return;
+              const nome = typeof d === 'string' ? d : (d?.nome || '');
+              if (nome && typeof nome === 'string') disciplinas2.add(nome.toLowerCase().trim());
             });
           }
         });

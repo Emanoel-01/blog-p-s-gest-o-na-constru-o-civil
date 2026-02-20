@@ -21,6 +21,8 @@ import FeedSucesso from '../components/community/FeedSucesso';
 import NotificacoesPanel from '../components/community/NotificacoesPanel';
 import AtalhosComunidade from '../components/community/AtalhosComunidade';
 import UserProgressCard from '../components/student/UserProgressCard';
+import NotificationBell from '../components/layout/NotificationBell';
+import CommentNotifications from '../components/notifications/CommentNotifications';
 
 export default function Homepage() {
   const [user, setUser] = useState(null);
@@ -193,6 +195,12 @@ export default function Homepage() {
             <p className="text-gray-600">
               {profileType === 'docente' ? 'Área do Docente' : 'Área do Discente'}
             </p>
+            
+            {/* Notificações no topo da home */}
+            <div className="flex justify-center gap-2 mt-4">
+              <NotificationBell userEmail={user.email} />
+              <CommentNotifications />
+            </div>
           </div>
 
           {/* Atalhos Rápidos */}

@@ -17,22 +17,30 @@ function ProfileButton({ user, location }) {
   useEffect(() => {
     async function checkProfileType() {
       try {
-        // Verificar se é professor
-        const professores = await base44.entities.Professor.list();
-        const isProfessor = professores.some(p => p.email === user.email);
+        // Verificar se já temos o tipo de perfil armazenado
+        if (user.profile_type) {
+          setProfileType(user.profile_type);
+          setLoading(false);
+          return;
+        }
+
+        // Buscar apenas o registro específico do usuário (filtro otimizado)
+        const professores = await base44.entities.Professor.filter({ email: user.email });
         
-        if (isProfessor) {
+        if (professores.length > 0) {
           setProfileType('docente');
+          // Persistir na sessão para evitar buscas futuras
+          await base44.auth.updateMe({ profile_type: 'docente' });
           setLoading(false);
           return;
         }
         
-        // Verificar se é discente
-        const discentes = await base44.entities.Discente.list();
-        const isDiscente = discentes.some(d => d.email === user.email);
+        const discentes = await base44.entities.Discente.filter({ email: user.email });
         
-        if (isDiscente) {
+        if (discentes.length > 0) {
           setProfileType('discente');
+          // Persistir na sessão para evitar buscas futuras
+          await base44.auth.updateMe({ profile_type: 'discente' });
         }
       } catch (error) {
         console.error('Erro ao verificar tipo de perfil:', error);

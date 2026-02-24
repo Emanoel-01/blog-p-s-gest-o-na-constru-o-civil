@@ -161,9 +161,13 @@ Deno.serve(async (req) => {
     
     // ========== CATEGORIA: ENGAJAMENTO ==========
     
-    // 6. RESPOSTA EM COMENTÁRIO (Admin/Docente responde)
-    const comentarios = await base44.asServiceRole.entities.Comentario.filter({ aprovado: true });
-    const comentariosComResposta = comentarios.filter(c => c.resposta_admin && c.resposta_admin.trim() !== '');
+    // 6. RESPOSTA EM COMENTÁRIO (Admin/Docente responde) - Otimizado
+    const comentariosRecentes = await base44.asServiceRole.entities.Comentario.filter({ 
+      aprovado: true,
+      updated_date_gte: oneDayAgo
+    });
+    
+    const comentariosComResposta = comentariosRecentes.filter(c => c.resposta_admin && c.resposta_admin.trim() !== '');
     
     const commentEmails = comentariosComResposta.filter(c => c.autor_email).map(c => c.autor_email);
     const existingCommentNotifications = await getExistingNotifications(base44, commentEmails, oneDayAgo);
@@ -172,10 +176,9 @@ Deno.serve(async (req) => {
       if (!comentario.autor_email) continue;
       
       const existingNotification = existingCommentNotifications[comentario.autor_email] || [];
-      const comentarioRecente = new Date(comentario.updated_date) > oneDayAgo;
       const hasNotification = existingNotification.some(n => n.titulo === 'Você recebeu uma resposta!');
       
-      if (!hasNotification && comentarioRecente) {
+      if (!hasNotification) {
         notifications.push({
           destinatario_email: comentario.autor_email,
           tipo: 'Engajamento',

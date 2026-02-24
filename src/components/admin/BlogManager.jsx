@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Save, X, Upload, Trash2, Edit, Calendar, Eye, Clock, CheckCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import RichTextEditor from '../editor/RichTextEditor';
+import AIBlogPostGenerator from './AIBlogPostGenerator';
 
 const categorias = [
   {
@@ -189,6 +190,11 @@ export default function BlogManager({
           Novo Post
         </Button>
       </div>
+
+      {/* Gerador de Posts com IA */}
+      <AIBlogPostGenerator onPostCreated={() => {
+        window.location.reload();
+      }} />
 
       {showPostForm && (
         <Card className="mb-6 bg-pink-50 border-pink-200">

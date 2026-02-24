@@ -249,62 +249,66 @@ export default function EmAcaoPage() {
           <p className="text-gray-600">Carregando posts...</p>
         </div>
       ) : filteredPosts.length === 0 ? (
-        <Card className="bg-gray-50">
+        <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200">
           <CardContent className="p-12 text-center">
-            <p className="text-gray-500 italic">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-pink-100 flex items-center justify-center">
+              <FileText className="w-10 h-10 text-pink-600" />
+            </div>
+            <p className="text-gray-500 text-lg">
               {searchTerm ? 'Nenhum post encontrado com este termo de busca.' : 'Nenhum post disponível no momento. Em breve teremos novidades!'}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl mx-auto">
           {currentPosts.map((post) => {
             const postSlug = generateSlug(post.titulo, post.id);
             return (
-              <Card key={post.id} className="hover:shadow-xl transition-all duration-300 border-2 border-gray-200 overflow-hidden">
+              <Card key={post.id} className="group hover:shadow-2xl transition-all duration-300 border-2 border-gray-200 overflow-hidden bg-white flex flex-col">
                 {post.imagem_destaque && (
                   <Link to={createPageUrl('PostPage') + '?slug=' + postSlug}>
-                    <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden cursor-pointer">
+                    <div className="relative h-52 overflow-hidden">
                       <img
                         src={post.imagem_destaque}
                         alt={post.titulo}
                         loading="lazy"
                         decoding="async"
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                    <div className="absolute top-4 right-4 bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg">
-                      <Calendar className="w-4 h-4" />
-                      {post.data}
-                    </div>
-                    </div>
-                    </Link>
-                    )}
-                <CardContent className="p-5 sm:p-6 md:p-8">
-                  <div className="mb-4">
-                    <Link to={createPageUrl('PostPage') + '?slug=' + postSlug}>
-                      <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 hover:text-pink-600 transition-colors cursor-pointer">
-                        {post.titulo}
-                      </h3>
-                    </Link>
-                    <p className="text-gray-600 text-sm sm:text-base md:text-lg leading-relaxed">{post.descricao}</p>
-                    
-                    {/* Tags */}
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        {post.tags.map((tag, i) => (
-                          <Badge key={i} variant="outline" className="bg-pink-50 text-pink-700 border-pink-300 text-sm flex items-center gap-1">
-                            <Tag className="w-4 h-4" />
-                            {tag}
-                          </Badge>
-                        ))}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <div className="absolute bottom-3 right-3 bg-pink-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-lg">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {post.data}
                       </div>
-                    )}
-
-                  </div>
-
+                    </div>
+                  </Link>
+                )}
+                <CardContent className="p-5 flex-1 flex flex-col">
                   <Link to={createPageUrl('PostPage') + '?slug=' + postSlug}>
-                    <Button className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-3 text-base">
-                      Ler Post Completo <ChevronDown className="ml-2 w-5 h-5" />
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 hover:text-pink-600 transition-colors cursor-pointer line-clamp-2">
+                      {post.titulo}
+                    </h3>
+                  </Link>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3 flex-1">{post.descricao}</p>
+                  
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {post.tags.slice(0, 3).map((tag, i) => (
+                        <Badge key={i} variant="outline" className="bg-pink-50 text-pink-700 border-pink-200 text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                      {post.tags.length > 3 && (
+                        <Badge variant="outline" className="bg-gray-50 text-gray-600 text-xs">
+                          +{post.tags.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
+                  <Link to={createPageUrl('PostPage') + '?slug=' + postSlug} className="mt-auto">
+                    <Button className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-semibold py-2.5 text-sm group-hover:shadow-lg transition-shadow">
+                      Ler Mais <ChevronDown className="ml-2 w-4 h-4 group-hover:translate-y-1 transition-transform" />
                     </Button>
                   </Link>
                 </CardContent>

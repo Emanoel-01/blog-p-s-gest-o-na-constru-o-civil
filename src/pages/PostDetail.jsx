@@ -221,13 +221,13 @@ export default function PostDetail() {
           </Button>
         </div>
 
-        <article className="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <article className="bg-white rounded-2xl shadow-2xl overflow-hidden">
           {post.imagem_destaque && (
-            <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
+            <div className="relative h-72 sm:h-96 md:h-[28rem] overflow-hidden">
               <img
                 src={post.imagem_destaque}
                 alt={post.titulo}
-                className="w-full h-full object-cover cursor-pointer"
+                className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700"
                 onClick={() => {
                   const allImages = [
                     post.imagem_destaque,
@@ -238,16 +238,34 @@ export default function PostDetail() {
                   handleImageClick(post.imagem_destaque, allImages);
                 }}
               />
-              <div className="absolute top-4 right-4 bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg">
-                <Calendar className="w-4 h-4" />
-                {post.data}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6">
+                <div className="inline-flex items-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg mb-4">
+                  <Calendar className="w-4 h-4" />
+                  {post.data}
+                </div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-2xl">
+                  {post.titulo}
+                </h1>
               </div>
             </div>
           )}
 
-          <div className="p-6 sm:p-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">{post.titulo}</h1>
-            <p className="text-lg text-gray-600 mb-6">{post.descricao}</p>
+          <div className="p-6 sm:p-8 md:p-10">
+            {!post.imagem_destaque && (
+              <>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">{post.titulo}</h1>
+                <div className="flex items-center gap-3 text-sm text-gray-500 mb-6">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-pink-600" />
+                    {post.data}
+                  </div>
+                </div>
+              </>
+            )}
+            <p className="text-xl text-gray-700 leading-relaxed mb-8 font-light border-l-4 border-pink-600 pl-6 italic">
+              {post.descricao}
+            </p>
 
             {post.tags && post.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-6">
@@ -371,9 +389,10 @@ export default function PostDetail() {
             </div>
 
             {post.conteudo_completo && (
-              <div className="prose prose-lg max-w-none mb-8 text-justify">
-                <ReactMarkdown>{post.conteudo_completo}</ReactMarkdown>
-              </div>
+              <div 
+                className="prose prose-lg prose-pink max-w-none mb-8 prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-pink-600 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700"
+                dangerouslySetInnerHTML={{ __html: post.conteudo_completo }}
+              />
             )}
 
             {post.midias && post.midias.length > 0 && (
@@ -488,14 +507,19 @@ export default function PostDetail() {
               </div>
             )}
 
-            <div className="border-t-2 border-pink-200 pt-6">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <MessageCircle className="w-6 h-6 text-pink-600" />
+            <div className="border-t-2 border-gray-200 pt-8 mt-12">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
+                  <MessageCircle className="w-5 h-5 text-pink-600" />
+                </div>
                 Comentários ({getComentariosAprovados(postId).length})
               </h3>
 
-              <div className="bg-pink-50 p-4 rounded-lg border border-pink-200 mb-6">
-                <h5 className="text-sm font-semibold text-gray-700 mb-3">Deixe seu comentário</h5>
+              <div className="bg-gradient-to-br from-pink-50 to-rose-50 p-6 rounded-xl border-2 border-pink-200 mb-8 shadow-sm">
+                <h5 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Send className="w-5 h-5 text-pink-600" />
+                  Deixe seu comentário
+                </h5>
                 <div className="space-y-3">
                   <Input
                     placeholder="Seu nome *"
@@ -536,36 +560,50 @@ export default function PostDetail() {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {getComentariosAprovados(postId).length === 0 ? (
-                  <p className="text-sm text-gray-500 italic text-center py-4">
-                    Seja o primeiro a comentar!
-                  </p>
+                  <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                      <MessageCircle className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 italic">
+                      Seja o primeiro a comentar!
+                    </p>
+                  </div>
                 ) : (
                   getComentariosAprovados(postId).map((comentario) => (
-                    <div key={comentario.id} className="bg-white p-4 rounded-lg border border-gray-200">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold flex-shrink-0">
+                    <div key={comentario.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-md">
                           {comentario.autor_nome.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-semibold text-gray-800">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="font-bold text-gray-900">
                               {comentario.autor_nome}
                             </span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(comentario.created_date).toLocaleDateString('pt-BR')}
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                              {new Date(comentario.created_date).toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-700 leading-relaxed">
+                          <p className="text-gray-700 leading-relaxed">
                             {comentario.conteudo}
                           </p>
                           {comentario.resposta_admin && (
-                            <div className="mt-3 bg-pink-50 p-3 rounded border-l-2 border-pink-400">
-                              <p className="text-xs font-semibold text-pink-800 mb-1">
-                                Resposta da Coordenação:
-                              </p>
-                              <p className="text-sm text-gray-700">
+                            <div className="mt-4 bg-gradient-to-br from-pink-50 to-rose-50 p-4 rounded-lg border-l-4 border-pink-500 shadow-sm">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-6 h-6 rounded-full bg-pink-600 flex items-center justify-center">
+                                  <User className="w-4 h-4 text-white" />
+                                </div>
+                                <p className="text-sm font-bold text-pink-800">
+                                  Resposta da Coordenação ESUDA
+                                </p>
+                              </div>
+                              <p className="text-sm text-gray-700 leading-relaxed">
                                 {comentario.resposta_admin}
                               </p>
                             </div>

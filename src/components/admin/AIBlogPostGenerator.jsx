@@ -19,8 +19,8 @@ export default function AIBlogPostGenerator({ onPostCreated }) {
 
   const generateMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await base44.functions.invoke('generateAIBlogPost', data);
-      return response.data;
+      const { data: response } = await base44.functions.invoke('generateAIBlogPost', data);
+      return response;
     },
     onSuccess: (data) => {
       if (data.success) {

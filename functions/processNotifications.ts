@@ -282,9 +282,43 @@ Deno.serve(async (req) => {
       }
     }
     
-    // 7. VISITAS AO PERFIL (Semanal)
-    // Este gatilho requer sistema de tracking de visualizações
-    // Por ora, está marcado como "Planejado" no sistema
+    // 7. VISITAS AO PERFIL (Semanal - toda segunda-feira)
+    const hoje = new Date();
+    const isDiaEnvioSemanal = hoje.getDay() === 1; // Segunda-feira
+
+    if (isDiaEnvioSemanal) {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const visitasRecentes = await base44.asServiceRole.entities.VisitaPerfil.filter({
+        data_visita_gte: sevenDaysAgo
+      });
+
+      // Agrupar visitas por discente
+      const visitasPorDiscente = {};
+      for (const visita of visitasRecentes) {
+        if (!visitasPorDiscente[visita.discente_email]) {
+          visitasPorDiscente[visita.discente_email] = 0;
+        }
+        visitasPorDiscente[visita.discente_email]++;
+      }
+
+      const discentesVisitados = Object.entries(visitasPorDiscente).filter(([_, count]) => count > 0);
+      const emailsVisitados = discentesVisitados.map(([email]) => email);
+      const existingVisitNotifications = await getExistingNotifications(base44, emailsVisitados, oneDayAgo);
+
+      for (const [email, totalVisitas] of discentesVisitados) {
+        const existingVisitNotif = existingVisitNotifications[email] || [];
+        const hasVisitNotif = existingVisitNotif.some(n => n.titulo === '👀 Seu perfil foi visitado esta semana!');
+        if (!hasVisitNotif) {
+          notifications.push({
+            destinatario_email: email,
+            tipo: 'Carreira',
+            titulo: '👀 Seu perfil foi visitado esta semana!',
+            mensagem: `Seu perfil recebeu ${totalVisitas} visita(s) nos últimos 7 dias. Mantenha-o atualizado para aproveitar o interesse!`,
+            link_destino: 'MeuPerfilDiscente'
+          });
+        }
+      }
+    }
     
     // Criar notificações com retry inteligente (lotes maiores)
     if (notifications.length > 0) {

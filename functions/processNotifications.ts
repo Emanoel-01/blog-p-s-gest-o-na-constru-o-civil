@@ -339,7 +339,9 @@ Deno.serve(async (req) => {
         lembrete_aula: notifications.filter(n => n.titulo.includes('Aula Amanhã')).length,
         match_skill: notifications.filter(n => n.titulo.includes('Vaga Compatível')).length,
         lembrete_roi: notifications.filter(n => n.titulo.includes('Atualize seu Portfólio')).length,
-        resposta_comentario: notifications.filter(n => n.titulo.includes('Você recebeu uma resposta')).length
+        resposta_comentario: notifications.filter(n => n.titulo.includes('Você recebeu uma resposta')).length,
+        prova_social: notifications.filter(n => n.titulo.includes('destaque')).length,
+        visitas_perfil: notifications.filter(n => n.titulo.includes('perfil foi visitado')).length
       },
       message: `${notifications.length} notificação(ões) processada(s) com sucesso`
     });

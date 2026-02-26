@@ -139,10 +139,17 @@ export default function ProcessadorMatriculasPDF() {
                 <SelectValue placeholder="Escolha o curso..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Engenharia Legal">Engenharia Legal e Perícias</SelectItem>
-                <SelectItem value="BIM">BIM - Building Information Modeling</SelectItem>
-                <SelectItem value="GPO">Gestão de Projetos e Obras</SelectItem>
-                <SelectItem value="Manutenção">Manutenção Predial 4.0</SelectItem>
+                <optgroup label="GRUPO 1 - ENGENHARIA E CONSTRUÇÃO 4.0">
+                  <SelectItem value="Tecnologia BIM na Construção Civil">Tecnologia BIM na Construção Civil</SelectItem>
+                  <SelectItem value="Gestão de Projetos e Obras">Gestão de Projetos e Obras</SelectItem>
+                  <SelectItem value="Manutenção Predial 4.0">Manutenção Predial 4.0</SelectItem>
+                  <SelectItem value="Engenharia Legal e Perícias">Engenharia Legal e Perícias</SelectItem>
+                </optgroup>
+                <optgroup label="GRUPO 2 - ARQUITETURA E DESIGN">
+                  <SelectItem value="Acústica Arquitetônica e Iluminação">Acústica Arquitetônica e Iluminação</SelectItem>
+                  <SelectItem value="Neuroarquitetura">Neuroarquitetura</SelectItem>
+                  <SelectItem value="Design de Interiores">Design de Interiores</SelectItem>
+                </optgroup>
               </SelectContent>
             </Select>
           </div>

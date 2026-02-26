@@ -44,8 +44,7 @@ import BlogManager from '../components/admin/BlogManager';
 import GerenciamentoUsuarios from '../components/admin/GerenciamentoUsuarios';
 import MarketingAIStudio from '../components/admin/MarketingAIStudio';
 import SystemAutomation from '../components/admin/SystemAutomation';
-import AIReportGenerator from '../components/admin/AIReportGenerator';
-import AIContentCreator from '../components/admin/AIContentCreator';
+import AIToolsSection from '../components/admin/AIToolsSection';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();

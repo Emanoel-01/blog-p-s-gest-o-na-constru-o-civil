@@ -5656,13 +5656,7 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'usuarios' && <GerenciamentoUsuarios />}
         {activeTab === 'marketing-ia' && <MarketingAIStudio />}
         {activeTab === 'automacao' && <SystemAutomation />}
-        {activeTab === 'ai-tools' && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Ferramentas de IA</h2>
-            <AIReportGenerator />
-            <AIContentCreator />
-          </div>
-        )}
+        {activeTab === 'ai-tools' && <AIToolsSection />}
       </div>
         </>
       )}

@@ -25,6 +25,23 @@ export default function PerfilDiscente() {
 
   const discente = discentes.find(d => d.id === discenteId);
 
+  // Registrar visita ao perfil
+  useEffect(() => {
+    if (!discente) return;
+    const registrarVisita = async () => {
+      const visitante = await base44.auth.me().catch(() => null);
+      // Não registrar se o próprio discente visitou o próprio perfil
+      if (visitante?.email === discente.email) return;
+      await base44.entities.VisitaPerfil.create({
+        discente_id: discente.id,
+        discente_email: discente.email,
+        visitante_email: visitante?.email || 'anonimo',
+        data_visita: new Date().toISOString()
+      });
+    };
+    registrarVisita();
+  }, [discente?.id]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

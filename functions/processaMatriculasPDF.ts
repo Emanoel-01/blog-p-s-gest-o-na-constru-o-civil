@@ -1,5 +1,51 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Valida se o inscrito (vindo da Google Sheets) tem inscrição paga
+function validarInscricaoPaga(inscrito) {
+  return inscrito.inscricao_paga === true;
+}
+
+// Determina os novos valores de matrícula com base nos dados do PDF
+function calcularStatusMatricula(alunoPDF, inscrito) {
+  const pagouMatricula = alunoPDF.PAGOU_MATRICULA?.toUpperCase() === 'SIM';
+  const contratoAceito = alunoPDF.CONTRATO_ACEITO?.toUpperCase() === 'SIM';
+
+  let novoStatus = inscrito.status_crm;
+  if (contratoAceito && pagouMatricula) {
+    novoStatus = 'Matriculado Turma Nova';
+  } else if (contratoAceito && !pagouMatricula) {
+    novoStatus = 'Aceito';
+  }
+
+  return { pagouMatricula, contratoAceito, novoStatus };
+}
+
+// Verifica se o inscrito já está atualizado com os dados do PDF
+function jaEstaAtualizado(inscrito, pagouMatricula, contratoAceito, novoStatus) {
+  return (
+    inscrito.status_crm === novoStatus &&
+    inscrito.pagou_matricula === pagouMatricula &&
+    inscrito.contrato_aceito === contratoAceito
+  );
+}
+
+// Atualiza o inscrito no banco com os dados de matrícula do PDF
+async function atualizarMatriculaInscrito(base44, inscrito, alunoPDF, curso_grupo, pagouMatricula, contratoAceito, novoStatus) {
+  const dataHoje = new Date().toLocaleDateString('pt-BR');
+  const novaObservacao = `[${dataHoje}] Status atualizado via PDF para: ${novoStatus}`;
+
+  await base44.asServiceRole.entities.Inscrito.update(inscrito.id, {
+    status_crm: novoStatus,
+    pagou_matricula: pagouMatricula,
+    contrato_aceito: contratoAceito,
+    turma_matricula: alunoPDF.TURMA || curso_grupo,
+    data_atualizacao_matricula: new Date().toISOString(),
+    observacoes: inscrito.observacoes
+      ? `${inscrito.observacoes}\n${novaObservacao}`
+      : novaObservacao
+  });
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -10,49 +56,40 @@ Deno.serve(async (req) => {
     }
 
     const payload = await req.json();
-    const { file_url, curso_grupo, data_referencia } = payload;
+    const { file_url, curso_grupo } = payload;
 
     if (!file_url || !curso_grupo) {
-      return Response.json({ 
-        error: 'Parâmetros obrigatórios: file_url e curso_grupo' 
-      }, { status: 400 });
+      return Response.json({ error: 'Parâmetros obrigatórios: file_url e curso_grupo' }, { status: 400 });
     }
-
-    // Schema para extração de dados do PDF
-    const pdfSchema = {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          RA: { type: "string" },
-          NOME: { type: "string" },
-          EMAIL: { type: "string" },
-          TELEFONE: { type: "string" },
-          SITUACAO: { type: "string" },
-          PAGOU_MATRICULA: { type: "string" },
-          CONTRATO_ACEITO: { type: "string" },
-          PARCELAS: { type: "string" },
-          TIPO: { type: "string" }
-        },
-        required: ["NOME", "EMAIL"]
-      }
-    };
 
     // Extrair dados do PDF
     const extractResult = await base44.integrations.Core.ExtractDataFromUploadedFile({
-      file_url: file_url,
-      json_schema: pdfSchema
+      file_url,
+      json_schema: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            RA: { type: "string" },
+            NOME: { type: "string" },
+            EMAIL: { type: "string" },
+            TELEFONE: { type: "string" },
+            SITUACAO: { type: "string" },
+            PAGOU_MATRICULA: { type: "string" },
+            CONTRATO_ACEITO: { type: "string" },
+            PARCELAS: { type: "string" },
+            TIPO: { type: "string" }
+          },
+          required: ["NOME", "EMAIL"]
+        }
+      }
     });
 
     if (extractResult.status === 'error') {
-      return Response.json({ 
-        error: 'Erro ao extrair dados do PDF: ' + extractResult.details 
-      }, { status: 400 });
+      return Response.json({ error: 'Erro ao extrair dados do PDF: ' + extractResult.details }, { status: 400 });
     }
 
     const alunosPDF = extractResult.output || [];
-
-    // Buscar inscritos da Google Sheet
     const inscritos = await base44.asServiceRole.entities.Inscrito.list();
 
     const resultado = {
@@ -66,105 +103,57 @@ Deno.serve(async (req) => {
       erros: []
     };
 
-    // Processar cada aluno do PDF
     for (const alunoPDF of alunosPDF) {
       try {
         resultado.processados++;
 
-        // Normalizar email
         const emailNormalizado = alunoPDF.EMAIL?.trim().toLowerCase();
         if (!emailNormalizado) {
-          resultado.erros.push({
-            nome: alunoPDF.NOME,
-            erro: 'Email não encontrado no PDF'
-          });
+          resultado.erros.push({ nome: alunoPDF.NOME, erro: 'Email não encontrado no PDF' });
           continue;
         }
 
-        // Buscar inscrito no banco de dados
-        const inscrito = inscritos.find(i => 
+        const inscrito = inscritos.find(i =>
           i.email?.toLowerCase() === emailNormalizado &&
           i.nome_curso?.toLowerCase().includes(curso_grupo.toLowerCase())
         );
 
         if (!inscrito) {
           resultado.nao_encontrados++;
-          resultado.erros.push({
-            nome: alunoPDF.NOME,
-            email: emailNormalizado,
-            erro: `Não encontrado no sistema com curso ${curso_grupo}`
-          });
+          resultado.erros.push({ nome: alunoPDF.NOME, email: emailNormalizado, erro: `Não encontrado no sistema com curso ${curso_grupo}` });
           continue;
         }
 
-        // Verificar se tem inscrição paga
-        if (!inscrito.inscricao_paga) {
+        // Validação da inscrição paga via Google Sheets
+        if (!validarInscricaoPaga(inscrito)) {
           resultado.inscricao_nao_paga++;
-          resultado.erros.push({
-            nome: alunoPDF.NOME,
-            email: emailNormalizado,
-            erro: 'Inscrição não paga (verificar planilha Google Sheets)'
-          });
+          resultado.erros.push({ nome: alunoPDF.NOME, email: emailNormalizado, erro: 'Inscrição não paga (verificar planilha Google Sheets)' });
           continue;
         }
 
-        // Verificar status de matrícula e contrato do PDF
-        const pagouMatricula = alunoPDF.PAGOU_MATRICULA?.toUpperCase() === 'SIM';
-        const contratoAceito = alunoPDF.CONTRATO_ACEITO?.toUpperCase() === 'SIM';
+        // Calcular novo status com base nos dados do PDF
+        const { pagouMatricula, contratoAceito, novoStatus } = calcularStatusMatricula(alunoPDF, inscrito);
 
-        // Determinar novo status
-        let novoStatus = inscrito.status_crm;
-        
-        if (contratoAceito && pagouMatricula) {
-          novoStatus = 'Matriculado Turma Nova';
-        } else if (contratoAceito && !pagouMatricula) {
-          novoStatus = 'Aceito';
-        }
-
-        // Verificar se já está com o status correto
-        if (inscrito.status_crm === novoStatus && 
-            inscrito.pagou_matricula === pagouMatricula && 
-            inscrito.contrato_aceito === contratoAceito) {
+        if (jaEstaAtualizado(inscrito, pagouMatricula, contratoAceito, novoStatus)) {
           resultado.ja_estavam_atualizados++;
           continue;
         }
 
-        // Atualizar inscrito
-        await base44.asServiceRole.entities.Inscrito.update(inscrito.id, {
-          status_crm: novoStatus,
-          pagou_matricula: pagouMatricula,
-          contrato_aceito: contratoAceito,
-          turma_matricula: alunoPDF.TURMA || curso_grupo,
-          data_atualizacao_matricula: new Date().toISOString(),
-          observacoes: inscrito.observacoes 
-            ? `${inscrito.observacoes}\n[${new Date().toLocaleDateString('pt-BR')}] Status atualizado via PDF para: ${novoStatus}`
-            : `[${new Date().toLocaleDateString('pt-BR')}] Status atualizado via PDF para: ${novoStatus}`
-        });
+        // Atualizar matrícula
+        await atualizarMatriculaInscrito(base44, inscrito, alunoPDF, curso_grupo, pagouMatricula, contratoAceito, novoStatus);
 
-        if (novoStatus === 'Aceito') {
-          resultado.atualizados_aceito++;
-        } else if (novoStatus === 'Matriculado Turma Nova') {
-          resultado.atualizados_matriculado++;
-        }
+        if (novoStatus === 'Aceito') resultado.atualizados_aceito++;
+        else if (novoStatus === 'Matriculado Turma Nova') resultado.atualizados_matriculado++;
 
       } catch (error) {
-        resultado.erros.push({
-          nome: alunoPDF.NOME,
-          email: alunoPDF.EMAIL,
-          erro: error.message
-        });
+        resultado.erros.push({ nome: alunoPDF.NOME, email: alunoPDF.EMAIL, erro: error.message });
       }
     }
 
-    return Response.json({
-      success: true,
-      resultado: resultado
-    });
+    return Response.json({ success: true, resultado });
 
   } catch (error) {
     console.error('Erro ao processar matrículas:', error);
-    return Response.json({ 
-      error: 'Erro ao processar arquivo: ' + error.message 
-    }, { status: 500 });
+    return Response.json({ error: 'Erro ao processar arquivo: ' + error.message }, { status: 500 });
   }
 });

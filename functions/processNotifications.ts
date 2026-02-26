@@ -197,9 +197,60 @@ Deno.serve(async (req) => {
       }
     }
     
-    // 5. PROVA SOCIAL (Item marcado como destaque)
-    // Este gatilho seria acionado quando o admin marcar algo como destaque manualmente
-    // Por enquanto, não há campo "destaque" nas entidades da Incubadora
+    // 5. PROVA SOCIAL (Item marcado como destaque pelo admin)
+    const entidadesDestaque = await Promise.all([
+      base44.asServiceRole.entities.FreelancerNetwork.filter({ destaque: true, updated_date_gte: oneDayAgo }),
+      base44.asServiceRole.entities.ArtigoCientifico.filter({ destaque: true, updated_date_gte: oneDayAgo }),
+      base44.asServiceRole.entities.Evento.filter({ destaque: true, updated_date_gte: oneDayAgo }),
+      base44.asServiceRole.entities.CanteiroDidatico.filter({ destaque: true, updated_date_gte: oneDayAgo }),
+      base44.asServiceRole.entities.RelatorioTecnico.filter({ destaque: true, updated_date_gte: oneDayAgo }),
+      base44.asServiceRole.entities.ProducaoTecnologica.filter({ destaque: true, updated_date_gte: oneDayAgo })
+    ]);
+
+    const itensDestaque = entidadesDestaque.flat();
+
+    if (itensDestaque.length > 0) {
+      const discentes = await base44.asServiceRole.entities.Discente.list();
+      const discenteEmailsDestaque = discentes.filter(d => d.email).map(d => d.email);
+      const existingDestaque = await getExistingNotifications(base44, discenteEmailsDestaque, oneDayAgo);
+
+      for (const item of itensDestaque) {
+        const autor = discentes.find(d => d.id === item.aluno_id);
+        if (!autor) continue;
+
+        const tituloItem = item.nome_atividade || item.titulo_artigo || item.nome_evento || item.nome_canteiro || item.titulo_relatorio || item.titulo_producao || 'Atividade';
+
+        // Notificar o próprio autor
+        const existingAutorNotif = existingDestaque[autor.email] || [];
+        const hasAutorNotif = existingAutorNotif.some(n => n.titulo === '🌟 Sua atividade foi destacada!');
+        if (!hasAutorNotif) {
+          notifications.push({
+            destinatario_email: autor.email,
+            tipo: 'Engajamento',
+            titulo: '🌟 Sua atividade foi destacada!',
+            mensagem: `"${tituloItem}" foi marcada como destaque pelo coordenador. Parabéns!`,
+            link_destino: 'IncubadoraProfissionalPage'
+          });
+        }
+
+        // Notificar todos os outros discentes (prova social)
+        for (const discente of discentes) {
+          if (!discente.email || discente.id === autor.id) continue;
+          const existingDiscenteNotif = existingDestaque[discente.email] || [];
+          const hasDiscenteNotif = existingDiscenteNotif.some(n => n.titulo === '🏆 Colega em destaque na Incubadora!');
+          if (!hasDiscenteNotif) {
+            notifications.push({
+              destinatario_email: discente.email,
+              tipo: 'Engajamento',
+              titulo: '🏆 Colega em destaque na Incubadora!',
+              mensagem: `${autor.nome} teve "${tituloItem}" destacado. Inspire-se e registre suas conquistas também!`,
+              link_destino: 'IncubadoraProfissionalPage'
+            });
+            break; // Apenas uma notificação de prova social por discente por dia
+          }
+        }
+      }
+    }
     
     // ========== CATEGORIA: ENGAJAMENTO ==========
     

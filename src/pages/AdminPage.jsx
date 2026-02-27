@@ -1600,51 +1600,10 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const handleDeleteCronograma = (id) => { if (window.confirm('Tem certeza que deseja remover esta aula do cronograma?')) { deleteCronogramaMutation.mutate(id); } };
 
   // ========== HANDLERS PARA PROJETO ==========
-  const resetProjetoForm = () => {
-    setProjetoForm({
-      nome_projeto: '',
-      coordenador: '',
-      objetivo_geral: '',
-      justificativa: '',
-      tipo_projeto: 'Incubadora Profissional',
-      ano_projeto: new Date().getFullYear(),
-      especializacoes: []
-    });
-    setShowProjetoForm(false);
-    setEditingProjeto(null);
-  };
-
-  const handleSaveProjeto = (e) => {
-    e.preventDefault();
-    
-    if (!projetoForm.nome_projeto || !projetoForm.ano_projeto) {
-      toast.error('Nome e ano do projeto são obrigatórios!');
-      return;
-    }
-
-    const data = {
-      ...projetoForm,
-      ano_projeto: parseInt(projetoForm.ano_projeto)
-    };
-
-    if (editingProjeto) {
-      updateProjetoMutation.mutate({ id: editingProjeto.id, data });
-    } else {
-      createProjetoMutation.mutate(data);
-    }
-  };
-
-  const handleEditProjeto = (projeto) => {
-    setProjetoForm(projeto);
-    setEditingProjeto(projeto);
-    setShowProjetoForm(true);
-  };
-
-  const handleDeleteProjeto = (id) => {
-    if (window.confirm('Tem certeza que deseja remover este projeto?')) {
-      deleteProjetoMutation.mutate(id);
-    }
-  };
+  const resetProjetoForm = () => { setProjetoForm({ nome_projeto: '', coordenador: '', objetivo_geral: '', justificativa: '', tipo_projeto: 'Incubadora Profissional', ano_projeto: new Date().getFullYear(), especializacoes: [] }); setShowProjetoForm(false); setEditingProjeto(null); };
+  const handleSaveProjeto = (e) => { e.preventDefault(); if (!projetoForm.nome_projeto || !projetoForm.ano_projeto) { toast.error('Nome e ano do projeto são obrigatórios!'); return; } const data = { ...projetoForm, ano_projeto: parseInt(projetoForm.ano_projeto) }; if (editingProjeto) { updateProjetoMutation.mutate({ id: editingProjeto.id, data }); } else { createProjetoMutation.mutate(data); } };
+  const handleEditProjeto = (projeto) => { setProjetoForm(projeto); setEditingProjeto(projeto); setShowProjetoForm(true); };
+  const handleDeleteProjeto = (id) => { if (window.confirm('Tem certeza que deseja remover este projeto?')) { deleteProjetoMutation.mutate(id); } };
 
   // ========== HANDLERS PARA CHATBOT FAQS ==========
   const resetFAQForm = () => {

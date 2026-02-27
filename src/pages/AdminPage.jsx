@@ -764,11 +764,7 @@ export default function AdminPage() {
   });
 
   // ========== HANDLERS PARA CICLOS ==========
-  const resetCicloForm = () => {
-    setCicloForm({ nome: '', carga_horaria: '', disciplinas: [], ordem: 0 });
-    setShowCicloForm(false);
-    setEditingCiclo(null);
-  };
+  const resetCicloForm = () => { setCicloForm({ nome: '', carga_horaria: '', disciplinas: [], ordem: 0 }); setShowCicloForm(false); setEditingCiclo(null); };
 
   const handleSaveCiclo = () => {
     const data = {

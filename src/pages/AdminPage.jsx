@@ -2346,11 +2346,7 @@ Seja detalhado, prático e objetivo na análise.`;
         </Button>
       </div>
 
-      <AIOrderSuggestions
-        entityType="ciclo"
-        items={ciclos}
-        onApplyOrder={() => queryClient.invalidateQueries(['ciclos'])}
-      />
+
 
       {showCicloForm && (
         <Card className="mb-6 bg-blue-50 border-blue-200">
@@ -2496,11 +2492,7 @@ Seja detalhado, prático e objetivo na análise.`;
         </Button>
       </div>
 
-      <AIOrderSuggestions
-        entityType="especializacao"
-        items={especializacoes}
-        onApplyOrder={() => queryClient.invalidateQueries(['especializacoes'])}
-      />
+
 
       {showEspecForm && (
         <Card className="mb-6 bg-green-50 border-green-200">
@@ -2999,11 +2991,7 @@ Seja detalhado, prático e objetivo na análise.`;
         </Button>
       </div>
 
-      <AIOrderSuggestions
-        entityType="parceiro"
-        items={parceiros}
-        onApplyOrder={() => queryClient.invalidateQueries(['parceiros'])}
-      />
+
 
       {showParceiroForm && (
         <Card className="mb-6 bg-orange-50 border-orange-200">
@@ -3363,11 +3351,7 @@ Seja detalhado, prático e objetivo na análise.`;
         </Button>
       </div>
 
-      <AIOrderSuggestions
-        entityType="professor"
-        items={professores}
-        onApplyOrder={() => queryClient.invalidateQueries(['professores'])}
-      />
+
 
       {showProfessorForm && (
         <Card className="mb-6 bg-indigo-50 border-indigo-200">

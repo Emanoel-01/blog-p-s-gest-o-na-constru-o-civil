@@ -227,39 +227,6 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
           </CardContent>
         </Card>
 
-        {/* Análise de Ciclos Compartilhados */}
-        <Card className="border-2 border-green-300 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-green-600 to-teal-600 text-white">
-            <CardTitle className="text-xl">Ciclos Compartilhados Entre Especializações</CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            {ciclosCompartilhados.length === 0 ? (
-              <p className="text-gray-500 italic">Nenhum ciclo é compartilhado entre especializações.</p>
-            ) : (
-              <div className="space-y-4">
-                {ciclosCompartilhados.map((item, index) => (
-                  <div key={index} className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
-                    <h5 className="font-bold text-green-900">{item.ciclo.nome}</h5>
-                    <p className="text-sm text-green-700 mt-1">{item.ciclo.carga_horaria}h</p>
-                    <div className="mt-2">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">
-                        Usado em {item.especializacoes.length} especializações:
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {item.especializacoes.map((nome, idx) => (
-                          <Badge key={idx} className="bg-green-100 text-green-800 text-xs">
-                            {nome}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
         {/* Análise de Similaridade de Ciclos Técnicos */}
         <Card className="border-2 border-red-300 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-red-600 to-pink-600 text-white">

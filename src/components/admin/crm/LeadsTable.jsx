@@ -142,9 +142,9 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
 
     // --- Definição das colunas ---
     // Nome | Contato (Email + WhatsApp) | Curso | Status | Inscrição
-    const colX    = [margin, 75,  160, 230, 265];
-    const colW    = [59,     83,   68,  33,   28]; // larguras máx para splitText
-    const headers = ['Nome', 'Email / WhatsApp', 'Curso', 'Status', 'Inscrição'];
+    const colX    = [margin, 75,  160, 225, 258, 278];
+    const colW    = [59,     83,   63,  31,   18,  14]; // larguras máx para splitText
+    const headers = ['Nome', 'Email / WhatsApp', 'Curso', 'Status', 'Inscrição', 'Pago'];
 
     // Linha de cabeçalho da tabela
     const headerRowH = 8;

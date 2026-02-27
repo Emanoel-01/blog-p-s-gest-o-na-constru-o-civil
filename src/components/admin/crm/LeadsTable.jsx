@@ -173,6 +173,7 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
       const dataStr      = inscrito.data_inscricao
         ? new Date(inscrito.data_inscricao).toLocaleDateString('pt-BR')
         : '-';
+      const pagoStr      = inscrito.inscricao_paga ? 'Sim' : 'Não';
 
       const lineH   = 4.2; // altura de cada linha de texto
       const padding = 2;   // padding vertical interno

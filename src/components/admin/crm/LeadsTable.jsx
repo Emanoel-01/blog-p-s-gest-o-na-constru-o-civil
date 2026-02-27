@@ -105,94 +105,119 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
   };
   
   const exportToPDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
+    // Landscape para mais espaço horizontal
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.getWidth();   // 297mm
+    const pageHeight = doc.internal.pageSize.getHeight(); // 210mm
+    const margin = 14;
     const now = new Date().toLocaleDateString('pt-BR');
 
-    // Título
-    doc.setFontSize(16);
+    // --- Cabeçalho ---
+    doc.setFontSize(15);
     doc.setFont('helvetica', 'bold');
-    doc.text('Lista de Leads - CRM ESUDA', 14, 18);
+    doc.text('Lista de Leads - CRM ESUDA', margin, 16);
 
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Gerado em: ${now}  |  Total: ${filtered.length} lead(s)`, 14, 26);
+    doc.text(`Gerado em: ${now}   |   Total: ${filtered.length} lead(s)`, margin, 23);
 
     // Filtros aplicados
     const filtrosAplicados = [];
     if (searchTerm) filtrosAplicados.push(`Busca: "${searchTerm}"`);
     if (statusFilter.length > 0) filtrosAplicados.push(`Status: ${statusFilter.join(', ')}`);
     if (grupoFilter.length > 0) filtrosAplicados.push(`Grupos: ${grupoFilter.map(getGrupoLabel).join(', ')}`);
+    if (cursoFilter.length > 0) filtrosAplicados.push(`Cursos: ${cursoFilter.join(', ')}`);
     if (dataInicio || dataFim) filtrosAplicados.push(`Período: ${dataInicio ? format(dataInicio, 'dd/MM/yyyy') : '*'} - ${dataFim ? format(dataFim, 'dd/MM/yyyy') : '*'}`);
-    
+
+    let headerY = 30;
     if (filtrosAplicados.length > 0) {
-      doc.setFontSize(8);
-      doc.setTextColor(100);
-      doc.text('Filtros: ' + filtrosAplicados.join('  |  '), 14, 33, { maxWidth: pageWidth - 28 });
-      doc.setTextColor(0);
+      doc.setFontSize(7.5);
+      doc.setTextColor(90, 90, 90);
+      const filtroText = 'Filtros: ' + filtrosAplicados.join('   |   ');
+      const filtroLines = doc.splitTextToSize(filtroText, pageWidth - margin * 2);
+      doc.text(filtroLines, margin, headerY);
+      headerY += filtroLines.length * 4 + 3;
+      doc.setTextColor(0, 0, 0);
     }
 
-    // Cursos no cabeçalho (se filtrado)
-    if (cursoFilter.length > 0) {
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Cursos: ', 14, filtrosAplicados.length > 0 ? 39 : 31);
-      doc.setFont('helvetica', 'normal');
-      doc.text(cursoFilter.join(', '), 30, filtrosAplicados.length > 0 ? 39 : 31, { maxWidth: pageWidth - 44 });
-    }
+    // --- Definição das colunas ---
+    // Nome | Contato (Email + WhatsApp) | Curso | Status | Inscrição
+    const colX    = [margin, 75,  160, 230, 265];
+    const colW    = [59,     83,   68,  33,   28]; // larguras máx para splitText
+    const headers = ['Nome', 'Email / WhatsApp', 'Curso', 'Status', 'Inscrição'];
 
-    // Cabeçalho da tabela
-    let y = filtrosAplicados.length > 0 ? (cursoFilter.length > 0 ? 48 : 42) : (cursoFilter.length > 0 ? 40 : 34);
-    const cols = [14, 90, 140, 172];
-    const headers = ['Nome', 'Email', 'Status', 'Inscrição'];
-
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
+    // Linha de cabeçalho da tabela
+    const headerRowH = 8;
     doc.setFillColor(41, 128, 185);
     doc.setTextColor(255, 255, 255);
-    doc.rect(14, y - 5, pageWidth - 28, 8, 'F');
-    headers.forEach((h, i) => doc.text(h, cols[i] + 1, y));
-    doc.setTextColor(0);
+    doc.rect(margin, headerY, pageWidth - margin * 2, headerRowH, 'F');
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'bold');
+    headers.forEach((h, i) => doc.text(h, colX[i] + 1, headerY + 5.5));
+    doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'normal');
-    y += 5;
 
-    // Linhas
-    filtered.forEach((inscrito) => {
-      const lineHeight = 11;
-      if (y > 272) {
+    let y = headerY + headerRowH + 1;
+
+    // --- Linhas de dados ---
+    filtered.forEach((inscrito, idx) => {
+      // Preparar conteúdo multi-linha de cada célula
+      const nomeLines    = doc.splitTextToSize(inscrito.nome_completo || '-', colW[0]);
+      const emailLines   = doc.splitTextToSize(`Email: ${inscrito.email || '-'}`, colW[1]);
+      const waLine       = inscrito.telefone_sanitizado
+        ? doc.splitTextToSize(`WhatsApp: ${inscrito.telefone_sanitizado}`, colW[1])
+        : [];
+      const contatoLines = [...emailLines, ...waLine];
+      const cursoLines   = doc.splitTextToSize(inscrito.nome_curso || '-', colW[2]);
+      const statusLines  = doc.splitTextToSize(inscrito.status_crm || '-', colW[3]);
+      const dataStr      = inscrito.data_inscricao
+        ? new Date(inscrito.data_inscricao).toLocaleDateString('pt-BR')
+        : '-';
+
+      const lineH   = 4.2; // altura de cada linha de texto
+      const padding = 2;   // padding vertical interno
+      const maxLines = Math.max(nomeLines.length, contatoLines.length, cursoLines.length, statusLines.length, 1);
+      const rowH = maxLines * lineH + padding * 2;
+
+      // Nova página se necessário
+      if (y + rowH > pageHeight - 10) {
         doc.addPage();
-        y = 20;
+        y = 15;
+        // Replicar cabeçalho
+        doc.setFillColor(41, 128, 185);
+        doc.setTextColor(255, 255, 255);
+        doc.rect(margin, y, pageWidth - margin * 2, headerRowH, 'F');
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'bold');
+        headers.forEach((h, i) => doc.text(h, colX[i] + 1, y + 5.5));
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+        y += headerRowH + 1;
       }
 
-      // Calcular altura necessária para as linhas de detalhes
-      const nomeLines = doc.splitTextToSize(inscrito.nome_completo || '-', 73);
-      const emailLine = inscrito.email || '-';
-      const whatsappLine = inscrito.telefone_sanitizado ? `WhatsApp: ${inscrito.telefone_sanitizado}` : null;
-      const rowHeight = Math.max(nomeLines.length, 1) * 5 + (whatsappLine ? 9 : 5);
-
-      if (y + rowHeight > 280) {
-        doc.addPage();
-        y = 20;
+      // Fundo alternado
+      if (idx % 2 === 0) {
+        doc.setFillColor(245, 248, 252);
+        doc.rect(margin, y, pageWidth - margin * 2, rowH, 'F');
       }
 
-      doc.setFillColor(245, 245, 245);
-      doc.rect(14, y - 4, pageWidth - 28, rowHeight, 'F');
+      // Borda leve
+      doc.setDrawColor(220, 220, 220);
+      doc.rect(margin, y, pageWidth - margin * 2, rowH, 'S');
 
-      doc.setFontSize(8);
+      // Texto das células
+      doc.setFontSize(7.5);
+      const textY = y + padding + lineH;
+
       doc.setFont('helvetica', 'bold');
-      doc.text(nomeLines, cols[0], y);
+      doc.text(nomeLines, colX[0] + 1, textY);
       doc.setFont('helvetica', 'normal');
+      doc.text(contatoLines, colX[1] + 1, textY);
+      doc.text(cursoLines,   colX[2] + 1, textY);
+      doc.text(statusLines,  colX[3] + 1, textY);
+      doc.text(dataStr,      colX[4] + 1, textY);
 
-      // Email e WhatsApp empilhados
-      doc.text(`Email: ${emailLine}`, cols[1], y, { maxWidth: 47 });
-      if (whatsappLine) {
-        doc.text(whatsappLine, cols[1], y + 5, { maxWidth: 47 });
-      }
-
-      doc.text(inscrito.status_crm || '-', cols[2], y);
-      doc.text(inscrito.data_inscricao ? new Date(inscrito.data_inscricao).toLocaleDateString('pt-BR') : '-', cols[3], y);
-
-      y += rowHeight + 2;
+      y += rowH;
     });
 
     doc.save(`leads-crm-${now.replace(/\//g, '-')}.pdf`);

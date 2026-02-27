@@ -123,7 +123,6 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
     if (searchTerm) filtrosAplicados.push(`Busca: "${searchTerm}"`);
     if (statusFilter.length > 0) filtrosAplicados.push(`Status: ${statusFilter.join(', ')}`);
     if (grupoFilter.length > 0) filtrosAplicados.push(`Grupos: ${grupoFilter.map(getGrupoLabel).join(', ')}`);
-    if (cursoFilter.length > 0) filtrosAplicados.push(`Cursos: ${cursoFilter.join(', ')}`);
     if (dataInicio || dataFim) filtrosAplicados.push(`Período: ${dataInicio ? format(dataInicio, 'dd/MM/yyyy') : '*'} - ${dataFim ? format(dataFim, 'dd/MM/yyyy') : '*'}`);
     
     if (filtrosAplicados.length > 0) {

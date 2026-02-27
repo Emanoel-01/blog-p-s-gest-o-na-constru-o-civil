@@ -414,6 +414,16 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
         <Badge variant="outline" className="text-sm">
           {filtered.length} lead(s)
         </Badge>
+
+        <Button
+          onClick={exportToPDF}
+          disabled={filtered.length === 0}
+          variant="outline"
+          className="gap-2 text-red-700 border-red-300 hover:bg-red-50"
+        >
+          <FileDown className="w-4 h-4" />
+          Exportar PDF
+        </Button>
       </div>
 
       <div className="space-y-3">

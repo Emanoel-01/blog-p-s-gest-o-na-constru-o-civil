@@ -133,10 +133,19 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
       doc.setTextColor(0);
     }
 
+    // Cursos no cabeçalho (se filtrado)
+    if (cursoFilter.length > 0) {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Cursos: ', 14, filtrosAplicados.length > 0 ? 39 : 31);
+      doc.setFont('helvetica', 'normal');
+      doc.text(cursoFilter.join(', '), 30, filtrosAplicados.length > 0 ? 39 : 31, { maxWidth: pageWidth - 44 });
+    }
+
     // Cabeçalho da tabela
-    let y = filtrosAplicados.length > 0 ? 42 : 34;
-    const cols = [14, 75, 115, 148, 175];
-    const headers = ['Nome', 'Email', 'Curso', 'Status', 'Inscrição'];
+    let y = filtrosAplicados.length > 0 ? (cursoFilter.length > 0 ? 48 : 42) : (cursoFilter.length > 0 ? 40 : 34);
+    const cols = [14, 90, 140, 172];
+    const headers = ['Nome', 'Email', 'Status', 'Inscrição'];
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
@@ -149,22 +158,42 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
     y += 5;
 
     // Linhas
-    filtered.forEach((inscrito, idx) => {
-      if (y > 275) {
+    filtered.forEach((inscrito) => {
+      const lineHeight = 11;
+      if (y > 272) {
         doc.addPage();
         y = 20;
       }
-      if (idx % 2 === 0) {
-        doc.setFillColor(245, 245, 245);
-        doc.rect(14, y - 4, pageWidth - 28, 7, 'F');
+
+      // Calcular altura necessária para as linhas de detalhes
+      const nomeLines = doc.splitTextToSize(inscrito.nome_completo || '-', 73);
+      const emailLine = inscrito.email || '-';
+      const whatsappLine = inscrito.telefone_sanitizado ? `WhatsApp: ${inscrito.telefone_sanitizado}` : null;
+      const rowHeight = Math.max(nomeLines.length, 1) * 5 + (whatsappLine ? 9 : 5);
+
+      if (y + rowHeight > 280) {
+        doc.addPage();
+        y = 20;
       }
+
+      doc.setFillColor(245, 245, 245);
+      doc.rect(14, y - 4, pageWidth - 28, rowHeight, 'F');
+
       doc.setFontSize(8);
-      doc.text(doc.splitTextToSize(inscrito.nome_completo || '-', 58), cols[0], y);
-      doc.text(doc.splitTextToSize(inscrito.email || '-', 37), cols[1], y);
-      doc.text(doc.splitTextToSize(inscrito.nome_curso || '-', 30), cols[2], y);
-      doc.text(inscrito.status_crm || '-', cols[3], y);
-      doc.text(inscrito.data_inscricao ? new Date(inscrito.data_inscricao).toLocaleDateString('pt-BR') : '-', cols[4], y);
-      y += 7;
+      doc.setFont('helvetica', 'bold');
+      doc.text(nomeLines, cols[0], y);
+      doc.setFont('helvetica', 'normal');
+
+      // Email e WhatsApp empilhados
+      doc.text(`Email: ${emailLine}`, cols[1], y, { maxWidth: 47 });
+      if (whatsappLine) {
+        doc.text(whatsappLine, cols[1], y + 5, { maxWidth: 47 });
+      }
+
+      doc.text(inscrito.status_crm || '-', cols[2], y);
+      doc.text(inscrito.data_inscricao ? new Date(inscrito.data_inscricao).toLocaleDateString('pt-BR') : '-', cols[3], y);
+
+      y += rowHeight + 2;
     });
 
     doc.save(`leads-crm-${now.replace(/\//g, '-')}.pdf`);

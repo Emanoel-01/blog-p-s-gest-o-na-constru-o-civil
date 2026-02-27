@@ -1067,21 +1067,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
     { value: 'Convênios Corporativos', needsQuantidade: false, needsDiscount: true }
   ];
 
-  const resetParceiroForm = () => {
-    setParceiroForm({
-      nome: '',
-      tipos_parceria: [],
-      logo_url: '',
-      instagram: '',
-      linkedin: '',
-      site: '',
-      especializacoes: [], // Reset especializacoes
-      ordem: 0
-    });
-    setSelectedTiposParceria({});
-    setShowParceiroForm(false);
-    setEditingParceiro(null);
-  };
+  const resetParceiroForm = () => { setParceiroForm({ nome: '', tipos_parceria: [], logo_url: '', instagram: '', linkedin: '', site: '', especializacoes: [], ordem: 0 }); setSelectedTiposParceria({}); setShowParceiroForm(false); setEditingParceiro(null); };
 
   const handleUploadLogo = async (e) => {
     const file = e.target.files?.[0];

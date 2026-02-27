@@ -2868,10 +2868,6 @@ Seja detalhado, prático e objetivo na análise.`;
       )}
 
       <div className="space-y-4">
-        {especializacoes.length > 0 && (
-          <SocialMediaGenerator especializacao={especializacoes[0]} />
-        )}
-        
         {loadingEspec ? (
           <p className="text-gray-600">Carregando especializações...</p>
         ) : especializacoes.length === 0 ? (
@@ -2968,7 +2964,6 @@ Seja detalhado, prático e objetivo na análise.`;
                   </div>
                   </div>
                   
-                  <SocialMediaGenerator especializacao={espec} />
                 </div>
               </CardContent>
             </Card>

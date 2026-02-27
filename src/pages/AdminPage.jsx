@@ -5581,14 +5581,6 @@ Seja detalhado, prático e objetivo na análise.`;
           Gerenciar Usuários
         </Button>
         <Button
-          onClick={() => setActiveTab('marketing-ia')}
-          variant={activeTab === 'marketing-ia' ? 'default' : 'outline'}
-          className={activeTab === 'marketing-ia' ? 'bg-gradient-to-r from-purple-600 to-pink-600' : ''}
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          Studio Marketing IA
-        </Button>
-        <Button
           onClick={() => setActiveTab('automacao')}
           variant={activeTab === 'automacao' ? 'default' : 'outline'}
           className={activeTab === 'automacao' ? 'bg-gradient-to-r from-green-600 to-teal-600' : ''}
@@ -5628,7 +5620,6 @@ Seja detalhado, prático e objetivo na análise.`;
         {activeTab === 'aplicativos' && <AplicativosManager />}
         {activeTab === 'crm' && renderCRMTab()}
         {activeTab === 'usuarios' && <GerenciamentoUsuarios />}
-        {activeTab === 'marketing-ia' && <MarketingAIStudio />}
         {activeTab === 'automacao' && <SystemAutomation />}
         {activeTab === 'ai-tools' && <AIToolsSection />}
       </div>

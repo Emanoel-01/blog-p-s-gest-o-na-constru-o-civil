@@ -92,28 +92,7 @@ export default function ManagerialReport({ especializacoes, ciclos, professores,
     return similarities;
   };
 
-  // Análise de ciclos compartilhados
-  const analyzeCiclosCompartilhados = () => {
-    const cicloUsage = {};
-
-    especializacoes.forEach(espec => {
-      (espec.ciclos || []).forEach(cicloId => {
-        if (!cicloUsage[cicloId]) {
-          const ciclo = getCicloById(cicloId);
-          cicloUsage[cicloId] = {
-            ciclo: ciclo,
-            especializacoes: []
-          };
-        }
-        cicloUsage[cicloId].especializacoes.push(espec.nome);
-      });
-    });
-
-    return Object.values(cicloUsage).filter(item => item.especializacoes.length > 1);
-  };
-
   const similarities = analyzeEspecializacaoSimilarity();
-  const ciclosCompartilhados = analyzeCiclosCompartilhados();
 
   // Estatísticas gerais
   const totalProfessores = new Set(especializacoes.flatMap(e => e.professores || [])).size;

@@ -1351,30 +1351,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   };
 
   // ========== HANDLERS PARA DISCENTES ==========
-  const resetDiscenteForm = () => {
-    setDiscenteForm({
-      nome: '',
-      email: '',
-      whatsapp: '',
-      titulo: '',
-      numero_turma: '',
-      cargo_atual: '',
-      empresa: '',
-      status_carreira: '',
-      sobre: '',
-      tags_competencia: [],
-      foto_url: '',
-      instagram: '',
-      linkedin: '',
-      lattes: '',
-      site: '',
-      especializacoes: [],
-      parceiros: [],
-      ordem: 0
-    });
-    setShowDiscenteForm(false);
-    setEditingDiscente(null);
-  };
+  const resetDiscenteForm = () => { setDiscenteForm({ nome: '', email: '', whatsapp: '', titulo: '', numero_turma: '', cargo_atual: '', empresa: '', status_carreira: '', sobre: '', tags_competencia: [], foto_url: '', instagram: '', linkedin: '', lattes: '', site: '', especializacoes: [], parceiros: [], ordem: 0 }); setShowDiscenteForm(false); setEditingDiscente(null); };
 
   const handleUploadFotoDiscente = async (e) => {
     const file = e.target.files?.[0];

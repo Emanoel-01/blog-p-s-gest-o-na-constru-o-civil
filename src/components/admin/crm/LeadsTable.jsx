@@ -217,6 +217,16 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
       doc.text(cursoLines,   colX[2] + 1, textY);
       doc.text(statusLines,  colX[3] + 1, textY);
       doc.text(dataStr,      colX[4] + 1, textY);
+      // Colorir "Sim" em verde e "Não" em vermelho
+      if (pagoStr === 'Sim') {
+        doc.setTextColor(34, 139, 34);
+      } else {
+        doc.setTextColor(180, 0, 0);
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.text(pagoStr, colX[5] + 1, textY);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
 
       y += rowH;
     });

@@ -1586,51 +1586,18 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   };
 
   const handleSaveCronograma = () => {
-    if (!cronogramaForm.data || !cronogramaForm.tipo) {
-      toast.error('Data e tipo são obrigatórios!');
-      return;
-    }
-
-    const data = {
-      data: cronogramaForm.data,
-      tipo: cronogramaForm.tipo,
-      ciclo_id: cronogramaForm.ciclo_id,
-      disciplina_nome: cronogramaForm.disciplina_nome,
-      professor_id: cronogramaForm.professor_id,
-      horario_inicio: cronogramaForm.horario_inicio,
-      horario_fim: cronogramaForm.horario_fim,
-      observacoes: cronogramaForm.observacoes,
-      ordem: parseInt(cronogramaForm.ordem) || 0
-    };
-
-    if (editingCronograma) {
-      updateCronogramaMutation.mutate({ id: editingCronograma.id, data });
-    } else {
-      createCronogramaMutation.mutate(data);
-    }
+    if (!cronogramaForm.data || !cronogramaForm.tipo) { toast.error('Data e tipo são obrigatórios!'); return; }
+    const data = { data: cronogramaForm.data, tipo: cronogramaForm.tipo, ciclo_id: cronogramaForm.ciclo_id, disciplina_nome: cronogramaForm.disciplina_nome, professor_id: cronogramaForm.professor_id, horario_inicio: cronogramaForm.horario_inicio, horario_fim: cronogramaForm.horario_fim, observacoes: cronogramaForm.observacoes, ordem: parseInt(cronogramaForm.ordem) || 0 };
+    if (editingCronograma) { updateCronogramaMutation.mutate({ id: editingCronograma.id, data }); } else { createCronogramaMutation.mutate(data); }
   };
 
   const handleEditCronograma = (item) => {
-    setCronogramaForm({
-      data: item.data,
-      tipo: item.tipo,
-      ciclo_id: item.ciclo_id || '',
-      disciplina_nome: item.disciplina_nome || '',
-      professor_id: item.professor_id || '',
-      horario_inicio: item.horario_inicio || '',
-      horario_fim: item.horario_fim || '',
-      observacoes: item.observacoes || '',
-      ordem: item.ordem || 0
-    });
+    setCronogramaForm({ data: item.data, tipo: item.tipo, ciclo_id: item.ciclo_id || '', disciplina_nome: item.disciplina_nome || '', professor_id: item.professor_id || '', horario_inicio: item.horario_inicio || '', horario_fim: item.horario_fim || '', observacoes: item.observacoes || '', ordem: item.ordem || 0 });
     setEditingCronograma(item);
     setShowCronogramaForm(true);
   };
 
-  const handleDeleteCronograma = (id) => {
-    if (window.confirm('Tem certeza que deseja remover esta aula do cronograma?')) {
-      deleteCronogramaMutation.mutate(id);
-    }
-  };
+  const handleDeleteCronograma = (id) => { if (window.confirm('Tem certeza que deseja remover esta aula do cronograma?')) { deleteCronogramaMutation.mutate(id); } };
 
   // ========== HANDLERS PARA PROJETO ==========
   const resetProjetoForm = () => {

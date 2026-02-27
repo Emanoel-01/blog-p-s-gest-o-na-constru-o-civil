@@ -1250,25 +1250,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   };
 
   // ========== HANDLERS PARA PROFESSORES ==========
-  const resetProfessorForm = () => {
-    setProfessorForm({
-      nome: '',
-      email: '',
-      whatsapp: '',
-      titulo: '',
-      mini_bio: '',
-      foto_url: '',
-      instagram: '',
-      linkedin: '',
-      lattes: '',
-      site: '',
-      especializacoes: [],
-      credenciais: [],
-      ordem: 0
-    });
-    setShowProfessorForm(false);
-    setEditingProfessor(null);
-  };
+  const resetProfessorForm = () => { setProfessorForm({ nome: '', email: '', whatsapp: '', titulo: '', mini_bio: '', foto_url: '', instagram: '', linkedin: '', lattes: '', site: '', especializacoes: [], credenciais: [], ordem: 0 }); setShowProfessorForm(false); setEditingProfessor(null); };
 
   const handleUploadFotoProfessor = async (e) => {
     const file = e.target.files?.[0];

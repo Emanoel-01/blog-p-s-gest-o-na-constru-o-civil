@@ -1185,11 +1185,7 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   };
 
   // ========== HANDLERS PARA TECNOLOGIAS ==========
-  const resetTecnologiaForm = () => {
-    setTecnologiaForm({ nome: '', especializacoes: [], ordem: 0 }); // Reset especializacoes
-    setShowTecnologiaForm(false);
-    setEditingTecnologia(null);
-  };
+  const resetTecnologiaForm = () => { setTecnologiaForm({ nome: '', especializacoes: [], ordem: 0 }); setShowTecnologiaForm(false); setEditingTecnologia(null); };
 
   const handleTecnologiaEspecCheckboxChange = (especId) => { // New handler
     setTecnologiaForm(prev => ({

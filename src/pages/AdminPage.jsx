@@ -1949,13 +1949,7 @@ Seja detalhado, prático e objetivo na análise.`;
     }
   };
 
-  const resetAnaliseForm = () => {
-    setAnaliseForm({ nome_proposto: '', ciclos_selecionados: [], especializacao_existente_id: null });
-    setAnaliseResult(null);
-    setDisciplinasEditaveis({});
-    setDisciplinasSelecionadas({});
-    setIncluindoDisciplinas({});
-  };
+  const resetAnaliseForm = () => { setAnaliseForm({ nome_proposto: '', ciclos_selecionados: [], especializacao_existente_id: null }); setAnaliseResult(null); setDisciplinasEditaveis({}); setDisciplinasSelecionadas({}); setIncluindoDisciplinas({}); };
 
   const handleCriarNovaEspecializacao = () => {
     if (!analiseResult) return;

@@ -1612,19 +1612,9 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const handleDeleteFAQ = (id) => { if (window.confirm('Tem certeza que deseja remover esta FAQ?')) { deleteFAQMutation.mutate(id); } };
 
   // ========== HANDLERS PARA LEADS ==========
-  const handleEditLead = (lead) => {
-    setEditingLead(lead);
-  };
-
-  const handleSaveLead = (leadId, data) => {
-    updateLeadMutation.mutate({ id: leadId, data });
-  };
-
-  const handleDeleteLead = (id) => {
-    if (window.confirm('Tem certeza que deseja remover este lead?')) {
-      deleteLeadMutation.mutate(id);
-    }
-  };
+  const handleEditLead = (lead) => { setEditingLead(lead); };
+  const handleSaveLead = (leadId, data) => { updateLeadMutation.mutate({ id: leadId, data }); };
+  const handleDeleteLead = (id) => { if (window.confirm('Tem certeza que deseja remover este lead?')) { deleteLeadMutation.mutate(id); } };
 
   // ========== HANDLERS PARA ANÁLISE DE CURSOS ==========
   const handleEspecializacaoExistenteChange = (especId) => {

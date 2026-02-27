@@ -104,6 +104,72 @@ export default function LeadsTable({ inscritos, onUpdate, onDelete, currentUser 
     }
   };
   
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const now = new Date().toLocaleDateString('pt-BR');
+
+    // Título
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Lista de Leads - CRM ESUDA', 14, 18);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Gerado em: ${now}  |  Total: ${filtered.length} lead(s)`, 14, 26);
+
+    // Filtros aplicados
+    const filtrosAplicados = [];
+    if (searchTerm) filtrosAplicados.push(`Busca: "${searchTerm}"`);
+    if (statusFilter.length > 0) filtrosAplicados.push(`Status: ${statusFilter.join(', ')}`);
+    if (grupoFilter.length > 0) filtrosAplicados.push(`Grupos: ${grupoFilter.map(getGrupoLabel).join(', ')}`);
+    if (cursoFilter.length > 0) filtrosAplicados.push(`Cursos: ${cursoFilter.join(', ')}`);
+    if (dataInicio || dataFim) filtrosAplicados.push(`Período: ${dataInicio ? format(dataInicio, 'dd/MM/yyyy') : '*'} - ${dataFim ? format(dataFim, 'dd/MM/yyyy') : '*'}`);
+    
+    if (filtrosAplicados.length > 0) {
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text('Filtros: ' + filtrosAplicados.join('  |  '), 14, 33, { maxWidth: pageWidth - 28 });
+      doc.setTextColor(0);
+    }
+
+    // Cabeçalho da tabela
+    let y = filtrosAplicados.length > 0 ? 42 : 34;
+    const cols = [14, 75, 115, 148, 175];
+    const headers = ['Nome', 'Email', 'Curso', 'Status', 'Inscrição'];
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(41, 128, 185);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(14, y - 5, pageWidth - 28, 8, 'F');
+    headers.forEach((h, i) => doc.text(h, cols[i] + 1, y));
+    doc.setTextColor(0);
+    doc.setFont('helvetica', 'normal');
+    y += 5;
+
+    // Linhas
+    filtered.forEach((inscrito, idx) => {
+      if (y > 275) {
+        doc.addPage();
+        y = 20;
+      }
+      if (idx % 2 === 0) {
+        doc.setFillColor(245, 245, 245);
+        doc.rect(14, y - 4, pageWidth - 28, 7, 'F');
+      }
+      doc.setFontSize(8);
+      doc.text(doc.splitTextToSize(inscrito.nome_completo || '-', 58), cols[0], y);
+      doc.text(doc.splitTextToSize(inscrito.email || '-', 37), cols[1], y);
+      doc.text(doc.splitTextToSize(inscrito.nome_curso || '-', 30), cols[2], y);
+      doc.text(inscrito.status_crm || '-', cols[3], y);
+      doc.text(inscrito.data_inscricao ? new Date(inscrito.data_inscricao).toLocaleDateString('pt-BR') : '-', cols[4], y);
+      y += 7;
+    });
+
+    doc.save(`leads-crm-${now.replace(/\//g, '-')}.pdf`);
+  };
+
   const getGrupoLabel = (grupo) => {
     switch(grupo) {
       case 'G1_Cursos_Atuais': return 'G1 - Atual';

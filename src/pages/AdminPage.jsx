@@ -2186,18 +2186,7 @@ Seja detalhado, prático e objetivo na análise.`;
   };
 
 
-  const handleCriarFAQDePergunta = (pergunta) => {
-    setFaqForm({
-      pergunta: pergunta.pergunta,
-      resposta: '',
-      pagina_destino: '',
-      categoria: 'Informações Gerais',
-      ativo: true,
-      ordem: chatbotFAQs.length
-    });
-    setShowFAQForm(true);
-    setEditingFAQ(null);
-  };
+  const handleCriarFAQDePergunta = (pergunta) => { setFaqForm({ pergunta: pergunta.pergunta, resposta: '', pagina_destino: '', categoria: 'Informações Gerais', ativo: true, ordem: chatbotFAQs.length }); setShowFAQForm(true); setEditingFAQ(null); };
 
   // ========== RENDER TABS ==========
   const renderCiclosTab = () => (

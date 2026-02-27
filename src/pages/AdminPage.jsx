@@ -1606,59 +1606,10 @@ Retorne APENAS o resumo publicitário, sem introduções ou explicações adicio
   const handleDeleteProjeto = (id) => { if (window.confirm('Tem certeza que deseja remover este projeto?')) { deleteProjetoMutation.mutate(id); } };
 
   // ========== HANDLERS PARA CHATBOT FAQS ==========
-  const resetFAQForm = () => {
-    setFaqForm({
-      pergunta: '',
-      resposta: '',
-      pagina_destino: '',
-      categoria: 'Informações Gerais',
-      ativo: true,
-      ordem: 0
-    });
-    setShowFAQForm(false);
-    setEditingFAQ(null);
-  };
-
-  const handleSaveFAQ = () => {
-    if (!faqForm.pergunta || !faqForm.resposta) {
-      toast.error('Pergunta e resposta são obrigatórios!');
-      return;
-    }
-
-    const data = {
-      pergunta: faqForm.pergunta,
-      resposta: faqForm.resposta,
-      pagina_destino: faqForm.pagina_destino,
-      categoria: faqForm.categoria,
-      ativo: faqForm.ativo,
-      ordem: parseInt(faqForm.ordem) || 0
-    };
-
-    if (editingFAQ) {
-      updateFAQMutation.mutate({ id: editingFAQ.id, data });
-    } else {
-      createFAQMutation.mutate(data);
-    }
-  };
-
-  const handleEditFAQ = (faq) => {
-    setFaqForm({
-      pergunta: faq.pergunta,
-      resposta: faq.resposta,
-      pagina_destino: faq.pagina_destino || '',
-      categoria: faq.categoria,
-      ativo: faq.ativo !== false,
-      ordem: faq.ordem || 0
-    });
-    setEditingFAQ(faq);
-    setShowFAQForm(true);
-  };
-
-  const handleDeleteFAQ = (id) => {
-    if (window.confirm('Tem certeza que deseja remover esta FAQ?')) {
-      deleteFAQMutation.mutate(id);
-    }
-  };
+  const resetFAQForm = () => { setFaqForm({ pergunta: '', resposta: '', pagina_destino: '', categoria: 'Informações Gerais', ativo: true, ordem: 0 }); setShowFAQForm(false); setEditingFAQ(null); };
+  const handleSaveFAQ = () => { if (!faqForm.pergunta || !faqForm.resposta) { toast.error('Pergunta e resposta são obrigatórios!'); return; } const data = { pergunta: faqForm.pergunta, resposta: faqForm.resposta, pagina_destino: faqForm.pagina_destino, categoria: faqForm.categoria, ativo: faqForm.ativo, ordem: parseInt(faqForm.ordem) || 0 }; if (editingFAQ) { updateFAQMutation.mutate({ id: editingFAQ.id, data }); } else { createFAQMutation.mutate(data); } };
+  const handleEditFAQ = (faq) => { setFaqForm({ pergunta: faq.pergunta, resposta: faq.resposta, pagina_destino: faq.pagina_destino || '', categoria: faq.categoria, ativo: faq.ativo !== false, ordem: faq.ordem || 0 }); setEditingFAQ(faq); setShowFAQForm(true); };
+  const handleDeleteFAQ = (id) => { if (window.confirm('Tem certeza que deseja remover esta FAQ?')) { deleteFAQMutation.mutate(id); } };
 
   // ========== HANDLERS PARA LEADS ==========
   const handleEditLead = (lead) => {

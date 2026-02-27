@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Trash2, Search, Filter, CheckCircle2, CalendarIcon, X, MessageCircle } from 'lucide-react';
+import { Edit, Trash2, Search, Filter, CheckCircle2, CalendarIcon, X, MessageCircle, FileDown } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

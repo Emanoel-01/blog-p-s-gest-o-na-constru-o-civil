@@ -30,8 +30,6 @@ import GPOChatbot from '../components/admin/GPOChatbot';
 import BulkEnrollStudents from '../components/admin/BulkEnrollStudents';
 import NotificationManager from '../components/admin/NotificationManager';
 import BulkActionsPanel from '../components/admin/BulkActionsPanel';
-import AIOrderSuggestions from '../components/admin/AIOrderSuggestions';
-import SocialMediaGenerator from '../components/admin/SocialMediaGenerator';
 import AplicativosManager from '../components/admin/AplicativosManager';
 import CRMDashboard from '../components/admin/crm/CRMDashboard';
 import LeadsTable from '../components/admin/crm/LeadsTable';
@@ -42,9 +40,7 @@ import EmailTemplateManager from '../components/admin/EmailTemplateManager';
 import EmailCampaignLog from '../components/admin/EmailCampaignLog';
 import BlogManager from '../components/admin/BlogManager';
 import GerenciamentoUsuarios from '../components/admin/GerenciamentoUsuarios';
-import MarketingAIStudio from '../components/admin/MarketingAIStudio';
 import SystemAutomation from '../components/admin/SystemAutomation';
-import AIToolsSection from '../components/admin/AIToolsSection';
 
 export default function AdminPage() {
   const queryClient = useQueryClient();

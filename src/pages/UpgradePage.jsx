@@ -167,7 +167,7 @@ export default function UpgradePage() {
               <Target className="w-5 h-5 text-white" />
             </div>
             <h4 className="text-lg sm:text-xl font-bold text-gray-900">
-              2. Especialização Cirúrgica: 4 Perfis, 4 Caminhos Claros
+              2. Especialização Cirúrgica: 7 Perfis, 7 Caminhos de Sucesso
             </h4>
           </div>
           <p className="text-gray-700 mb-3 leading-relaxed text-justify text-sm sm:text-base">
@@ -188,8 +188,8 @@ export default function UpgradePage() {
                 estrategista que coordena dados, interoperabilidade e processos construtivos digitais.
               </p>
             </div>
-            <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
-              <p className="font-bold text-green-800 mb-1 text-sm sm:text-base">⚙️ Manutenção Predial (O Perfil Operations)</p>
+            <div className="bg-teal-50 p-4 rounded-lg border-l-4 border-teal-600">
+              <p className="font-bold text-teal-800 mb-1 text-sm sm:text-base">⚙️ Manutenção Predial (O Perfil Operations)</p>
               <p className="text-gray-700 text-xs sm:text-sm">
                 Focado em <strong>Vida Útil e Gestão de Ativos</strong>. Saia da manutenção corretiva e lidere a era da Gestão de Facilities, 
                 usando IoT, Drones e BIM FM para valorizar o patrimônio.
@@ -200,6 +200,27 @@ export default function UpgradePage() {
               <p className="text-gray-700 text-xs sm:text-sm">
                 Focado em <strong>Valor e Prova</strong>. Torne-se a autoridade que o judiciário e os bancos respeitam. 
                 Domine a <strong>regularização de imóveis</strong>, a auditoria de risco e a avaliação de ativos.
+              </p>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-600">
+              <p className="font-bold text-purple-800 mb-1 text-sm sm:text-base">🧠 Neuroarquitetura (O Perfil Human-Centric)</p>
+              <p className="text-gray-700 text-xs sm:text-sm">
+                Focado em <strong>Comportamento e Bem-estar</strong>. Você usará a neurociência e a psicologia ambiental para projetar 
+                espaços que otimizam a saúde mental, a produtividade e a experiência do usuário.
+              </p>
+            </div>
+            <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-600">
+              <p className="font-bold text-orange-800 mb-1 text-sm sm:text-base">🎨 Design de Interiores Contemporâneo (O Perfil Inovação/Estética)</p>
+              <p className="text-gray-700 text-xs sm:text-sm">
+                Focado em <strong>Inovação e Funcionalidade</strong>. Vá além da decoração: crie ambientes modernos que unem 
+                novas tendências materiais, sustentabilidade e tecnologia aplicada ao morar e trabalhar.
+              </p>
+            </div>
+            <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+              <p className="font-bold text-yellow-800 mb-1 text-sm sm:text-base">💡 Acústica Arquitetônica e Iluminação (O Perfil Comfort/Performance)</p>
+              <p className="text-gray-700 text-xs sm:text-sm">
+                Focado em <strong>Conforto Ambiental e Alta Performance</strong>. Domine as variáveis físicas do ambiente para 
+                entregar projetos de excelência em desempenho sonoro e luminotécnico.
               </p>
             </div>
           </div>

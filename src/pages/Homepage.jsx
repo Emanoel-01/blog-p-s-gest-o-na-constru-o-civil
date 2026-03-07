@@ -286,11 +286,11 @@ export default function Homepage() {
     <>
       <Helmet>
         {/* Meta Tags Básicas */}
-        <title>Especializações em Gestão e Tecnologias da Construção Civil | ESUDA</title>
-        <meta name="description" content="Especializações em BIM, Gestão de Projetos e Obras, Manutenção Predial e Engenharia Legal. Cursos com foco em inovação, tecnologia 4.0 e retorno garantido. Inscrições abertas." />
+        <title>Especializações em Gestão, Arquitetura e Tecnologias da Construção | ESUDA</title>
+        <meta name="description" content="7 Especializações de alto nível: BIM, Gestão de Obras, Manutenção Predial, Engenharia Legal, Neuroarquitetura, Design de Interiores e Acústica/Iluminação." />
         
         {/* Keywords */}
-        <meta name="keywords" content="pós-graduação construção civil, especialização BIM, gestão de obras, manutenção predial, engenharia legal, mestrado construção, curso BIM, pós engenharia civil, ESUDA, Recife, tecnologia construção 4.0, GPO 4.0, Predial 4.0" />
+        <meta name="keywords" content="pós-graduação construção civil, especialização BIM, gestão de obras, manutenção predial, engenharia legal, neuroarquitetura, design de interiores, acústica arquitetônica, ESUDA, Recife, tecnologia construção 4.0" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
@@ -330,7 +330,7 @@ export default function Homepage() {
           className="w-40 sm:w-48 md:w-64 lg:w-80 mx-auto mb-4 sm:mb-6"
         />
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight px-2">
-          Especializações em Gestão e Tecnologias da Construção Civil
+          Especializações em Gestão, Arquitetura e Tecnologias da Construção
         </h1>
         <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 mb-6 sm:mb-8 max-w-3xl leading-relaxed px-2">
           Conheça as especializações: <span className="font-semibold text-green-700">Inovação, Tecnologia e Foco no Mercado</span>

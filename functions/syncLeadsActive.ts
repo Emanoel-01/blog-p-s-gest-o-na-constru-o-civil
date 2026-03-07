@@ -369,29 +369,36 @@ Deno.serve(async (req) => {
       stats.total++;
     }
     
-    // Processar criações com retry inteligente (lotes maiores)
-    const CREATE_BATCH_SIZE = 100;
-    
+    // Criações em lotes com delay entre lotes para evitar rate limit
+    const CREATE_BATCH_SIZE = 50;
     if (toCreate.length > 0) {
+      console.log(`Criando ${toCreate.length} novos inscritos em lotes de ${CREATE_BATCH_SIZE}...`);
       for (let i = 0; i < toCreate.length; i += CREATE_BATCH_SIZE) {
         const batch = toCreate.slice(i, i + CREATE_BATCH_SIZE);
-        await executeWithRetry(() => 
+        await executeWithRetry(() =>
           base44.asServiceRole.entities.Inscrito.bulkCreate(batch)
         );
+        if (i + CREATE_BATCH_SIZE < toCreate.length) {
+          await sleep(1500); // pausa entre lotes de criação
+        }
       }
     }
-    
-    // Processar updates com retry inteligente (lotes maiores)
-    const UPDATE_BATCH_SIZE = 50;
-    
-    for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH_SIZE) {
-      const batch = toUpdate.slice(i, i + UPDATE_BATCH_SIZE);
-      
-      for (const item of batch) {
-        const { id, ...data } = item;
-        await executeWithRetry(() => 
-          base44.asServiceRole.entities.Inscrito.update(id, data)
-        );
+
+    // Updates em lotes com delay entre itens para evitar rate limit
+    const UPDATE_BATCH_SIZE = 20;
+    if (toUpdate.length > 0) {
+      console.log(`Atualizando ${toUpdate.length} inscritos em lotes de ${UPDATE_BATCH_SIZE}...`);
+      for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH_SIZE) {
+        const batch = toUpdate.slice(i, i + UPDATE_BATCH_SIZE);
+        for (const item of batch) {
+          const { id, ...data } = item;
+          await executeWithRetry(() =>
+            base44.asServiceRole.entities.Inscrito.update(id, data)
+          );
+        }
+        if (i + UPDATE_BATCH_SIZE < toUpdate.length) {
+          await sleep(2000); // pausa entre lotes de atualização
+        }
       }
     }
     

@@ -14,8 +14,9 @@ export default function PerfilDiscente() {
   const discenteId = searchParams.get('id');
 
   const { data: discentes = [], isLoading } = useQuery({
-    queryKey: ['discentes'],
-    queryFn: () => base44.entities.Discente.list()
+    queryKey: ['discente-perfil', discenteId],
+    queryFn: () => base44.entities.Discente.filter({ id: discenteId }),
+    enabled: !!discenteId
   });
 
   const { data: especializacoes = [] } = useQuery({
@@ -23,7 +24,7 @@ export default function PerfilDiscente() {
     queryFn: () => base44.entities.Especializacao.list('ordem')
   });
 
-  const discente = discentes.find(d => d.id === discenteId);
+  const discente = discentes[0];
 
   // Registrar visita ao perfil
   useEffect(() => {

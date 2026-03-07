@@ -72,6 +72,10 @@ import PostPage from './pages/PostPage';
 import ProfessoresPage from './pages/ProfessoresPage';
 import UpgradePage from './pages/UpgradePage';
 import UserProfilePage from './pages/UserProfilePage';
+import VagasPage from './pages/VagasPage';
+import ForumPage from './pages/ForumPage';
+import ForumTopicoPage from './pages/ForumTopicoPage';
+import MaterialTurmaPage from './pages/MaterialTurmaPage';
 import __Layout from './Layout.jsx';
 
 
@@ -101,6 +105,10 @@ export const PAGES = {
     "ProfessoresPage": ProfessoresPage,
     "UpgradePage": UpgradePage,
     "UserProfilePage": UserProfilePage,
+    "VagasPage": VagasPage,
+    "ForumPage": ForumPage,
+    "ForumTopicoPage": ForumTopicoPage,
+    "MaterialTurmaPage": MaterialTurmaPage,
 }
 
 export const pagesConfig = {

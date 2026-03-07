@@ -19,7 +19,7 @@ export default function SlideUpgrade() {
       </div>
 
       <h3 className="text-xl font-semibold text-gray-800 mb-2">
-        Por que o Upgrade? O Profissional 4.0 da Construção Civil Começa Aqui!
+        Por que o Upgrade? O Profissional 4.0 da Arquitetura e Engenharia Começa Aqui!
       </h3>
       <p className="text-gray-700 mb-4 leading-relaxed">
         O mercado da arquitetura e engenharia civil exige uma visão integrada e multidisciplinar, que vai muito

@@ -52,7 +52,7 @@ export default function UpgradePage() {
             <span className="text-sm font-bold text-gray-800">Formando Líderes de Nicho</span>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-            O Futuro da Construção Civil não é dos Generalistas.<br className="hidden sm:block"/>
+            O Futuro da Arquitetura e Engenharia não é dos Generalistas.<br className="hidden sm:block"/>
             É dos <span className="text-green-600">Líderes de Nicho</span>.
           </h1>
         </div>
@@ -64,7 +64,7 @@ export default function UpgradePage() {
               Conheça o Programa ESUDA
             </h2>
             <p className="text-gray-600 text-sm sm:text-base max-w-3xl mx-auto">
-              Assista ao vídeo e descubra como podemos transformar sua carreira na construção civil.
+              Assista ao vídeo e descubra como podemos transformar sua carreira na arquitetura e engenharia.
             </p>
           </div>
           <div className="relative w-full max-w-5xl mx-auto rounded-xl overflow-hidden shadow-2xl border-4 border-green-600">
@@ -429,7 +429,7 @@ export default function UpgradePage() {
             Quero ser Parceiro
           </h3>
           <p className="text-gray-700 text-sm sm:text-base mb-6 max-w-2xl mx-auto leading-relaxed">
-            Conecte-se com o Coordenador e a ESUDA. Descubra oportunidades de parceria, receba análises personalizadas e inicie colaborações estratégicas.
+            Conecte-se diretamente com a nossa coordenação e o ecossistema ESUDA. Transforme ideias em negócios lucrativos, receba consultoria estratégica e desenvolva colaborações de alto impacto para o mercado.
           </p>
         </div>
 

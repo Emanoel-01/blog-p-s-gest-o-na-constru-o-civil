@@ -286,7 +286,7 @@ export default function Homepage() {
     <>
       <Helmet>
         {/* Meta Tags Básicas */}
-        <title>Especializações em Gestão, Arquitetura e Tecnologias da Construção | ESUDA</title>
+        <title>Especializações em Arquitetura e Engenharia | ESUDA</title>
         <meta name="description" content="7 Especializações de alto nível: BIM, Gestão de Obras, Manutenção Predial, Engenharia Legal, Neuroarquitetura, Design de Interiores e Acústica/Iluminação." />
         
         {/* Keywords */}
@@ -295,14 +295,14 @@ export default function Homepage() {
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://esuda.edu.br" />
-        <meta property="og:title" content="Especializações em Gestão e Tecnologias da Construção Civil | ESUDA" />
+        <meta property="og:title" content="Especializações em Arquitetura e Engenharia | ESUDA" />
         <meta property="og:description" content="Especializações com foco em inovação e tecnologia 4.0. Retorno garantido antes do fim do curso. Inscrições abertas." />
         <meta property="og:image" content="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://esuda.edu.br" />
-        <meta property="twitter:title" content="Especializações em Gestão e Tecnologias da Construção Civil | ESUDA" />
+        <meta property="twitter:title" content="Especializações em Arquitetura e Engenharia | ESUDA" />
         <meta property="twitter:description" content="Especializações com foco em inovação e tecnologia 4.0. Retorno garantido antes do fim do curso." />
         <meta property="twitter:image" content="https://esuda.edu.br/wp-content/uploads/2024/01/cropped-cor-1000-x-474.png" />
         
@@ -330,7 +330,7 @@ export default function Homepage() {
           className="w-40 sm:w-48 md:w-64 lg:w-80 mx-auto mb-4 sm:mb-6"
         />
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight px-2">
-          Especializações em Gestão, Arquitetura e Tecnologias da Construção
+          Especializações em Arquitetura e Engenharia
         </h1>
         <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 mb-6 sm:mb-8 max-w-3xl leading-relaxed px-2">
           Conheça as especializações: <span className="font-semibold text-green-700">Inovação, Tecnologia e Foco no Mercado</span>
@@ -469,7 +469,7 @@ export default function Homepage() {
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-purple-600" />
             <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 text-center">
-              Tecnologias Exclusivas Desenvolvidas pelo Coordenador
+              Inovação na Prática: Tecnologias Exclusivas da Coordenação
             </h2>
           </div>
           <Link to={createPageUrl('AplicativosInteligentesPage')} className="w-full sm:w-auto">
@@ -480,7 +480,7 @@ export default function Homepage() {
           </Link>
         </div>
         <p className="text-center text-gray-700 mb-4 sm:mb-6 max-w-3xl mx-auto text-xs sm:text-sm md:text-base px-2">
-          Aplicativos inteligentes com IA que transformam a forma de trabalhar na construção civil
+          Aplicativos inteligentes impulsionados por Inteligência Artificial que unem o rigor acadêmico às demandas reais, revolucionando a rotina de projetos na Arquitetura e Engenharia.
         </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 max-w-4xl mx-auto">

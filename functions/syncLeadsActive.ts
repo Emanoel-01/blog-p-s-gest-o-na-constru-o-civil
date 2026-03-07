@@ -106,20 +106,25 @@ function parseDate(dateStr) {
   }
 }
 
-// Função de retry com backoff exponencial
-async function executeWithRetry(operation, maxRetries = 3) {
+// Função de retry com backoff exponencial (case-insensitive no erro)
+async function executeWithRetry(operation, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
-      if (attempt === maxRetries || !error.message.includes('rate limit')) {
+      const isRateLimit = error.message?.toLowerCase().includes('rate limit');
+      if (attempt === maxRetries || !isRateLimit) {
         throw error;
       }
-      const waitTime = Math.pow(2, attempt) * 500;
-      console.warn(`Rate limit atingido. Tentativa ${attempt}. Aguardando ${waitTime}ms...`);
+      const waitTime = Math.pow(2, attempt) * 1000; // backoff: 2s, 4s, 8s, 16s
+      console.warn(`Rate limit atingido. Tentativa ${attempt}/${maxRetries}. Aguardando ${waitTime}ms...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 Deno.serve(async (req) => {

@@ -236,29 +236,25 @@ export default function PerfilDiscente() {
           </CardContent>
         </Card>
 
-        {/* Contato */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-gray-700" />
-              Informações de Contato
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 text-sm">
-              <p className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-gray-500" />
-                {discente.email}
-              </p>
-              {discente.whatsapp && (
+        {/* Contato — email visível apenas para o próprio aluno ou admin */}
+        {(discente.whatsapp) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5 text-gray-700" />
+                Informações de Contato
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
                 <p className="flex items-center gap-2">
                   <MessageCircle className="w-4 h-4 text-gray-500" />
                   {discente.whatsapp}
                 </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </>
   );

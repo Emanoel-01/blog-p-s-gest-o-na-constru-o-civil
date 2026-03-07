@@ -151,42 +151,41 @@ Deno.serve(async (req) => {
       }
     }
     
-    // 4. LEMBRETE DE ROI (30 dias sem atividade) - Otimizado com consultas filtradas
+    // 4. LEMBRETE DE ROI (30 dias sem atividade) - Busca atividades recentes em lote (sem loop N×6)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     
     const discentes = await base44.asServiceRole.entities.Discente.list();
     const roiEmails = discentes.filter(d => d.email).map(d => d.email);
     const existingRoiNotifications = await getExistingNotifications(base44, roiEmails, oneDayAgo);
     
+    // Buscar TODAS as atividades recentes de uma vez (1 query por entidade, não N queries)
+    const [allFreelancer, allEventos, allArtigos, allCanteiros, allRelatorios, allProducoes] = await Promise.all([
+      base44.asServiceRole.entities.FreelancerNetwork.filter({ created_date_gte: thirtyDaysAgo }),
+      base44.asServiceRole.entities.Evento.filter({ created_date_gte: thirtyDaysAgo }),
+      base44.asServiceRole.entities.ArtigoCientifico.filter({ created_date_gte: thirtyDaysAgo }),
+      base44.asServiceRole.entities.CanteiroDidatico.filter({ created_date_gte: thirtyDaysAgo }),
+      base44.asServiceRole.entities.RelatorioTecnico.filter({ created_date_gte: thirtyDaysAgo }),
+      base44.asServiceRole.entities.ProducaoTecnologica.filter({ created_date_gte: thirtyDaysAgo })
+    ]);
+    
+    // Conjunto de IDs de alunos com atividade recente
+    const alunosAtivos = new Set([
+      ...allFreelancer.map(a => a.aluno_id),
+      ...allEventos.map(a => a.aluno_id),
+      ...allArtigos.map(a => a.aluno_id),
+      ...allCanteiros.map(a => a.aluno_id),
+      ...allRelatorios.map(a => a.aluno_id),
+      ...allProducoes.map(a => a.aluno_id),
+    ].filter(Boolean));
+    
     for (const discente of discentes) {
       if (!discente.email) continue;
       
-      // Verificar se já existe lembrete recente
       const existingRoi = existingRoiNotifications[discente.email] || [];
       const hasRecentRoiNotification = existingRoi.some(n => n.titulo === 'Atualize seu Portfólio na Incubadora');
-      
       if (hasRecentRoiNotification) continue;
       
-      // Verificar se há atividade recente (limite 1 para performance)
-      const [freelancerActivities, eventos, artigos, canteiros, relatorios, producoes] = await Promise.all([
-        base44.asServiceRole.entities.FreelancerNetwork.filter({ aluno_id: discente.id, created_date_gte: thirtyDaysAgo, limit: 1 }),
-        base44.asServiceRole.entities.Evento.filter({ aluno_id: discente.id, created_date_gte: thirtyDaysAgo, limit: 1 }),
-        base44.asServiceRole.entities.ArtigoCientifico.filter({ aluno_id: discente.id, created_date_gte: thirtyDaysAgo, limit: 1 }),
-        base44.asServiceRole.entities.CanteiroDidatico.filter({ aluno_id: discente.id, created_date_gte: thirtyDaysAgo, limit: 1 }),
-        base44.asServiceRole.entities.RelatorioTecnico.filter({ aluno_id: discente.id, created_date_gte: thirtyDaysAgo, limit: 1 }),
-        base44.asServiceRole.entities.ProducaoTecnologica.filter({ aluno_id: discente.id, created_date_gte: thirtyDaysAgo, limit: 1 })
-      ]);
-      
-      const hasRecentActivity = 
-        freelancerActivities.length > 0 || 
-        eventos.length > 0 || 
-        artigos.length > 0 || 
-        canteiros.length > 0 || 
-        relatorios.length > 0 || 
-        producoes.length > 0;
-      
-      // Se não houver atividade há 30 dias, enviar lembrete
-      if (!hasRecentActivity) {
+      if (!alunosAtivos.has(discente.id)) {
         notifications.push({
           destinatario_email: discente.email,
           tipo: 'Carreira',

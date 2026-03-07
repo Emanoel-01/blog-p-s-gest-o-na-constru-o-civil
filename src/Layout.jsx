@@ -4,7 +4,7 @@ import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star, LogIn, LogOut, UserCircle } from 'lucide-react';
+import { Home, Award, Lightbulb, GitMerge, GraduationCap, User, Users, Handshake, Rss, CalendarDays, Settings, Menu, X, Star, LogIn, LogOut, UserCircle, Briefcase, MessageSquare, BookOpen } from 'lucide-react';
 import Chatbot from '@/components/chatbot/Chatbot';
 import NotificationBell from '@/components/layout/NotificationBell';
 import CommentNotifications from '@/components/notifications/CommentNotifications';
@@ -130,7 +130,10 @@ export default function Layout({ children }) {
     { name: 'Parceiros', path: 'ParceirosPage' },
     { name: 'Incubadora', path: 'IncubadoraProfissionalPage' },
     { name: 'Blog', path: 'EmAcaoPage' },
-    { name: 'Calendário', path: 'CalendarioDeAula' }
+    { name: 'Calendário', path: 'CalendarioDeAula' },
+    { name: 'Vagas', path: 'VagasPage' },
+    { name: 'Fórum', path: 'ForumPage' },
+    { name: 'Materiais', path: 'MaterialTurmaPage' }
     ];
 
   const icons = {
@@ -145,7 +148,10 @@ export default function Layout({ children }) {
     'Parceiros': Handshake,
     'Incubadora': Lightbulb,
     'Blog': Rss,
-    'Calendário': CalendarDays
+    'Calendário': CalendarDays,
+    'Vagas': Briefcase,
+    'Fórum': MessageSquare,
+    'Materiais': BookOpen
   };
 
   if (loadingUser) {

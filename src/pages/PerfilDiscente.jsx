@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { User, Briefcase, MessageCircle, Linkedin, Instagram, BookOpen, Globe, Mail, GraduationCap, Building2 } from 'lucide-react';
+import CurtidasComentarios from '../components/perfil/CurtidasComentarios';
 
 export default function PerfilDiscente() {
   const location = useLocation();
@@ -235,6 +236,9 @@ export default function PerfilDiscente() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Curtidas e Comentários */}
+        <CurtidasComentarios discenteId={discente.id} />
 
         {/* Contato — email visível apenas para o próprio aluno ou admin */}
         {(discente.whatsapp) && (

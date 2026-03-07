@@ -330,22 +330,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Otimização: Buscar apenas os inscritos com emails da planilha
-    const emailsPlanilha = [...new Set(Array.from(processedLeads.values()).map(lead => lead.email))];
-    
-    // Buscar em lotes para evitar sobrecarga
-    const FETCH_BATCH_SIZE = 100;
-    const cleanedExisting = [];
-    
-    for (let i = 0; i < emailsPlanilha.length; i += FETCH_BATCH_SIZE) {
-      const emailsBatch = emailsPlanilha.slice(i, i + FETCH_BATCH_SIZE);
-      
-      // Buscar apenas os registros com esses emails
-      for (const email of emailsBatch) {
-        const records = await base44.asServiceRole.entities.Inscrito.filter({ email });
-        cleanedExisting.push(...records);
-      }
-    }
+    // Buscar TODOS os inscritos de uma vez (evita centenas de chamadas individuais por email)
+    console.log('Buscando todos os inscritos existentes...');
+    const cleanedExisting = await executeWithRetry(() =>
+      base44.asServiceRole.entities.Inscrito.list('-created_date', 5000)
+    );
+    console.log(`Total de inscritos existentes: ${cleanedExisting.length}`);
     
     // Processar leads deduplicados
     for (const inscritoData of processedLeads.values()) {

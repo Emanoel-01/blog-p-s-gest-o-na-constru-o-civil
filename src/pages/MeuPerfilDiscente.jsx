@@ -140,6 +140,13 @@ export default function MeuPerfilDiscente() {
 
   const perfilIncompleto = !discente.sobre && !discente.foto_url && !discente.cargo_atual;
 
+  // Auto-abrir edição se perfil incompleto no primeiro acesso
+  React.useEffect(() => {
+    if (perfilIncompleto && !isEditing) {
+      setIsEditing(true);
+    }
+  }, [perfilIncompleto]);
+
   const minhasEspecializacoes = (discente.especializacoes || [])
     .map(id => especializacoes.find(e => e.id === id))
     .filter(Boolean);

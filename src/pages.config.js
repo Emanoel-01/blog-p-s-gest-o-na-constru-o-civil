@@ -57,11 +57,14 @@ import DepoimentosPage from './pages/DepoimentosPage';
 import Documentation from './pages/Documentation';
 import EmAcaoPage from './pages/EmAcaoPage';
 import EspecializacoesPage from './pages/EspecializacoesPage';
+import ForumPage from './pages/ForumPage';
+import ForumTopicoPage from './pages/ForumTopicoPage';
 import GaleriaMidiasAplicativos from './pages/GaleriaMidiasAplicativos';
 import GerenciadorDeMidiaPage from './pages/GerenciadorDeMidiaPage';
 import Home from './pages/Home';
 import Homepage from './pages/Homepage';
 import IncubadoraProfissionalPage from './pages/IncubadoraProfissionalPage';
+import MaterialTurmaPage from './pages/MaterialTurmaPage';
 import MeuPerfilDiscente from './pages/MeuPerfilDiscente';
 import MeuPerfilDocente from './pages/MeuPerfilDocente';
 import ParceirosPage from './pages/ParceirosPage';
@@ -73,9 +76,6 @@ import ProfessoresPage from './pages/ProfessoresPage';
 import UpgradePage from './pages/UpgradePage';
 import UserProfilePage from './pages/UserProfilePage';
 import VagasPage from './pages/VagasPage';
-import ForumPage from './pages/ForumPage';
-import ForumTopicoPage from './pages/ForumTopicoPage';
-import MaterialTurmaPage from './pages/MaterialTurmaPage';
 import __Layout from './Layout.jsx';
 
 
@@ -90,11 +90,14 @@ export const PAGES = {
     "Documentation": Documentation,
     "EmAcaoPage": EmAcaoPage,
     "EspecializacoesPage": EspecializacoesPage,
+    "ForumPage": ForumPage,
+    "ForumTopicoPage": ForumTopicoPage,
     "GaleriaMidiasAplicativos": GaleriaMidiasAplicativos,
     "GerenciadorDeMidiaPage": GerenciadorDeMidiaPage,
     "Home": Home,
     "Homepage": Homepage,
     "IncubadoraProfissionalPage": IncubadoraProfissionalPage,
+    "MaterialTurmaPage": MaterialTurmaPage,
     "MeuPerfilDiscente": MeuPerfilDiscente,
     "MeuPerfilDocente": MeuPerfilDocente,
     "ParceirosPage": ParceirosPage,
@@ -106,9 +109,6 @@ export const PAGES = {
     "UpgradePage": UpgradePage,
     "UserProfilePage": UserProfilePage,
     "VagasPage": VagasPage,
-    "ForumPage": ForumPage,
-    "ForumTopicoPage": ForumTopicoPage,
-    "MaterialTurmaPage": MaterialTurmaPage,
 }
 
 export const pagesConfig = {

@@ -7,7 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { BookOpen, FileText, Video, Link as LinkIcon, Image, Download, Search, ExternalLink } from 'lucide-react';
+import { BookOpen, FileText, Video, Link as LinkIcon, Image, Download, Search, ExternalLink, Plus, X, Trash2 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 const tipoIcons = {
   Vídeo: Video,
@@ -27,8 +30,15 @@ const tipoColors = {
   Documento: 'bg-gray-100 text-gray-700',
 };
 
+const isAdmin = (user) => user && (user.role === 'admin' || ['emanoel.s.amorim@gmail.com','emanoel@esuda.edu.br','vdoval@gmail.com'].includes(user.email));
+
+const materialVazio = { titulo: '', descricao: '', tipo: 'PDF', file_url: '', turma: '', disciplina_nome: '' };
+
 export default function MaterialTurmaPage() {
   const [turmaFiltro, setTurmaFiltro] = useState('todas');
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(materialVazio);
+  const queryClient = useQueryClient();
   const [tipoFiltro, setTipoFiltro] = useState('todos');
   const [especFiltro, setEspecFiltro] = useState('todas');
   const [search, setSearch] = useState('');
@@ -69,8 +79,20 @@ export default function MaterialTurmaPage() {
     });
   }, [materiais, turmaFiltro, tipoFiltro, especFiltro, search]);
 
-  // Filtrar por turma do aluno logado por padrão
-  const minhasTurmas = discente?.numero_turma ? [discente.numero_turma] : [];
+  const criarMutation = useMutation({
+    mutationFn: () => base44.entities.MaterialTurma.create(form),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['materiais-turma'] });
+      setForm(materialVazio);
+      setShowForm(false);
+      toast.success('Material cadastrado!');
+    }
+  });
+
+  const excluirMutation = useMutation({
+    mutationFn: (id) => base44.entities.MaterialTurma.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['materiais-turma'] })
+  });
 
   const renderPreview = (material) => {
     const tipo = material.tipo;
@@ -138,7 +160,43 @@ export default function MaterialTurmaPage() {
           {discente?.numero_turma && (
             <Badge className="mt-2 bg-white/20 text-white">Sua turma: {discente.numero_turma}</Badge>
           )}
+          {isAdmin(user) && (
+            <Button onClick={() => setShowForm(!showForm)} className="mt-3 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold">
+              <Plus className="w-4 h-4 mr-1" /> Novo Material
+            </Button>
+          )}
         </div>
+
+        {/* Formulário de cadastro — apenas admin */}
+        {isAdmin(user) && showForm && (
+          <Card className="border-2 border-emerald-300">
+            <CardHeader className="bg-emerald-50 pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Cadastrar Novo Material</CardTitle>
+              <button onClick={() => setShowForm(false)}><X className="w-5 h-5 text-gray-400" /></button>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3">
+              <Input placeholder="Título do material*" value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} />
+              <Textarea placeholder="Descrição breve" value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})} rows={2} />
+              <Select value={form.tipo} onValueChange={v => setForm({...form, tipo: v})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {['Vídeo','PDF','Slides','Link Externo','Imagem','Documento'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Input placeholder="URL do arquivo ou link*" value={form.file_url} onChange={e => setForm({...form, file_url: e.target.value})} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input placeholder="Turma (ex: T01/2026)" value={form.turma} onChange={e => setForm({...form, turma: e.target.value})} />
+                <Input placeholder="Disciplina (opcional)" value={form.disciplina_nome} onChange={e => setForm({...form, disciplina_nome: e.target.value})} />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
+                <Button onClick={() => criarMutation.mutate()} disabled={!form.titulo.trim() || !form.file_url.trim() || criarMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700">
+                  Salvar Material
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Filtros */}
         <Card>
@@ -216,6 +274,11 @@ export default function MaterialTurmaPage() {
                       {material.disciplina_nome && <Badge variant="outline" className="text-xs">{material.disciplina_nome}</Badge>}
                     </div>
                     {renderPreview(material)}
+                    {isAdmin(user) && (
+                      <button onClick={() => excluirMutation.mutate(material.id)} className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 mt-1">
+                        <Trash2 className="w-3 h-3" /> Excluir
+                      </button>
+                    )}
                   </CardContent>
                 </Card>
               );

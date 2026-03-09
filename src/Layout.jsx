@@ -291,6 +291,11 @@ export default function Layout({ children }) {
                 if (item.name === 'Corpo Discente' && (!user || (user.role !== 'admin' && !user.crm_access))) {
                   return null;
                 }
+
+                // Vagas, Fórum e Materiais apenas para usuários logados
+                if (['Vagas', 'Fórum', 'Materiais'].includes(item.name) && !user) {
+                  return null;
+                }
                 
                 return (
                   <Link key={item.name} to={createPageUrl(item.path)} onClick={() => setMobileMenuOpen(false)}>

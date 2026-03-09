@@ -7,7 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, MapPin, Clock, Search, ExternalLink, Zap } from 'lucide-react';
+import { Briefcase, MapPin, Clock, Search, ExternalLink, Zap, Plus, X } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 const tipoColors = {
   CLT: 'bg-green-100 text-green-800 border-green-300',
@@ -23,10 +26,18 @@ const modalidadeColors = {
   Híbrido: 'bg-indigo-100 text-indigo-700',
 };
 
+const isAdmin = (user) => user && (user.role === 'admin' || ['emanoel.s.amorim@gmail.com','emanoel@esuda.edu.br','vdoval@gmail.com'].includes(user.email));
+
+const vagaVazia = { titulo: '', descricao: '', tipo: 'CLT', modalidade: 'Presencial', empresa_nome: '', link_inscricao: '', prazo_final: '', tags_competencia: [] };
+
 export default function VagasPage() {
   const [search, setSearch] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState('todos');
   const [modalidadeFiltro, setModalidadeFiltro] = useState('todas');
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(vagaVazia);
+  const [tagsInput, setTagsInput] = useState('');
+  const queryClient = useQueryClient();
 
   const { data: vagas = [], isLoading } = useQuery({
     queryKey: ['vagas'],
@@ -74,6 +85,22 @@ export default function VagasPage() {
 
   const getParceiro = (id) => parceiros.find(p => p.id === id);
 
+  const criarMutation = useMutation({
+    mutationFn: () => base44.entities.Vaga.create({ ...form, status: 'Aberta' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vagas'] });
+      setForm(vagaVazia);
+      setTagsInput('');
+      setShowForm(false);
+      toast.success('Vaga cadastrada!');
+    }
+  });
+
+  const excluirMutation = useMutation({
+    mutationFn: (id) => base44.entities.Vaga.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vagas'] })
+  });
+
   return (
     <>
       <Helmet>
@@ -91,7 +118,54 @@ export default function VagasPage() {
           <p className="text-indigo-100 text-sm md:text-base">
             Oportunidades selecionadas pelos nossos parceiros para alunos ESUDA
           </p>
+          {isAdmin(user) && (
+            <Button onClick={() => setShowForm(!showForm)} className="mt-3 bg-white text-indigo-700 hover:bg-indigo-50 font-semibold">
+              <Plus className="w-4 h-4 mr-1" /> Nova Vaga
+            </Button>
+          )}
         </div>
+
+        {/* Formulário de cadastro — apenas admin */}
+        {isAdmin(user) && showForm && (
+          <Card className="border-2 border-indigo-300">
+            <CardHeader className="bg-indigo-50 pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Cadastrar Nova Vaga</CardTitle>
+              <button onClick={() => setShowForm(false)}><X className="w-5 h-5 text-gray-400" /></button>
+            </CardHeader>
+            <CardContent className="p-4 space-y-3">
+              <Input placeholder="Título da vaga*" value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} />
+              <Input placeholder="Nome da empresa" value={form.empresa_nome} onChange={e => setForm({...form, empresa_nome: e.target.value})} />
+              <Textarea placeholder="Descrição da vaga*" value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})} rows={3} />
+              <div className="grid grid-cols-2 gap-3">
+                <Select value={form.tipo} onValueChange={v => setForm({...form, tipo: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['CLT','Freelancer','Estágio','PJ','Voluntário'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={form.modalidade} onValueChange={v => setForm({...form, modalidade: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['Presencial','Remoto','Híbrido'].map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Input placeholder="Link de inscrição (URL)" value={form.link_inscricao} onChange={e => setForm({...form, link_inscricao: e.target.value})} />
+              <Input type="date" placeholder="Prazo final" value={form.prazo_final} onChange={e => setForm({...form, prazo_final: e.target.value})} />
+              <Input
+                placeholder="Competências (separe por vírgula)"
+                value={tagsInput}
+                onChange={e => { setTagsInput(e.target.value); setForm({...form, tags_competencia: e.target.value.split(',').map(t=>t.trim()).filter(Boolean)}); }}
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
+                <Button onClick={() => criarMutation.mutate()} disabled={!form.titulo.trim() || !form.descricao.trim() || criarMutation.isPending} className="bg-indigo-600 hover:bg-indigo-700">
+                  Salvar Vaga
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Filtros */}
         <Card>
@@ -214,6 +288,11 @@ export default function VagasPage() {
                           <ExternalLink className="w-4 h-4 mr-2" /> Candidatar-se
                         </Button>
                       </a>
+                    )}
+                    {isAdmin(user) && (
+                      <button onClick={() => excluirMutation.mutate(vaga.id)} className="text-xs text-red-400 hover:text-red-600 mt-1">
+                        Excluir vaga
+                      </button>
                     )}
                   </CardContent>
                 </Card>

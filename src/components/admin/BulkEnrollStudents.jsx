@@ -109,6 +109,8 @@ export default function BulkEnrollStudents() {
   };
 
   return (
+    <div className="space-y-6">
+    <ConvidarDiscente />
     <Card className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-300">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-green-800">

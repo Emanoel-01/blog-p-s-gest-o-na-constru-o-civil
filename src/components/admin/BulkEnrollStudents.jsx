@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { UserPlus, Upload } from 'lucide-react';
+import ConvidarDiscente from './ConvidarDiscente';
 
 export default function BulkEnrollStudents() {
   const [studentList, setStudentList] = useState('');

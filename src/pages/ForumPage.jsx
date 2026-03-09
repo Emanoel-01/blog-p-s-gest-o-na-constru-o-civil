@@ -25,6 +25,8 @@ const catColors = {
   'Geral': 'bg-gray-100 text-gray-700',
 };
 
+const isAdmin = (user) => user && (user.role === 'admin' || ['emanoel.s.amorim@gmail.com','emanoel@esuda.edu.br','vdoval@gmail.com'].includes(user.email));
+
 export default function ForumPage() {
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
@@ -51,7 +53,6 @@ export default function ForumPage() {
 
   const criarMutation = useMutation({
     mutationFn: () => {
-      if (!user) { base44.auth.redirectToLogin(); return; }
       return base44.entities.ForumTopico.create({
         ...form,
         autor_email: user.email,
@@ -138,12 +139,14 @@ export default function ForumPage() {
                 <p className="text-blue-100 text-sm mt-1">Troque conhecimento com colegas e professores</p>
               </div>
             </div>
-            <Button
-              onClick={() => { if (!user) { base44.auth.redirectToLogin(); return; } setShowForm(!showForm); }}
-              className="bg-white text-blue-700 hover:bg-blue-50 font-semibold"
-            >
-              <Plus className="w-4 h-4 mr-1" /> Novo Tópico
-            </Button>
+            {isAdmin(user) && (
+              <Button
+                onClick={() => setShowForm(!showForm)}
+                className="bg-white text-blue-700 hover:bg-blue-50 font-semibold"
+              >
+                <Plus className="w-4 h-4 mr-1" /> Novo Tópico
+              </Button>
+            )}
           </div>
         </div>
 
@@ -211,7 +214,7 @@ export default function ForumPage() {
             {regularTopicos.length === 0 && pinnedTopicos.length === 0 ? (
               <Card>
                 <CardContent className="p-12 text-center text-gray-500">
-                  Nenhum tópico ainda. Seja o primeiro a criar um!
+                  Nenhum tópico disponível ainda.
                 </CardContent>
               </Card>
             ) : (

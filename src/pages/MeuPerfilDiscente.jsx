@@ -160,6 +160,21 @@ export default function MeuPerfilDiscente() {
       </Helmet>
 
       <div className="max-w-5xl mx-auto space-y-6">
+        {/* Banner de boas-vindas para perfil incompleto */}
+        {perfilIncompleto && (
+          <Card className="bg-gradient-to-r from-green-600 to-teal-600 border-0 text-white">
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="text-3xl">🎓</div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg">Bem-vindo(a) à comunidade ESUDA, {discente.nome.split(' ')[0]}!</h3>
+                <p className="text-green-100 text-sm mt-1">
+                  Você foi matriculado(a) na <strong>Turma {discente.numero_turma}</strong>. 
+                  Complete seu perfil abaixo para ser encontrado(a) pelos colegas e parceiros.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {/* Header do Perfil - Estilo LinkedIn */}
         <Card className="relative overflow-hidden border-2 border-green-300">
           {/* Banner Superior */}

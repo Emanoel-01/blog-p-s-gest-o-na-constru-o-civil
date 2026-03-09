@@ -181,5 +181,6 @@ export default function BulkEnrollStudents() {
         </Button>
       </CardContent>
     </Card>
+    </div>
   );
 }

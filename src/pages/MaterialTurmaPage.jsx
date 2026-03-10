@@ -176,11 +176,20 @@ export default function MaterialTurmaPage() {
           {discente?.numero_turma && (
             <Badge className="mt-2 bg-white/20 text-white">Sua turma: {discente.numero_turma}</Badge>
           )}
-          {isAdmin && (
-            <Button onClick={() => setShowForm(!showForm)} className="mt-3 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold">
-              <Plus className="w-4 h-4 mr-1" /> Novo Material
+          <div className="flex flex-wrap gap-2 mt-3">
+            {isAdmin && (
+              <Button onClick={() => setShowForm(!showForm)} className="bg-white text-emerald-700 hover:bg-emerald-50 font-semibold">
+                <Plus className="w-4 h-4 mr-1" /> Novo Material
+              </Button>
+            )}
+            <Button
+              onClick={() => setAba(aba === 'progresso' ? 'materiais' : 'progresso')}
+              className={`font-semibold ${aba === 'progresso' ? 'bg-white text-emerald-700' : 'bg-white/20 text-white hover:bg-white/30'}`}
+            >
+              <BarChart2 className="w-4 h-4 mr-1" />
+              {isAdmin ? 'Engajamento' : 'Meu Progresso'}
             </Button>
-          )}
+          </div>
         </div>
 
         {/* Formulário de cadastro — apenas admin */}

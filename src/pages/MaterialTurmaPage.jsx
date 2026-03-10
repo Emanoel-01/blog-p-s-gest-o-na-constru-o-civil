@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { BookOpen, Search, Plus, X, Upload, Shield } from 'lucide-react';
+import { BookOpen, Search, Plus, X, Upload, Shield, BarChart2 } from 'lucide-react';
 import { toast } from 'sonner';
 import MaterialCard from '@/components/materiais/MaterialCard';
+import MaterialProgressoTab from '@/components/materiais/MaterialProgressoTab';
+import { notificarNovoMaterial } from '@/functions/notificarNovoMaterial';
 
 const isAdminUser = (user) =>
   user && (user.role === 'admin' || ['emanoel.s.amorim@gmail.com','emanoel@esuda.edu.br','vdoval@gmail.com'].includes(user.email));

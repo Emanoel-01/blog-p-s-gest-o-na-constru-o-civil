@@ -163,7 +163,7 @@ function MaterialPreview({ material, user, discente, isProfessor }) {
   return null;
 }
 
-export default function MaterialCard({ material, especializacoes, isAdmin, onExcluir }) {
+export default function MaterialCard({ material, especializacoes, isAdmin, isProfessor, user, discente, onExcluir }) {
   const Icon = tipoIcons[material.tipo] || BookOpen;
   const espec = especializacoes?.find(e => e.id === material.especializacao_id);
 
@@ -199,7 +199,13 @@ export default function MaterialCard({ material, especializacoes, isAdmin, onExc
           {material.turma && <Badge variant="outline" className="text-xs">Turma {material.turma}</Badge>}
           {material.disciplina_nome && <Badge variant="outline" className="text-xs">{material.disciplina_nome}</Badge>}
         </div>
-        <MaterialPreview material={material} />
+        <MaterialPreview material={material} user={user} discente={discente} isProfessor={isProfessor} />
+        <MaterialComentarios
+          materialId={material.id}
+          user={user}
+          discente={discente}
+          isProfessor={isProfessor || isAdmin}
+        />
         {isAdmin && (
           <button onClick={() => onExcluir(material.id)} className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 mt-1">
             <Trash2 className="w-3 h-3" /> Excluir

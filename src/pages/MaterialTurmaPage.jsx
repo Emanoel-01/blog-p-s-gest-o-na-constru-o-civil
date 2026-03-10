@@ -22,6 +22,7 @@ const TIPOS_UPLOAD = ['PDF', 'Slides', 'Imagem', 'Documento', 'Vídeo'];
 const materialVazio = { titulo: '', descricao: '', tipo: 'PDF', file_url: '', turma: '', disciplina_nome: '', permitir_download: false };
 
 export default function MaterialTurmaPage() {
+  const [aba, setAba] = useState('materiais'); // 'materiais' | 'progresso'
   const [turmaFiltro, setTurmaFiltro] = useState('todas');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(materialVazio);

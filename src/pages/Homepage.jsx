@@ -21,8 +21,7 @@ import FeedSucesso from '../components/community/FeedSucesso';
 import NotificacoesPanel from '../components/community/NotificacoesPanel';
 import AtalhosComunidade from '../components/community/AtalhosComunidade';
 import UserProgressCard from '../components/student/UserProgressCard';
-import NotificationBell from '../components/layout/NotificationBell';
-import CommentNotifications from '../components/notifications/CommentNotifications';
+
 
 export default function Homepage() {
   const [user, setUser] = useState(null);

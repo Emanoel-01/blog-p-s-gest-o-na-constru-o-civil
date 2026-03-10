@@ -271,6 +271,14 @@ export default function MaterialTurmaPage() {
           </Card>
         )}
 
+        {/* Aba de Progresso */}
+        {aba === 'progresso' && (
+          <MaterialProgressoTab user={user} materiais={materiais} isAdmin={isAdmin} />
+        )}
+
+        {/* Conteúdo principal de materiais */}
+        {aba === 'materiais' && (<>
+
         {/* Filtros */}
         <Card>
           <CardContent className="p-4">

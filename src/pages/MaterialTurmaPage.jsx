@@ -277,7 +277,8 @@ export default function MaterialTurmaPage() {
         )}
 
         {/* Conteúdo principal de materiais */}
-        {aba === 'materiais' && (<>
+        {aba === 'materiais' && (
+        <div className="space-y-4">
 
         {/* Filtros */}
         <Card>

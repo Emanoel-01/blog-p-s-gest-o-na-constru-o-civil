@@ -333,11 +333,15 @@ export default function MaterialTurmaPage() {
                 material={material}
                 especializacoes={especializacoes}
                 isAdmin={isAdmin}
+                isProfessor={isProfessor}
+                user={user}
+                discente={discente}
                 onExcluir={(id) => excluirMutation.mutate(id)}
               />
             ))}
           </div>
         )}
+        </>)}
       </div>
     </>
   );

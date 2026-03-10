@@ -71,12 +71,24 @@ export default function MaterialTurmaPage() {
 
   const criarMutation = useMutation({
     mutationFn: (data) => base44.entities.MaterialTurma.create(data),
-    onSuccess: () => {
+    onSuccess: async (novoMaterial) => {
       queryClient.invalidateQueries({ queryKey: ['materiais-turma'] });
       setForm(materialVazio);
       setUploadFile(null);
       setShowForm(false);
       toast.success('Material cadastrado!');
+      // Notifica alunos da turma automaticamente
+      try {
+        await notificarNovoMaterial({
+          materialId: novoMaterial.id,
+          titulo: novoMaterial.titulo,
+          tipo: novoMaterial.tipo,
+          turma: novoMaterial.turma || ''
+        });
+        toast.success(`Alunos${novoMaterial.turma ? ` da turma ${novoMaterial.turma}` : ''} notificados!`);
+      } catch (e) {
+        console.warn('Falha ao notificar alunos:', e);
+      }
     }
   });
 

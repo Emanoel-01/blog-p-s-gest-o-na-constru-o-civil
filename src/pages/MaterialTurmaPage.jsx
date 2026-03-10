@@ -342,7 +342,8 @@ export default function MaterialTurmaPage() {
             ))}
           </div>
         )}
-        </>)}
+        </div>
+        )}
       </div>
     </>
   );

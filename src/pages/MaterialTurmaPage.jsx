@@ -1,15 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { BookOpen, FileText, Video, Link as LinkIcon, Image, Download, Search, ExternalLink, Plus, X, Trash2 } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Textarea } from '@/components/ui/textarea';
+import { BookOpen, FileText, Video, Link as LinkIcon, Image, Download, Search, ExternalLink, Plus, X, Trash2, Upload, Lock, Shield, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 const tipoIcons = {
@@ -30,18 +29,23 @@ const tipoColors = {
   Documento: 'bg-gray-100 text-gray-700',
 };
 
-const isAdmin = (user) => user && (user.role === 'admin' || ['emanoel.s.amorim@gmail.com','emanoel@esuda.edu.br','vdoval@gmail.com'].includes(user.email));
+const isAdminUser = (user) => user && (user.role === 'admin' || ['emanoel.s.amorim@gmail.com','emanoel@esuda.edu.br','vdoval@gmail.com'].includes(user.email));
 
-const materialVazio = { titulo: '', descricao: '', tipo: 'PDF', file_url: '', turma: '', disciplina_nome: '' };
+const TIPOS_UPLOAD = ['PDF', 'Slides', 'Imagem', 'Documento', 'Vídeo'];
+const TIPOS_LINK = ['Link Externo'];
+
+const materialVazio = { titulo: '', descricao: '', tipo: 'PDF', file_url: '', turma: '', disciplina_nome: '', permitir_download: false };
 
 export default function MaterialTurmaPage() {
   const [turmaFiltro, setTurmaFiltro] = useState('todas');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(materialVazio);
-  const queryClient = useQueryClient();
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [tipoFiltro, setTipoFiltro] = useState('todos');
   const [especFiltro, setEspecFiltro] = useState('todas');
   const [search, setSearch] = useState('');
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ['me'],
@@ -80,10 +84,11 @@ export default function MaterialTurmaPage() {
   }, [materiais, turmaFiltro, tipoFiltro, especFiltro, search]);
 
   const criarMutation = useMutation({
-    mutationFn: () => base44.entities.MaterialTurma.create(form),
+    mutationFn: (data) => base44.entities.MaterialTurma.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['materiais-turma'] });
       setForm(materialVazio);
+      setUploadFile(null);
       setShowForm(false);
       toast.success('Material cadastrado!');
     }
@@ -94,32 +99,145 @@ export default function MaterialTurmaPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['materiais-turma'] })
   });
 
+  const handleTipoChange = (v) => {
+    setForm({ ...form, tipo: v, file_url: '' });
+    setUploadFile(null);
+  };
+
+  const handleSalvar = async () => {
+    let file_url = form.file_url;
+    const isUploadTipo = TIPOS_UPLOAD.includes(form.tipo);
+
+    if (isUploadTipo && uploadFile) {
+      setUploading(true);
+      const { file_url: url } = await base44.integrations.Core.UploadFile({ file: uploadFile });
+      file_url = url;
+      setUploading(false);
+    }
+
+    if (!file_url.trim()) {
+      toast.error('Por favor, selecione um arquivo ou informe o URL.');
+      return;
+    }
+
+    criarMutation.mutate({ ...form, file_url });
+  };
+
   const renderPreview = (material) => {
     const tipo = material.tipo;
     const url = material.file_url;
+    const podeDownload = material.permitir_download;
 
-    if (tipo === 'Vídeo' && (url.includes('youtube.com') || url.includes('youtu.be'))) {
-      const videoId = url.includes('youtu.be') ? url.split('/').pop() : new URL(url).searchParams.get('v');
+    if (tipo === 'Vídeo' && (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com'))) {
+      let embedUrl = url;
+      if (url.includes('youtu.be')) {
+        embedUrl = `https://www.youtube.com/embed/${url.split('/').pop().split('?')[0]}`;
+      } else if (url.includes('youtube.com')) {
+        embedUrl = `https://www.youtube.com/embed/${new URL(url).searchParams.get('v')}`;
+      }
       return (
         <div className="aspect-video rounded-lg overflow-hidden mt-3">
-          <iframe
-            src={`https://www.youtube.com/embed/${videoId}`}
-            className="w-full h-full"
-            allowFullScreen
-            title={material.titulo}
-          />
+          <iframe src={embedUrl} className="w-full h-full" allowFullScreen title={material.titulo} />
         </div>
       );
     }
-    if (tipo === 'PDF') {
+
+    if (tipo === 'Imagem') {
       return (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mt-3 text-orange-600 hover:underline text-sm font-medium">
-          <Download className="w-4 h-4" /> Baixar PDF
-        </a>
+        <div className="mt-3 relative group">
+          <img
+            src={url}
+            alt={material.titulo}
+            className="w-full rounded-lg max-h-48 object-cover"
+            onContextMenu={podeDownload ? undefined : (e) => e.preventDefault()}
+            style={podeDownload ? {} : { userSelect: 'none', pointerEvents: 'none' }}
+          />
+          {!podeDownload && (
+            <div className="absolute inset-0 bg-transparent rounded-lg" />
+          )}
+          {podeDownload && (
+            <a href={url} download target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 mt-2 text-green-600 hover:underline text-sm font-medium">
+              <Download className="w-4 h-4" /> Baixar imagem
+            </a>
+          )}
+        </div>
       );
     }
+
+    if (tipo === 'PDF') {
+      if (podeDownload) {
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 mt-3 text-orange-600 hover:underline text-sm font-medium">
+            <Download className="w-4 h-4" /> Baixar PDF
+          </a>
+        );
+      }
+      return (
+        <div className="mt-3">
+          <iframe
+            src={`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`}
+            className="w-full h-64 rounded-lg border"
+            title={material.titulo}
+          />
+          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+            <Lock className="w-3 h-3" /> Apenas visualização — download não permitido
+          </p>
+        </div>
+      );
+    }
+
+    if (tipo === 'Slides') {
+      if (podeDownload) {
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 mt-3 text-yellow-600 hover:underline text-sm font-medium">
+            <Download className="w-4 h-4" /> Baixar Slides
+          </a>
+        );
+      }
+      return (
+        <div className="mt-3">
+          <iframe
+            src={`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`}
+            className="w-full h-64 rounded-lg border"
+            title={material.titulo}
+          />
+          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+            <Lock className="w-3 h-3" /> Apenas visualização — download não permitido
+          </p>
+        </div>
+      );
+    }
+
+    if (tipo === 'Documento') {
+      if (podeDownload) {
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 mt-3 text-gray-600 hover:underline text-sm font-medium">
+            <Download className="w-4 h-4" /> Baixar documento
+          </a>
+        );
+      }
+      return (
+        <div className="mt-3">
+          <iframe
+            src={`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`}
+            className="w-full h-64 rounded-lg border"
+            title={material.titulo}
+          />
+          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+            <Lock className="w-3 h-3" /> Apenas visualização — download não permitido
+          </p>
+        </div>
+      );
+    }
+
+    // Link Externo
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mt-3 text-blue-600 hover:underline text-sm font-medium">
+      <a href={url} target="_blank" rel="noopener noreferrer"
+        className="flex items-center gap-2 mt-3 text-blue-600 hover:underline text-sm font-medium">
         <ExternalLink className="w-4 h-4" /> Acessar material
       </a>
     );
@@ -139,6 +257,8 @@ export default function MaterialTurmaPage() {
       </Card>
     );
   }
+
+  const isUploadTipo = TIPOS_UPLOAD.includes(form.tipo);
 
   return (
     <>
@@ -160,7 +280,7 @@ export default function MaterialTurmaPage() {
           {discente?.numero_turma && (
             <Badge className="mt-2 bg-white/20 text-white">Sua turma: {discente.numero_turma}</Badge>
           )}
-          {isAdmin(user) && (
+          {isAdminUser(user) && (
             <Button onClick={() => setShowForm(!showForm)} className="mt-3 bg-white text-emerald-700 hover:bg-emerald-50 font-semibold">
               <Plus className="w-4 h-4 mr-1" /> Novo Material
             </Button>
@@ -168,30 +288,88 @@ export default function MaterialTurmaPage() {
         </div>
 
         {/* Formulário de cadastro — apenas admin */}
-        {isAdmin(user) && showForm && (
+        {isAdminUser(user) && showForm && (
           <Card className="border-2 border-emerald-300">
             <CardHeader className="bg-emerald-50 pb-3 flex flex-row items-center justify-between">
               <CardTitle className="text-base">Cadastrar Novo Material</CardTitle>
-              <button onClick={() => setShowForm(false)}><X className="w-5 h-5 text-gray-400" /></button>
+              <button onClick={() => { setShowForm(false); setUploadFile(null); }}><X className="w-5 h-5 text-gray-400" /></button>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
               <Input placeholder="Título do material*" value={form.titulo} onChange={e => setForm({...form, titulo: e.target.value})} />
               <Textarea placeholder="Descrição breve" value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})} rows={2} />
-              <Select value={form.tipo} onValueChange={v => setForm({...form, tipo: v})}>
+
+              <Select value={form.tipo} onValueChange={handleTipoChange}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {['Vídeo','PDF','Slides','Link Externo','Imagem','Documento'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Input placeholder="URL do arquivo ou link*" value={form.file_url} onChange={e => setForm({...form, file_url: e.target.value})} />
+
+              {/* Upload ou URL conforme o tipo */}
+              {isUploadTipo ? (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    <Upload className="w-4 h-4 inline mr-1" /> Selecionar arquivo para upload
+                  </label>
+                  <input
+                    type="file"
+                    accept={
+                      form.tipo === 'PDF' ? '.pdf' :
+                      form.tipo === 'Slides' ? '.ppt,.pptx,.pdf' :
+                      form.tipo === 'Imagem' ? 'image/*' :
+                      form.tipo === 'Documento' ? '.doc,.docx,.pdf,.txt' :
+                      form.tipo === 'Vídeo' ? 'video/*' :
+                      '*'
+                    }
+                    onChange={e => setUploadFile(e.target.files[0] || null)}
+                    className="block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 border border-gray-200 rounded-lg p-1"
+                  />
+                  {uploadFile && (
+                    <p className="text-xs text-emerald-600">✓ {uploadFile.name}</p>
+                  )}
+                </div>
+              ) : (
+                <Input placeholder="URL do link externo*" value={form.file_url} onChange={e => setForm({...form, file_url: e.target.value})} />
+              )}
+
+              {/* Controle de download */}
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+                <Shield className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-700">Permitir download?</p>
+                  <p className="text-xs text-gray-500">Se não, o arquivo ficará protegido — apenas visualização online</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm({...form, permitir_download: true})}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${form.permitir_download ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'}`}
+                  >
+                    Sim
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm({...form, permitir_download: false})}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${!form.permitir_download ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'}`}
+                  >
+                    Não
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <Input placeholder="Turma (ex: T01/2026)" value={form.turma} onChange={e => setForm({...form, turma: e.target.value})} />
                 <Input placeholder="Disciplina (opcional)" value={form.disciplina_nome} onChange={e => setForm({...form, disciplina_nome: e.target.value})} />
               </div>
+
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
-                <Button onClick={() => criarMutation.mutate()} disabled={!form.titulo.trim() || !form.file_url.trim() || criarMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700">
-                  Salvar Material
+                <Button variant="outline" onClick={() => { setShowForm(false); setUploadFile(null); }}>Cancelar</Button>
+                <Button
+                  onClick={handleSalvar}
+                  disabled={!form.titulo.trim() || (!uploadFile && !form.file_url.trim()) || uploading || criarMutation.isPending}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {uploading ? 'Enviando...' : 'Salvar Material'}
                 </Button>
               </div>
             </CardContent>
@@ -257,9 +435,17 @@ export default function MaterialTurmaPage() {
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Badge className={`text-xs mb-1 ${tipoColors[material.tipo] || tipoColors.Documento}`}>
-                          {material.tipo}
-                        </Badge>
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <Badge className={`text-xs ${tipoColors[material.tipo] || tipoColors.Documento}`}>
+                            {material.tipo}
+                          </Badge>
+                          {material.tipo !== 'Link Externo' && (
+                            <Badge className={`text-xs flex items-center gap-1 ${material.permitir_download ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                              {material.permitir_download ? <Download className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                              {material.permitir_download ? 'Download liberado' : 'Só visualização'}
+                            </Badge>
+                          )}
+                        </div>
                         <CardTitle className="text-sm leading-snug">{material.titulo}</CardTitle>
                       </div>
                     </div>
@@ -274,7 +460,7 @@ export default function MaterialTurmaPage() {
                       {material.disciplina_nome && <Badge variant="outline" className="text-xs">{material.disciplina_nome}</Badge>}
                     </div>
                     {renderPreview(material)}
-                    {isAdmin(user) && (
+                    {isAdminUser(user) && (
                       <button onClick={() => excluirMutation.mutate(material.id)} className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 mt-1">
                         <Trash2 className="w-3 h-3" /> Excluir
                       </button>

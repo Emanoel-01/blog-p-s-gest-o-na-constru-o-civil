@@ -195,11 +195,7 @@ export default function Homepage() {
               {profileType === 'docente' ? 'Área do Docente' : 'Área do Discente'}
             </p>
             
-            {/* Notificações no topo da home */}
-            <div className="flex justify-center gap-2 mt-4">
-              <NotificationBell userEmail={user.email} />
-              <CommentNotifications />
-            </div>
+
           </div>
 
           {/* Atalhos Rápidos */}

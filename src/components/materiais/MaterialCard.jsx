@@ -47,9 +47,8 @@ function MaterialPreview({ material, user, discente, isProfessor }) {
   });
 
   // Registra uma única vez quando o preview carrega com sucesso
-  React.useEffect(() => {
+  useEffect(() => {
     if (data && user?.email) {
-      // Verifica se já foi registrado nesta sessão
       const key = `vis_${material.id}_${user.email}`;
       if (!sessionStorage.getItem(key)) {
         sessionStorage.setItem(key, '1');

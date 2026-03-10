@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, FileText, Video, Link as LinkIcon, Image, Download, ExternalLink, Trash2, Lock } from 'lucide-react';
 import { serveMaterial } from '@/functions/serveMaterial';
+import { base44 } from '@/api/base44Client';
+import MaterialComentarios from './MaterialComentarios';
 
 const tipoIcons = {
   Vídeo: Video,
@@ -23,12 +25,38 @@ const tipoColors = {
   Documento: 'bg-gray-100 text-gray-700',
 };
 
-function MaterialPreview({ material }) {
+function MaterialPreview({ material, user, discente, isProfessor }) {
+  const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ['serveMaterial', material.id],
     queryFn: () => serveMaterial({ materialId: material.id }).then(r => r.data),
-    staleTime: 50 * 60 * 1000, // 50 min (URL expira em 60)
+    staleTime: 50 * 60 * 1000,
   });
+
+  // Registra visualização ao carregar o preview
+  const registrarMutation = useMutation({
+    mutationFn: () => base44.entities.MaterialVisualizacao.create({
+      material_id: material.id,
+      aluno_email: user?.email,
+      aluno_nome: user?.full_name || discente?.nome || user?.email,
+      turma: discente?.numero_turma || '',
+      material_titulo: material.titulo,
+      material_tipo: material.tipo
+    }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['visualizacoes-aluno'] })
+  });
+
+  // Registra uma única vez quando o preview carrega com sucesso
+  React.useEffect(() => {
+    if (data && user?.email) {
+      // Verifica se já foi registrado nesta sessão
+      const key = `vis_${material.id}_${user.email}`;
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, '1');
+        registrarMutation.mutate();
+      }
+    }
+  }, [data, user?.email]);
 
   if (isLoading) {
     return <div className="mt-3 h-8 flex items-center text-xs text-gray-400 animate-pulse">Carregando...</div>;

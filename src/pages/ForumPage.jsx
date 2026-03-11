@@ -98,31 +98,48 @@ export default function ForumPage() {
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
-            {topico.autor_foto
-              ? <img src={topico.autor_foto} alt={topico.autor_nome} className="w-full h-full object-cover" />
-              : <User className="w-5 h-5 text-gray-400" />
-            }
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              {topico.pinned && <Pin className="w-3.5 h-3.5 text-yellow-600 flex-shrink-0" />}
-              {topico.fechado && <Lock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
-              <Badge className={`text-xs ${catColors[topico.categoria] || catColors.Geral}`}>
-                {topico.categoria}
-              </Badge>
+          <div
+            className="flex items-start gap-3 flex-1 min-w-0 cursor-pointer"
+            onClick={() => navigate(createPageUrl('ForumTopicoPage') + '?id=' + topico.id)}
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {topico.autor_foto
+                ? <img src={topico.autor_foto} alt={topico.autor_nome} className="w-full h-full object-cover" />
+                : <User className="w-5 h-5 text-gray-400" />
+              }
             </div>
-            <h3 className="font-semibold text-gray-900 text-sm md:text-base line-clamp-2">{topico.titulo}</h3>
-            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{topico.conteudo}</p>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-gray-400">por {topico.autor_nome} · {formatDate(topico.created_date)}</span>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <MessageSquare className="w-3.5 h-3.5" />
-                {topico.total_respostas || 0}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                {topico.pinned && <Pin className="w-3.5 h-3.5 text-yellow-600 flex-shrink-0" />}
+                {topico.fechado && <Lock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
+                <Badge className={`text-xs ${catColors[topico.categoria] || catColors.Geral}`}>
+                  {topico.categoria}
+                </Badge>
+              </div>
+              <h3 className="font-semibold text-gray-900 text-sm md:text-base line-clamp-2">{topico.titulo}</h3>
+              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{topico.conteudo}</p>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-xs text-gray-400">por {topico.autor_nome} · {formatDate(topico.created_date)}</span>
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  {topico.total_respostas || 0}
+                </div>
               </div>
             </div>
+            <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0 mt-2" />
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0 mt-2" />
+          {(isAdmin(user) || topico.autor_email === user?.email) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm('Excluir este tópico?')) excluirMutation.mutate(topico.id);
+              }}
+              className="text-red-400 hover:text-red-600 p-1 flex-shrink-0 mt-1"
+              title="Excluir tópico"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </CardContent>
     </Card>

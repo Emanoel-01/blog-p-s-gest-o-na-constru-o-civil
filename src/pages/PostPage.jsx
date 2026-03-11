@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, Link, Navigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { ArrowLeft, Share2, Calendar, Tag, User, Users, Handshake, Image as Imag
 import ImageViewer from '../components/blog/ImageViewer';
 import PDFGallery from '../components/blog/PDFGallery';
 import { toast } from 'sonner';
+import { usePostTracking } from '../components/blog/usePostTracking';
 
 const generateSlug = (titulo, id) => {
   if (!titulo || !id) return '';

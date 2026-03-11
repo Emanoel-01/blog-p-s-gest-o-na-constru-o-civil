@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Save, X, Upload, Trash2, Edit, Calendar, Eye, Clock, CheckCircle, FileText, BarChart2 } from 'lucide-react';
-import BlogAnalyticsDashboard from './BlogAnalyticsDashboard';
+import BlogAnalyticsDashboard from '../blog/BlogAnalyticsDashboard';
 import { toast } from 'sonner';
 import RichTextEditor from '../editor/RichTextEditor';
 import AIBlogPostGenerator from './AIBlogPostGenerator';

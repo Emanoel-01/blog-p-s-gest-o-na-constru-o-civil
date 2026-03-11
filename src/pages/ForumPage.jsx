@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquare, Pin, Lock, Plus, Search, ChevronRight, User } from 'lucide-react';
+import { MessageSquare, Pin, Lock, Plus, Search, ChevronRight, User, Trash2 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';

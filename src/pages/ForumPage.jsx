@@ -51,6 +51,14 @@ export default function ForumPage() {
     queryFn: () => base44.entities.ForumTopico.list('-created_date')
   });
 
+  const excluirMutation = useMutation({
+    mutationFn: (id) => base44.entities.ForumTopico.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['forum-topicos'] });
+      toast.success('Tópico excluído.');
+    }
+  });
+
   const criarMutation = useMutation({
     mutationFn: () => {
       return base44.entities.ForumTopico.create({

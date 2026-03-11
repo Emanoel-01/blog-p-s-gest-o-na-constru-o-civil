@@ -130,6 +130,18 @@ export default function MaterialTurmaPage() {
     criarMutation.mutate({ ...form, file_url });
   };
 
+  const isAdmin = isAdminUser(user);
+
+  // Verifica se o usuário logado é professor (hook DEVE ficar antes de qualquer return)
+  const { data: professor } = useQuery({
+    queryKey: ['professor-me', user?.email],
+    queryFn: () => base44.entities.Professor.filter({ email: user.email }).then(r => r[0]),
+    enabled: !!user?.email && !isAdmin
+  });
+  const isProfessor = isAdmin || !!professor;
+
+  const isUploadTipo = TIPOS_UPLOAD.includes(form.tipo);
+
   if (!user) {
     return (
       <Card className="border-2 border-yellow-300 bg-yellow-50">
@@ -144,17 +156,6 @@ export default function MaterialTurmaPage() {
       </Card>
     );
   }
-
-  const isUploadTipo = TIPOS_UPLOAD.includes(form.tipo);
-  const isAdmin = isAdminUser(user);
-
-  // Verifica se o usuário logado é professor
-  const { data: professor } = useQuery({
-    queryKey: ['professor-me', user?.email],
-    queryFn: () => base44.entities.Professor.filter({ email: user.email }).then(r => r[0]),
-    enabled: !!user?.email && !isAdmin
-  });
-  const isProfessor = isAdmin || !!professor;
 
   return (
     <>

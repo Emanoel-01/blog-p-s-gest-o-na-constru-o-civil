@@ -92,8 +92,7 @@ export default function ForumPage() {
   const TopicoCard = ({ topico }) => (
     <Card
       key={topico.id}
-      onClick={() => navigate(createPageUrl('ForumTopicoPage') + '?id=' + topico.id)}
-      className={`border-2 hover:shadow-md transition-all cursor-pointer ${
+      className={`border-2 hover:shadow-md transition-all ${
         topico.pinned ? 'border-yellow-300 bg-yellow-50/40' : 'border-gray-200 hover:border-blue-300'
       }`}
     >

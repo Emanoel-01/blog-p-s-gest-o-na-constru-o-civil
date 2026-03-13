@@ -291,7 +291,6 @@ Deno.serve(async (req) => {
             inscricao_paga: inscricaoPaga,
             grupo_monitoramento: grupoMonitoramento,
             curso_e_legacy: isLegacy,
-            ultima_sincronizacao: new Date().toISOString(),
             status_crm: 'Novo'
           });
         }

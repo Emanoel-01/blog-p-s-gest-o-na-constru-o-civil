@@ -347,8 +347,18 @@ Deno.serve(async (req) => {
 
         const inscricao_paga = inscritoData.inscricao_paga || existing.inscricao_paga;
 
-        toUpdate.push({ id: existing.id, ...inscritoData, status_crm, inscricao_paga });
-        stats.updated++;
+        // Só atualizar se algo realmente mudou (evita updates desnecessários que causam rate limit)
+        const needsUpdate = (
+          existing.telefone_sanitizado !== inscritoData.telefone_sanitizado ||
+          existing.inscricao_paga !== inscricao_paga ||
+          existing.vinculo_curso !== inscritoData.vinculo_curso ||
+          existing.grupo_monitoramento !== inscritoData.grupo_monitoramento
+        );
+
+        if (needsUpdate) {
+          toUpdate.push({ id: existing.id, ...inscritoData, status_crm, inscricao_paga });
+          stats.updated++;
+        }
       } else {
         toCreate.push(inscritoData);
         stats.created++;

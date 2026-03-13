@@ -132,7 +132,6 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('googlesheets');
-    if (!accessToken) throw new Error('Não foi possível obter o accessToken do Google Sheets connector.');
     
     const sheetsResponse = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}`,

@@ -389,18 +389,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Updates em lotes de 20 com delay entre lotes para evitar rate limit e timeout
-    const UPDATE_BATCH_SIZE = 20;
+    // Updates sequenciais com delay para evitar rate limit
     if (toUpdate.length > 0) {
-      console.log(`Atualizando ${toUpdate.length} inscritos em lotes de ${UPDATE_BATCH_SIZE}...`);
-      for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH_SIZE) {
-        const batch = toUpdate.slice(i, i + UPDATE_BATCH_SIZE);
-        await Promise.all(batch.map(({ id, ...data }) =>
-          executeWithRetry(() => base44.asServiceRole.entities.Inscrito.update(id, data))
-        ));
-        if (i + UPDATE_BATCH_SIZE < toUpdate.length) {
-          console.log(`Atualizados ${Math.min(i + UPDATE_BATCH_SIZE, toUpdate.length)}/${toUpdate.length}...`);
-          await sleep(2000); // pausa de 2s entre lotes
+      console.log(`Atualizando ${toUpdate.length} inscritos com mudanças reais...`);
+      for (let i = 0; i < toUpdate.length; i++) {
+        const { id, ...data } = toUpdate[i];
+        await executeWithRetry(() => base44.asServiceRole.entities.Inscrito.update(id, data));
+        await sleep(500); // 500ms entre cada update
+        if (i > 0 && i % 20 === 0) {
+          console.log(`Atualizados ${i}/${toUpdate.length}...`);
+          await sleep(3000); // pausa maior a cada 20 updates
         }
       }
     }

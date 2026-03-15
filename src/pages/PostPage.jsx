@@ -549,7 +549,17 @@ export default function PostPage() {
 
                         {midia.tipo === 'link' && midia.url && (
                           <div className="space-y-4">
-                            {isInstagram ? (
+                            {isYouTube ? (
+                              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                                <iframe
+                                  src={embedUrl}
+                                  className="absolute top-0 left-0 w-full h-full rounded-lg"
+                                  frameBorder="0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                            ) : isInstagram ? (
                               <div className="w-full max-w-lg mx-auto">
                                 <iframe
                                   src={embedUrl}

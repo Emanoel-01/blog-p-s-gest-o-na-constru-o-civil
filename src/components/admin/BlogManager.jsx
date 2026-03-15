@@ -236,7 +236,7 @@ ${postForm.conteudo_completo}`,
           <CardHeader>
             <CardTitle className="text-lg flex items-center justify-between">
               <span>{editingPost ? 'Editar Post' : 'Novo Post'}</span>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   size="sm"
                   variant={editorMode === 'visual' ? 'default' : 'outline'}
@@ -253,6 +253,18 @@ ${postForm.conteudo_completo}`,
                   className={editorMode === 'codigo' ? 'bg-pink-600' : ''}
                 >
                   {'</>'}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleAIEdit}
+                  disabled={aiEditando}
+                  className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 text-white"
+                >
+                  {aiEditando ? (
+                    <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Aprimorando...</>
+                  ) : (
+                    <><Sparkles className="w-4 h-4 mr-1" />✨ Aprimorar com IA</>
+                  )}
                 </Button>
               </div>
             </CardTitle>

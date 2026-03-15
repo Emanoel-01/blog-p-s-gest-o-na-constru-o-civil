@@ -75,6 +75,40 @@ export default function BlogManager({
   const [novaCategoria, setNovaCategoria] = useState('');
   const [novaSubcategoria, setNovaSubcategoria] = useState('');
   const [mostrarCamposPersonalizados, setMostrarCamposPersonalizados] = useState(false);
+  const [aiEditando, setAiEditando] = useState(false);
+
+  const handleAIEdit = async () => {
+    if (!postForm.conteudo_completo?.trim()) {
+      toast.error('Escreva algum conteúdo antes de usar a IA!');
+      return;
+    }
+    setAiEditando(true);
+    try {
+      const { base44 } = await import('@/api/base44Client');
+      const resultado = await base44.integrations.Core.InvokeLLM({
+        prompt: `Você é um editor de conteúdo especializado em educação e pós-graduação. 
+Aprimore o seguinte texto HTML de post de blog, mantendo toda a estrutura HTML intacta.
+
+Melhorias a aplicar:
+- Melhore a fluidez e clareza do texto
+- Corrija erros gramaticais e de ortografia
+- Torne o texto mais envolvente e profissional
+- Mantenha o tom acadêmico/institucional da ESUDA
+- Preserve todos os títulos, listas, links e tags HTML exatamente como estão
+- Retorne APENAS o HTML aprimorado, sem comentários ou explicações
+
+Título do post: ${postForm.titulo}
+Texto atual:
+${postForm.conteudo_completo}`,
+      });
+      setPostForm(prev => ({ ...prev, conteudo_completo: resultado }));
+      toast.success('Texto aprimorado com IA! Revise e salve.');
+    } catch (error) {
+      toast.error('Erro ao usar IA: ' + error.message);
+    } finally {
+      setAiEditando(false);
+    }
+  };
 
   const handleUploadImagemDestaque = async (e) => {
     const file = e.target.files?.[0];

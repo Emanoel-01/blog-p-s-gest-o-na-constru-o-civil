@@ -477,8 +477,15 @@ export default function PostPage() {
                                 />
                               </div>
                             ) : (
-                              <video controls preload="metadata" loading="lazy" className="w-full rounded-lg">
-                                <source src={midia.url} />
+                              <video
+                                controls
+                                preload="metadata"
+                                className="w-full rounded-lg"
+                                style={{ maxHeight: '500px' }}
+                              >
+                                <source src={midia.url} type="video/mp4" />
+                                <source src={midia.url} type="video/webm" />
+                                <source src={midia.url} type="video/ogg" />
                                 Seu navegador não suporta o elemento de vídeo.
                               </video>
                             )}

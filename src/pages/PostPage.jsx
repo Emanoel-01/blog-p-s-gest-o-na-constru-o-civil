@@ -397,11 +397,17 @@ export default function PostPage() {
                     const isYouTube = midia.url?.includes('youtube.com') || midia.url?.includes('youtu.be');
                     const isInstagram = midia.url?.includes('instagram.com');
                     
+                    const getYouTubeId = (url) => {
+                      if (!url) return null;
+                      if (url.includes('youtu.be/')) return url.split('youtu.be/')[1]?.split('?')[0];
+                      if (url.includes('/shorts/')) return url.split('/shorts/')[1]?.split('?')[0];
+                      if (url.includes('v=')) return url.split('v=')[1]?.split('&')[0];
+                      return null;
+                    };
+
                     let embedUrl = midia.url;
                     if (isYouTube) {
-                      const videoId = midia.url.includes('youtu.be') 
-                        ? midia.url.split('youtu.be/')[1]?.split('?')[0]
-                        : midia.url.split('v=')[1]?.split('&')[0];
+                      const videoId = getYouTubeId(midia.url);
                       embedUrl = `https://www.youtube.com/embed/${videoId}`;
                     } else if (isInstagram && midia.url.includes('/reel/')) {
                       const reelId = midia.url.split('/reel/')[1]?.split('/')[0];

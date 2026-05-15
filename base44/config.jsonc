@@ -1,0 +1,9 @@
+{
+  "name": "Esuda - Comunidade Acad\u00eamica - Coordenador Emanoel Amorim ",
+  "site": {
+    "installCommand": "npm install",
+    "buildCommand": "npm run build",
+    "serveCommand": "npm run dev",
+    "outputDirectory": "./dist"
+  }
+}

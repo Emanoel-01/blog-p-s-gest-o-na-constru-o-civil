@@ -1,0 +1,38 @@
+{
+  "name": "Notifica\u00e7\u00f5es Autom\u00e1ticas de Eventos",
+  "description": "Envia notifica\u00e7\u00f5es automaticamente aos discentes quando um evento \u00e9 criado ou atualizado",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "EventoDiscente"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "notifica_es_autom_ticas_de_eventos",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyDiscentesEvento",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "notifyDiscentesEvento"
+  }
+}
